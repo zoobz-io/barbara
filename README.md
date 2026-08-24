@@ -1,10 +1,10 @@
-# Sumatra
+# Barbara
 
 A template repository for building Go applications with the zoobz-io framework.
 
 ## Overview
 
-Sumatra provides a production-ready project structure built on [sum](https://github.com/zoobz-io/sum), following patterns established in real-world applications. It includes:
+Barbara provides a production-ready project structure built on [sum](https://github.com/zoobz-io/sum), following patterns established in real-world applications. It includes:
 
 - Type-safe service registry via sum
 - HTTP server with OpenAPI support via rocco
@@ -16,7 +16,7 @@ Sumatra provides a production-ready project structure built on [sum](https://git
 ## Project Structure
 
 ```
-Sumatra/
+Barbara/
 ├── cmd/app/          # Application entrypoint
 ├── config/           # Configuration types
 ├── contracts/        # Interface definitions

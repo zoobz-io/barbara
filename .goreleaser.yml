@@ -1,10 +1,10 @@
 version: 2
-project_name: sumatra
+project_name: barbara
 
 builds:
-  - id: sumatra
+  - id: barbara
     main: ./cmd/app
-    binary: sumatra
+    binary: barbara
     env:
       - CGO_ENABLED=0
     goos:
@@ -21,7 +21,7 @@ builds:
 archives:
   - id: binary
     builds:
-      - sumatra
+      - barbara
     name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
     files:
       - LICENSE
@@ -45,6 +45,6 @@ changelog:
 release:
   github:
     owner: zoobz-io
-    name: sumatra
+    name: barbara
   draft: false
   prerelease: auto
