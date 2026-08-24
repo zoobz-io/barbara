@@ -17,14 +17,16 @@ documentation sites and customer sites alike.
 - Not a renderer. Barbara stores and serves markdown; what consumers do with it
   is out of scope.
 - Not a git sync. Content moves out of git, one direction, once.
-- Not an identity provider. Users, tenants, and sessions belong to janus.
+- Not an identity provider. Users, tenants, and sessions belong to
+  [janus](https://github.com/zoobz-io/janus).
 - No public consumers in the traditional sense. Barbara is an admin utility for
   sites; every consumer is either an authenticated user or a mesh service.
 
 ## Storage model
 
 Dual storage. Postgres holds the authoring side: logical documents, immutable
-versions, tags, system metadata. OpenSearch holds one document per *published*
+versions, tags, system metadata. [OpenSearch](https://opensearch.org) holds one
+document per *published*
 document: the merge of the pg document (tags, system metadata) and the published
 version's content. The site-facing APIs — pages and search — read OpenSearch
 only, which is what makes full-text search over exclusively published content
@@ -63,7 +65,8 @@ Deliberately a simple table so the future extraction design can extend it —
 new columns or a side table keyed by `version_id`, whichever that design wants.
 
 - `id`, `document_id`, `tenant_id`, monotonic `version_number` per document.
-- `content` — the full markdown, inline. Departure from argus (object storage
+- `content` — the full markdown, inline. Departure from
+  [argus](https://github.com/zoobz-io/argus) (object storage
   + hash) is intentional: markdown is small text, and inline content keeps
   versions self-contained for rollback and reindex.
 - `created_by`, `created_at`.
@@ -74,8 +77,9 @@ both preserved.
 
 ### asset (object storage)
 
-Binary blobs — images and whatever else markdown references. Grub bucket
-(MinIO dev / S3-compatible prod), not postgres, not OpenSearch.
+Binary blobs — images and whatever else markdown references.
+[Grub](https://github.com/zoobz-io/grub) bucket ([MinIO](https://min.io) dev /
+S3-compatible prod), not postgres, not OpenSearch.
 
 - `key` — unique per tenant, user-supplied, opaque.
 - Same key on upload = overwrite. No versioning. An asset is an asset.
@@ -119,7 +123,8 @@ without touching postgres.
 
 Services authenticate to each other with mesh CA client certificates. Barbara
 wraps user requests and delegates identity and entitlement checks to janus over
-the mesh (the aegis gRPC surface). Barbara has no user table, no sessions of
+the mesh (the [aegis](https://github.com/zoobz-io/aegis) gRPC surface).
+Barbara has no user table, no sessions of
 its own, and no API keys.
 
 ## API surface (v1)
@@ -139,20 +144,24 @@ Site-facing — mesh services, reads OpenSearch only:
   pages" requires enumeration).
 - Full-text search over published content, tenant-scoped.
 
-Events (capitan, internal): document created/renamed/deleted, version saved,
+Events ([capitan](https://github.com/zoobz-io/capitan), internal): document
+created/renamed/deleted, version saved,
 published/unpublished/rolled back, tags changed, asset written/deleted, index
 write succeeded/failed. Emitted after commit, per house rules.
 
 ## Machinery ported from argus
 
-- Typed OpenSearch through the house stack: `grub/opensearch` provider →
-  `sum.NewSearch[DocumentIndex]` → `lucene.Builder` typed queries. No raw OS
-  clients, no hand-written queries.
+- Typed OpenSearch through the house stack:
+  [`grub/opensearch`](https://github.com/zoobz-io/grub) provider →
+  [`sum`](https://github.com/zoobz-io/sum)`.NewSearch[DocumentIndex]` →
+  [`lucene`](https://github.com/zoobz-io/lucene)`.Builder` typed queries.
+  No raw OS clients, no hand-written queries.
 - Index mappings as migrations: embedded JSON files under
   `database/migrations/opensearch/`, applied by boot (`EnsureIndices`).
 - Tenant scoping enforced in the search store: scoped `Search` that refuses to
   run without a tenant, separate `SearchAll` for admin.
-- Jobs table + pipz pipeline for async OS writes needing retry.
+- Jobs table + [pipz](https://github.com/zoobz-io/pipz) pipeline for async OS
+  writes needing retry.
 
 ## Deferred, deliberately
 
