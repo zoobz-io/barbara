@@ -13,7 +13,7 @@ Provide transformations specific to admin needs. Admin transformers may expose m
 package transformers
 
 import (
-    "github.com/zoobz-io/barbara/models"
+    "github.com/zoobz-io/barbara/database/models"
     "github.com/zoobz-io/barbara/wire"
 )
 

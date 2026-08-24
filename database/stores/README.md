@@ -24,7 +24,7 @@ import (
     "github.com/jmoiron/sqlx"
     "github.com/zoobz-io/astql"
     "github.com/zoobz-io/sum"
-    "github.com/zoobz-io/barbara/models"
+    "github.com/zoobz-io/barbara/database/models"
 )
 
 type Users struct {
@@ -84,7 +84,7 @@ func New(db *sqlx.DB, renderer astql.Renderer, bucket grub.BucketProvider) (*Sto
 The same store instance can be registered against different contracts in each binary:
 
 ```go
-// cmd/app/main.go (public API)
+// cmd/api/main.go (public API)
 allStores, _ := stores.New(db, renderer, bucket)
 sum.Register[apicontracts.Users](k, allStores.Users)  // Minimal interface
 

@@ -16,10 +16,10 @@ help: ## Display available commands
 
 build: ## Build the application binary
 	@mkdir -p $(BIN_DIR)
-	@go build -o $(BIN_DIR)/$(APP_NAME) ./cmd/app
+	@go build -o $(BIN_DIR)/$(APP_NAME) ./cmd/api
 
 run: ## Run the application locally
-	@go run ./cmd/app
+	@go run ./cmd/api
 
 # =============================================================================
 # Docker Development Environment
