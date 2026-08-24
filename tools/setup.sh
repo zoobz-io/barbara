@@ -81,6 +81,23 @@ else
 fi
 
 # ---------------------------------------------------------------------------
+# C compiler — `make test` runs `go test -race`, which needs cgo and therefore
+# a C toolchain. Without it tests fail with "-race requires cgo".
+# ---------------------------------------------------------------------------
+step "gcc (for cgo / -race)"
+if command -v gcc >/dev/null 2>&1; then
+	ok "gcc present ($(gcc --version | head -1))"
+elif command -v cc >/dev/null 2>&1; then
+	ok "cc present ($(cc --version | head -1))"
+elif command -v apt-get >/dev/null 2>&1; then
+	$SUDO apt-get update -qq
+	$SUDO apt-get install -y -qq gcc
+	ok "installed gcc via apt"
+else
+	warn "no C compiler and no apt-get; install gcc yourself or 'make test' (-race) won't run"
+fi
+
+# ---------------------------------------------------------------------------
 # Go toolchain
 # ---------------------------------------------------------------------------
 step "Go ${GO_VERSION}"
