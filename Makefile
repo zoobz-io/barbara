@@ -1,4 +1,4 @@
-.PHONY: build run test test-unit test-integration test-bench lint lint-fix coverage clean help check ci install-tools install-hooks dev dev-down dev-logs dev-reset
+.PHONY: build run test test-unit test-integration test-bench lint lint-fix coverage clean help check ci setup install-tools install-hooks dev dev-down dev-logs dev-reset
 
 .DEFAULT_GOAL := help
 
@@ -93,6 +93,9 @@ clean: ## Remove generated files
 	@find . -name "*.test" -delete
 	@find . -name "*.prof" -delete
 	@find . -name "*.out" -delete
+
+setup: ## Bootstrap the dev toolchain (Go, linters, air) — idempotent
+	@bash tools/setup.sh
 
 install-tools: ## Install development tools
 	@go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.7.2

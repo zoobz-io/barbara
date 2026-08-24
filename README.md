@@ -65,8 +65,18 @@ make check
 
 ### Install Tools
 
+A fresh machine or container has no Go and no make. Bootstrap the whole
+toolchain — the pinned Go, golangci-lint, gosec, and air — in one idempotent
+step:
+
 ```bash
-make install-tools
+bash tools/setup.sh   # first time, before make exists
+make setup            # same script, once make is on PATH
+```
+
+Then the git hook (optional):
+
+```bash
 make install-hooks
 ```
 
@@ -74,6 +84,7 @@ make install-hooks
 
 | Command | Description |
 |---------|-------------|
+| `make setup` | Bootstrap the dev toolchain (idempotent) |
 | `make build` | Build the application binary |
 | `make run` | Run the application |
 | `make test` | Run all tests with race detector |
