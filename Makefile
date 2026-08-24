@@ -2,7 +2,7 @@
 
 .DEFAULT_GOAL := help
 
-APP_NAME := Sumatra
+APP_NAME := Barbara
 BIN_DIR := bin
 
 help: ## Display available commands

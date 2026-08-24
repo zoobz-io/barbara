@@ -15,9 +15,9 @@ package handlers
 import (
     "github.com/zoobz-io/rocco"
     "github.com/zoobz-io/sum"
-    "github.com/zoobz-io/sumatra/admin/contracts"
-    "github.com/zoobz-io/sumatra/admin/transformers"
-    "github.com/zoobz-io/sumatra/wire"
+    "github.com/zoobz-io/barbara/admin/contracts"
+    "github.com/zoobz-io/barbara/admin/transformers"
+    "github.com/zoobz-io/barbara/wire"
 )
 
 var ListUsers = rocco.GET("/users", func(req *rocco.Request[rocco.NoBody]) (wire.AdminUserListResponse, error) {

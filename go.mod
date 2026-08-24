@@ -1,4 +1,4 @@
-module github.com/zoobz-io/sumatra
+module github.com/zoobz-io/barbara
 
 go 1.25.0
 

@@ -48,7 +48,7 @@ func New(ctx context.Context, cfg Config) (*Providers, error) {
 	cfg.Endpoint = strings.TrimPrefix(cfg.Endpoint, "https://")
 
 	if cfg.ServiceName == "" {
-		cfg.ServiceName = "Sumatra"
+		cfg.ServiceName = "Barbara"
 	}
 
 	// Create shared resource with service name.

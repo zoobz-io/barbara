@@ -9,12 +9,12 @@ Configure and initialize OpenTelemetry providers for logging, metrics, and traci
 ## Usage
 
 ```go
-import intotel "github.com/zoobz-io/sumatra/internal/otel"
+import intotel "github.com/zoobz-io/barbara/internal/otel"
 
 // Create providers
 otelProviders, err := intotel.New(ctx, intotel.Config{
     Endpoint:    "localhost:4318",  // OTEL Collector
-    ServiceName: "Sumatra",
+    ServiceName: "Barbara",
 })
 if err != nil {
     return fmt.Errorf("failed to create otel providers: %w", err)
@@ -35,7 +35,7 @@ ap, err := aperture.New(
 | Field | Description | Default |
 |-------|-------------|---------|
 | `Endpoint` | OTLP HTTP endpoint | `localhost:4318` |
-| `ServiceName` | Service name in telemetry | `Sumatra` |
+| `ServiceName` | Service name in telemetry | `Barbara` |
 
 ## Environment Variables
 
@@ -43,7 +43,7 @@ The application reads these for configuration:
 
 ```bash
 OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
-OTEL_SERVICE_NAME=Sumatra
+OTEL_SERVICE_NAME=Barbara
 ```
 
 ## Providers

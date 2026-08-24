@@ -26,8 +26,8 @@ func run() error {
     defer func() { _ = db.Close() }()
 
     // 4. Create and register stores
-    // Import: "github.com/zoobz-io/sumatra/api/stores"
-    // Import: "github.com/zoobz-io/sumatra/api/contracts"
+    // Import: "github.com/zoobz-io/barbara/api/stores"
+    // Import: "github.com/zoobz-io/barbara/api/contracts"
     allStores, err := stores.New(db, renderer, bucketProvider)
     sum.Register[contracts.Users](k, allStores.Users)
 
@@ -39,7 +39,7 @@ func run() error {
     sum.Freeze(k)
 
     // 7. Register handlers and run
-    // Import: "github.com/zoobz-io/sumatra/api/handlers"
+    // Import: "github.com/zoobz-io/barbara/api/handlers"
     svc.Handle(handlers.All()...)
     return svc.Run("", appCfg.Port)
 }

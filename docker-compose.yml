@@ -6,15 +6,15 @@ services:
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_DB: Sumatra
-      POSTGRES_USER: Sumatra
-      POSTGRES_PASSWORD: Sumatra
+      POSTGRES_DB: Barbara
+      POSTGRES_USER: Barbara
+      POSTGRES_PASSWORD: Barbara
     ports:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U Sumatra"]
+      test: ["CMD-SHELL", "pg_isready -U Barbara"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -28,7 +28,7 @@ services:
       - ./migrations:/migrations:ro
     environment:
       GOOSE_DRIVER: postgres
-      GOOSE_DBSTRING: "host=postgres port=5432 user=Sumatra password=Sumatra dbname=Sumatra sslmode=disable"
+      GOOSE_DBSTRING: "host=postgres port=5432 user=Barbara password=Barbara dbname=Barbara sslmode=disable"
       GOOSE_MIGRATION_DIR: /migrations
 
   redis:
@@ -47,8 +47,8 @@ services:
     image: minio/minio:latest
     command: server /data --console-address ":9001"
     environment:
-      MINIO_ROOT_USER: Sumatra
-      MINIO_ROOT_PASSWORD: Sumatradev
+      MINIO_ROOT_USER: Barbara
+      MINIO_ROOT_PASSWORD: Barbaradev
     ports:
       - "9000:9000"
       - "9001:9001"
@@ -140,19 +140,19 @@ services:
       APP_PORT: "8080"
       APP_DB_HOST: postgres
       APP_DB_PORT: "5432"
-      APP_DB_NAME: Sumatra
-      APP_DB_USER: Sumatra
-      APP_DB_PASSWORD: Sumatra
+      APP_DB_NAME: Barbara
+      APP_DB_USER: Barbara
+      APP_DB_PASSWORD: Barbara
       APP_DB_SSLMODE: disable
       APP_REDIS_ADDR: redis:6379
       APP_STORAGE_ENDPOINT: minio:9000
-      APP_STORAGE_ACCESS_KEY: Sumatra
-      APP_STORAGE_SECRET_KEY: Sumatradev
-      APP_STORAGE_BUCKET: Sumatra
+      APP_STORAGE_ACCESS_KEY: Barbara
+      APP_STORAGE_SECRET_KEY: Barbaradev
+      APP_STORAGE_BUCKET: Barbara
       APP_STORAGE_USE_SSL: "false"
       APP_ENCRYPTION_KEY: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
       OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
-      OTEL_SERVICE_NAME: Sumatra
+      OTEL_SERVICE_NAME: Barbara
     ports:
       - "8080:8080"
     volumes:
