@@ -13,7 +13,7 @@ Provide a clean separation between internal models and API types. Transformers h
 package transformers
 
 import (
-    "github.com/zoobz-io/barbara/models"
+    "github.com/zoobz-io/barbara/database/models"
     "github.com/zoobz-io/barbara/wire"
 )
 

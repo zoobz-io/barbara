@@ -3,7 +3,7 @@ project_name: barbara
 
 builds:
   - id: barbara
-    main: ./cmd/app
+    main: ./cmd/api
     binary: barbara
     env:
       - CGO_ENABLED=0

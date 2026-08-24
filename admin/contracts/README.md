@@ -15,7 +15,7 @@ package contracts
 import (
     "context"
 
-    "github.com/zoobz-io/barbara/models"
+    "github.com/zoobz-io/barbara/database/models"
 )
 
 type Users interface {

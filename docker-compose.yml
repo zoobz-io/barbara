@@ -25,7 +25,7 @@ services:
       postgres:
         condition: service_healthy
     volumes:
-      - ./migrations:/migrations:ro
+      - ./database/migrations:/migrations:ro
     environment:
       GOOSE_DRIVER: postgres
       GOOSE_DBSTRING: "host=postgres port=5432 user=Barbara password=Barbara dbname=Barbara sslmode=disable"

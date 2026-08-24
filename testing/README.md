@@ -18,7 +18,7 @@ package testing
 import (
     "testing"
 
-    "github.com/zoobz-io/barbara/models"
+    "github.com/zoobz-io/barbara/database/models"
 )
 
 func NewUser(t *testing.T) *models.User {
@@ -54,7 +54,7 @@ package testing
 import (
     "context"
 
-    "github.com/zoobz-io/barbara/models"
+    "github.com/zoobz-io/barbara/database/models"
 )
 
 type MockUsers struct {
