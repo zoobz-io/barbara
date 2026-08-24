@@ -1,0 +1,167 @@
+services:
+  # =============================================================================
+  # Core Infrastructure
+  # =============================================================================
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: Sumatra
+      POSTGRES_USER: Sumatra
+      POSTGRES_PASSWORD: Sumatra
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U Sumatra"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  migrate:
+    image: ghcr.io/kukymbr/goose-docker:latest
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./migrations:/migrations:ro
+    environment:
+      GOOSE_DRIVER: postgres
+      GOOSE_DBSTRING: "host=postgres port=5432 user=Sumatra password=Sumatra dbname=Sumatra sslmode=disable"
+      GOOSE_MIGRATION_DIR: /migrations
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: Sumatra
+      MINIO_ROOT_PASSWORD: Sumatradev
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - miniodata:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # =============================================================================
+  # Observability Stack
+  # =============================================================================
+
+  # Traces - Jaeger
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    ports:
+      - "16686:16686"  # UI
+
+  # Logs - Loki
+  loki:
+    image: grafana/loki:latest
+    command: -config.file=/etc/loki/local-config.yaml
+    ports:
+      - "3100:3100"
+    volumes:
+      - lokidata:/loki
+
+  # Metrics - Prometheus
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./tools/dev/prometheus.yaml:/etc/prometheus/prometheus.yml:ro
+      - prometheusdata:/prometheus
+    ports:
+      - "9090:9090"
+
+  # OTEL Collector - Central hub
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    volumes:
+      - ./tools/dev/otel-collector.yaml:/etc/otelcol-contrib/config.yaml:ro
+    ports:
+      - "4318:4318"    # OTLP HTTP
+    depends_on:
+      - jaeger
+      - loki
+      - prometheus
+
+  # Grafana - Unified dashboard (optional but useful)
+  grafana:
+    image: grafana/grafana:latest
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+      GF_AUTH_DISABLE_LOGIN_FORM: "true"
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafanadata:/var/lib/grafana
+      - ./tools/dev/grafana/provisioning:/etc/grafana/provisioning:ro
+    depends_on:
+      - prometheus
+      - loki
+      - jaeger
+
+  # =============================================================================
+  # Application
+  # =============================================================================
+
+  app:
+    build:
+      context: .
+      dockerfile: tools/dev/Dockerfile.dev
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    environment:
+      APP_PORT: "8080"
+      APP_DB_HOST: postgres
+      APP_DB_PORT: "5432"
+      APP_DB_NAME: Sumatra
+      APP_DB_USER: Sumatra
+      APP_DB_PASSWORD: Sumatra
+      APP_DB_SSLMODE: disable
+      APP_REDIS_ADDR: redis:6379
+      APP_STORAGE_ENDPOINT: minio:9000
+      APP_STORAGE_ACCESS_KEY: Sumatra
+      APP_STORAGE_SECRET_KEY: Sumatradev
+      APP_STORAGE_BUCKET: Sumatra
+      APP_STORAGE_USE_SSL: "false"
+      APP_ENCRYPTION_KEY: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
+      OTEL_SERVICE_NAME: Sumatra
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/app
+
+volumes:
+  pgdata:
+  redisdata:
+  miniodata:
+  lokidata:
+  prometheusdata:
+  grafanadata:
