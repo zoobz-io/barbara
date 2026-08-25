@@ -60,6 +60,8 @@ github.com/zoobz-io/cereal v0.1.2 h1:JAta37GDpIkjurDJAQeB53QZDSpfxq7CXDnTlXMzv+o
 github.com/zoobz-io/cereal v0.1.2/go.mod h1:7omVwZ94iojNxegYApiVImSp2YNdakixMurUO6O7idA=
 github.com/zoobz-io/check v0.0.5 h1:g49wFLToFUtMMffGUgpD3TBIsA572U9J+97dOE2QA44=
 github.com/zoobz-io/check v0.0.5/go.mod h1:uLPAEiFL6wYGF6rc4aYrQEzC0x9iGUvn3DTgowUe+TA=
+github.com/zoobz-io/clockz v1.0.2 h1:7ejfwTlaeNaVlLWW0pl1ZHfsaq3Iwg5vCphrvJMDNXI=
+github.com/zoobz-io/clockz v1.0.2/go.mod h1:kkUNGMtZ5r349253S1uOuLR/6YkC+qt8C8UIypFhn8o=
 github.com/zoobz-io/dbml v1.0.1 h1:cbMy/5Hvmgp1ys2vyuPQyuAKnQ90D2N8HtBoBpD7DXs=
 github.com/zoobz-io/dbml v1.0.1/go.mod h1:a8/fJGTY2jr/XC87K3b8kY7RKzafVprUSmzvRBakUS0=
 github.com/zoobz-io/edamame v1.0.2 h1:HisMAzyHOPW5vrzPmTFNLAJMBCrn+lt1LXFSEazLNRs=
@@ -74,6 +76,8 @@ github.com/zoobz-io/lucene v0.0.4 h1:hmt8rjzCVGPecVTCIYOiu/QDZioE8NQqUUvm+/FXl4E
 github.com/zoobz-io/lucene v0.0.4/go.mod h1:rGPnnt5XV8B4UcRKn/0VrlFM7fMz+tP7+lnKHSWP15o=
 github.com/zoobz-io/openapi v1.0.2 h1:KWJmjt/EYTkyzTvNCEK6BXDRWV7J45LhRXqWWZjm2mc=
 github.com/zoobz-io/openapi v1.0.2/go.mod h1:B1AhdYd+dAtRRPIH8IQo2yjrvZbUdQAIhyrC+WhdrZA=
+github.com/zoobz-io/pipz v1.0.7 h1:z0ND04aOfmVfp/9w/7e2UEtvcVvx7vhinV/1Pto5dwY=
+github.com/zoobz-io/pipz v1.0.7/go.mod h1:Fqif5Ciw0GViOA1FbR2BBnSeOF0fWB9MCQ//ViGuGhs=
 github.com/zoobz-io/rocco v0.1.16 h1:IMcpUxgFARrTCCqldNDJK70Yg6gBleJN/9ArSqCWOZk=
 github.com/zoobz-io/rocco v0.1.16/go.mod h1:RkkWlhv/AWOb3cb/ywrjDobomzprt0R7lVtRH5WUkXE=
 github.com/zoobz-io/scio v0.0.5 h1:fPDdnLIAUxhdzB0IycdbnI7j8V7is3KRRUiFzmahCeU=
