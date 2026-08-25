@@ -49,6 +49,7 @@ The docker-compose.yml sets up a complete observability stack:
 | PostgreSQL | 5432 | Database |
 | Redis | 6379 | Cache |
 | MinIO | 9000/9001 | Object storage / Console |
+| OpenSearch | 9200 | Search / serving store |
 | OTEL Collector | 4318 | OTLP HTTP receiver |
 | Jaeger | 16686 | Trace UI |
 | Loki | 3100 | Log aggregation |
@@ -70,6 +71,21 @@ docker compose down
 # Reset volumes (clean slate)
 docker compose down -v
 ```
+
+## OpenSearch smoke check
+
+OpenSearch is the serving store — site-facing pages and search read it
+exclusively. After `make dev`, confirm the cluster is up:
+
+```bash
+curl -s http://localhost:9200/_cluster/health | jq .
+```
+
+A healthy single-node cluster reports `"status":"green"` or `"yellow"`
+(yellow is expected — the mapping requests one replica that a single node
+can't assign; the index is fully functional). The index mappings themselves
+are applied at boot by `EnsureIndices` from the embedded files under
+`database/migrations/opensearch/`, not by goose.
 
 ## Viewing Telemetry
 
