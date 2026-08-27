@@ -39,10 +39,13 @@ jobs:
         with:
           go-version: ${{ matrix.go-version }}
       # The integration suite skips without a database; give it a real Postgres
-      # so the stores are exercised under -race instead of skipped.
+      # so the stores are exercised under -race instead of skipped. Use goose's
+      # prebuilt binary — `go install`ing the CLI compiles every driver it ships
+      # (turso, clickhouse, ...) and is slow and flaky against the checksum DB.
       - name: Run migrations
         run: |
-          go install github.com/pressly/goose/v3/cmd/goose@latest
+          curl -fsSL https://github.com/pressly/goose/releases/download/v3.24.1/goose_linux_x86_64 \
+            -o /usr/local/bin/goose && chmod +x /usr/local/bin/goose
           goose -dir database/migrations postgres \
             "host=localhost port=5432 user=barbara password=barbara dbname=barbara sslmode=disable" up
       # One pass: race-checked tests + coverage profile (make test emits coverage.out).
