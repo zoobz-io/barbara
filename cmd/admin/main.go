@@ -1,4 +1,4 @@
-// Package main is the entry point for the public, site-facing HTTP API.
+// Package main is the entry point for the admin, authoring HTTP API.
 package main
 
 import (
@@ -23,7 +23,7 @@ func main() {
 }
 
 func run() error {
-	log.Println("starting api...")
+	log.Println("starting admin...")
 	ctx := context.Background()
 
 	// Shared setup: sum init, common config, infra, stores, model boundaries,
@@ -44,7 +44,7 @@ func run() error {
 	// janus/aegis lands — swap DefaultStub() for the mesh resolver here.
 	auth.Wire(rt.K, rt.Svc.Engine(), auth.DefaultStub())
 
-	// Site-facing contracts and handlers land with the read surface (#18).
+	// Authoring contracts and handlers land with the feature tickets (#13+).
 
 	sum.Freeze(rt.K)
 	capitan.Emit(ctx, events.StartupServicesReady)
@@ -52,7 +52,7 @@ func run() error {
 	// Observability.
 	serviceName := os.Getenv("OTEL_SERVICE_NAME")
 	if serviceName == "" {
-		serviceName = "barbara-api"
+		serviceName = "barbara-admin"
 	}
 	otelProviders, err := boot.OTEL(ctx, serviceName)
 	if err != nil {
@@ -70,7 +70,7 @@ func run() error {
 	capitan.Emit(ctx, events.StartupApertureReady)
 
 	appCfg := sum.MustUse[config.App](ctx)
-	capitan.Emit(ctx, events.StartupServerListening, events.StartupPortKey.Field(appCfg.APIPort))
-	log.Printf("starting api server on port %d...", appCfg.APIPort)
-	return rt.Svc.Run("", appCfg.APIPort)
+	capitan.Emit(ctx, events.StartupServerListening, events.StartupPortKey.Field(appCfg.AdminPort))
+	log.Printf("starting admin server on port %d...", appCfg.AdminPort)
+	return rt.Svc.Run("", appCfg.AdminPort)
 }

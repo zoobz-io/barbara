@@ -9,6 +9,9 @@ import "github.com/zoobz-io/capitan"
 var (
 	StartupDatabaseConnected = capitan.NewSignal("barbara.startup.database.connected", "Database connection established")
 	StartupStorageConnected  = capitan.NewSignal("barbara.startup.storage.connected", "Object storage connection established")
+	StartupSearchConnected   = capitan.NewSignal("barbara.startup.search.connected", "OpenSearch connection established")
+	StartupIndicesReady      = capitan.NewSignal("barbara.startup.indices.ready", "OpenSearch indices ensured")
+	StartupJobsStarted       = capitan.NewSignal("barbara.startup.jobs.started", "Jobs pipeline runner started")
 	StartupServicesReady     = capitan.NewSignal("barbara.startup.services.ready", "All services registered")
 	StartupOTELReady         = capitan.NewSignal("barbara.startup.otel.ready", "OpenTelemetry providers initialized")
 	StartupApertureReady     = capitan.NewSignal("barbara.startup.aperture.ready", "Aperture observability bridge initialized")
