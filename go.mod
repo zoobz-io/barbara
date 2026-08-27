@@ -9,7 +9,7 @@ require (
 	github.com/lib/pq v1.10.9
 	github.com/opensearch-project/opensearch-go/v4 v4.3.0
 	github.com/zoobz-io/aperture v1.0.3
-	github.com/zoobz-io/astql v1.0.7
+	github.com/zoobz-io/astql v1.0.11
 	github.com/zoobz-io/capitan v1.0.2
 	github.com/zoobz-io/grub v1.0.18
 	github.com/zoobz-io/grub/opensearch v0.1.11
@@ -46,7 +46,7 @@ require (
 	github.com/zoobz-io/scio v0.0.5 // indirect
 	github.com/zoobz-io/sentinel v1.0.4 // indirect
 	github.com/zoobz-io/slush v0.0.3 // indirect
-	github.com/zoobz-io/soy v1.0.6 // indirect
+	github.com/zoobz-io/soy v1.0.9 // indirect
 	github.com/zoobz-io/vecna v0.0.3 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.38.0 // indirect

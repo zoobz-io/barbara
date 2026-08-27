@@ -19,15 +19,12 @@ import (
 // Jobs is the data-access layer for the OpenSearch-write outbox.
 type Jobs struct {
 	*sum.Database[models.Job]
-	db *sqlx.DB
 }
 
-// NewJobs creates a jobs store. The raw *sqlx.DB is retained for the atomic
-// claim query, which needs FOR UPDATE SKIP LOCKED that the builder can't express.
+// NewJobs creates a jobs store.
 func NewJobs(db *sqlx.DB, renderer astql.Renderer) *Jobs {
 	return &Jobs{
 		Database: sum.NewDatabase[models.Job](db, "jobs", renderer),
-		db:       db,
 	}
 }
 
@@ -42,40 +39,39 @@ func (s *Jobs) Enqueue(ctx context.Context, tx *sqlx.Tx, j *models.Job) error {
 	return nil
 }
 
-// claimQuery atomically claims up to limit pending jobs: it flips them to
-// processing (bumping attempts) and returns them, skipping rows locked by other
-// claimers so concurrent runners don't collide.
-const claimQuery = `
-UPDATE jobs SET status = $1, attempts = attempts + 1, updated_at = now()
-WHERE id IN (
-    SELECT id FROM jobs
-    WHERE status = $2
-    ORDER BY created_at
-    LIMIT $3
-    FOR UPDATE SKIP LOCKED
-)
-RETURNING id, tenant_id, document_id, operation, payload, status, attempts, last_error, created_at, updated_at`
-
-// ClaimPending claims up to limit pending jobs, marking them processing.
+// ClaimPending atomically claims up to limit pending jobs: it flips them to
+// processing (bumping attempts) and returns them, skipping rows already locked
+// by other claimers so concurrent runners don't collide.
+//
+// The claim is a single UPDATE over the ids of a locking sub-select —
+// UPDATE ... WHERE id IN (SELECT id ... FOR UPDATE SKIP LOCKED) RETURNING — so
+// the row is flipped and handed back in one statement, with no window where a
+// row is selected but not yet marked. SKIP LOCKED is what lets many runners
+// drain the outbox in parallel without blocking on each other.
 func (s *Jobs) ClaimPending(ctx context.Context, limit int) ([]*models.Job, error) {
-	rows, err := s.db.QueryxContext(ctx, claimQuery, models.JobProcessing, models.JobPending, limit)
+	pending := s.Query().
+		Fields("id").
+		Where("status", "=", "pending_status").
+		OrderBy("created_at", "asc").
+		Limit(limit).
+		ForUpdate().
+		SkipLocked()
+
+	claimed, err := s.Modify().
+		Set("status", "status").
+		SetExpr("attempts", "+", "increment").
+		Set("updated_at", "updated_at").
+		WhereInSubquery("id", pending).
+		ExecMany(ctx, map[string]any{
+			"status":             models.JobProcessing,
+			"increment":          1,
+			"updated_at":         time.Now(),
+			"sq1_pending_status": models.JobPending,
+		})
 	if err != nil {
 		return nil, fmt.Errorf("claiming pending jobs: %w", err)
 	}
-	defer func() { _ = rows.Close() }()
-
-	var jobs []*models.Job
-	for rows.Next() {
-		var j models.Job
-		if scanErr := rows.StructScan(&j); scanErr != nil {
-			return nil, fmt.Errorf("scanning job: %w", scanErr)
-		}
-		jobs = append(jobs, &j)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("iterating claimed jobs: %w", err)
-	}
-	return jobs, nil
+	return claimed, nil
 }
 
 // MarkDone marks a job completed.
