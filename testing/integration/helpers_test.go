@@ -47,10 +47,14 @@ func pgDB(t *testing.T) *sqlx.DB {
 	return db
 }
 
+// testUser is the acting user integration tests run as — a valid UUID, since
+// created_by columns are UUID.
+const testUser = "99999999-9999-9999-9999-999999999999"
+
 // tenantCtx returns a context scoped to the given tenant, the way a handler
 // bridges req.Identity before calling a store.
 func tenantCtx(tenantID string) context.Context {
-	p := auth.NewPrincipal("user-1", tenantID, "", nil, nil)
+	p := auth.NewPrincipal(testUser, tenantID, "", nil, nil)
 	return auth.WithPrincipal(context.Background(), p)
 }
 

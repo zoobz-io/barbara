@@ -100,6 +100,7 @@ func Init(ctx context.Context) (*Runtime, error) {
 
 	// Model boundaries — the same for every binary that touches the stores.
 	sum.NewBoundary[models.Document](k)
+	sum.NewBoundary[models.Version](k)
 	sum.NewBoundary[models.Job](k)
 	sum.NewBoundary[models.DocumentIndex](k)
 

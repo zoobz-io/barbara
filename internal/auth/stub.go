@@ -7,14 +7,16 @@ import (
 	"github.com/zoobz-io/rocco"
 )
 
-// Dev defaults for the stub resolver. Deliberately obvious so a stubbed
-// identity is never mistaken for a real one in logs or data.
+// Dev defaults for the stub resolver. The tenant and user are valid UUIDs —
+// barbara's tenant_id/created_by columns are UUID — but deliberately all-ones/
+// all-twos so a stubbed identity is never mistaken for a real one in logs or
+// data.
 const (
 	// DefaultTenantID is the tenant the stub resolves to when no X-Tenant-ID
 	// header overrides it.
-	DefaultTenantID = "dev-tenant"
+	DefaultTenantID = "11111111-1111-1111-1111-111111111111"
 	// DefaultUserID is the acting user the stub resolves to.
-	DefaultUserID = "dev-user"
+	DefaultUserID = "22222222-2222-2222-2222-222222222222"
 	// DefaultEmail is the acting user's email under the stub.
 	DefaultEmail = "dev@barbara.local"
 	// RoleAdmin is the dev role granted by the stub — broad enough that local

@@ -28,6 +28,13 @@ type Driver struct {
 	handler http.Handler
 }
 
+// DriverFor wraps an existing handler (e.g. a real binary's router in an
+// end-to-end test) so it can be driven with the same request helpers as the
+// mock harness.
+func DriverFor(handler http.Handler) *Driver {
+	return &Driver{handler: handler}
+}
+
 // Handlers builds a surface router ready to drive with httptest: a fresh
 // registry, the caller's contracts registered via register, the auth stub
 // wired, and the given endpoints mounted, then frozen. The same setup serves

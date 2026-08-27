@@ -65,6 +65,7 @@ func setup(ctx context.Context) (*sum.Service, int, func(), error) {
 
 	// Authoring contracts — narrow interfaces over the shared stores.
 	sum.Register[contracts.Documents](rt.K, rt.Stores.Documents)
+	sum.Register[contracts.Versions](rt.K, rt.Stores.Versions)
 
 	sum.Freeze(rt.K)
 	capitan.Emit(ctx, events.StartupServicesReady)
