@@ -2,7 +2,6 @@ package stores
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
@@ -13,10 +12,6 @@ import (
 	"github.com/zoobz-io/barbara/database/models"
 	"github.com/zoobz-io/barbara/internal/auth"
 )
-
-// ErrNoUser is returned when a write reaches the store without an acting user
-// in context — every version records who created it.
-var ErrNoUser = errors.New("no acting user in context")
 
 // Versions is the data-access layer for immutable document versions.
 type Versions struct {
@@ -45,13 +40,13 @@ func NewVersions(db *sqlx.DB, renderer astql.Renderer, documents *Documents) *Ve
 // documents don't contend (row-level lock). Returns ErrNotFound if the document
 // does not exist for the tenant.
 func (s *Versions) Save(ctx context.Context, documentID, content string) (*models.Version, error) {
-	tenantID, err := tenant(ctx)
+	tenantID, err := auth.RequireTenant(ctx)
 	if err != nil {
 		return nil, err
 	}
-	createdBy := auth.UserFromContext(ctx)
-	if createdBy == "" {
-		return nil, ErrNoUser
+	createdBy, err := auth.RequireUser(ctx)
+	if err != nil {
+		return nil, err
 	}
 
 	tx, err := s.db.BeginTxx(ctx, nil)
@@ -100,7 +95,7 @@ func (s *Versions) Save(ctx context.Context, documentID, content string) (*model
 
 // List returns a document's versions, newest first, scoped to the tenant.
 func (s *Versions) List(ctx context.Context, documentID string, limit, offset int) ([]*models.Version, error) {
-	tenantID, err := tenant(ctx)
+	tenantID, err := auth.RequireTenant(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -119,7 +114,7 @@ func (s *Versions) List(ctx context.Context, documentID string, limit, offset in
 
 // Get retrieves a version by ID, scoped to the tenant.
 func (s *Versions) Get(ctx context.Context, id string) (*models.Version, error) {
-	tenantID, err := tenant(ctx)
+	tenantID, err := auth.RequireTenant(ctx)
 	if err != nil {
 		return nil, err
 	}

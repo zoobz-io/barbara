@@ -19,10 +19,6 @@ import (
 // ErrNotFound is returned when a document does not exist for the tenant.
 var ErrNotFound = soy.ErrNotFound
 
-// ErrNoTenant is returned when a request reaches the store without a tenant —
-// every query is tenant-scoped, so the store refuses to run.
-var ErrNoTenant = errors.New("no tenant in context")
-
 // ErrDocumentPublished is returned when deleting a document that is still
 // published — it must be unpublished first.
 var ErrDocumentPublished = errors.New("document is published; unpublish before deleting")
@@ -41,7 +37,7 @@ func NewDocuments(db *sqlx.DB, renderer astql.Renderer) *Documents {
 // Create inserts a new document with the given key for the request's tenant.
 // The key must be unique per tenant; a duplicate returns an error.
 func (s *Documents) Create(ctx context.Context, key string) (*models.Document, error) {
-	tenantID, err := tenant(ctx)
+	tenantID, err := auth.RequireTenant(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -65,7 +61,7 @@ func (s *Documents) Create(ctx context.Context, key string) (*models.Document, e
 
 // Get retrieves a document by ID, scoped to the request's tenant.
 func (s *Documents) Get(ctx context.Context, id string) (*models.Document, error) {
-	tenantID, err := tenant(ctx)
+	tenantID, err := auth.RequireTenant(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +77,7 @@ func (s *Documents) Get(ctx context.Context, id string) (*models.Document, error
 
 // List returns the tenant's documents, oldest first, paginated.
 func (s *Documents) List(ctx context.Context, limit, offset int) ([]*models.Document, error) {
-	tenantID, err := tenant(ctx)
+	tenantID, err := auth.RequireTenant(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -101,7 +97,7 @@ func (s *Documents) List(ctx context.Context, limit, offset int) ([]*models.Docu
 // afterward). The new key must be unique per tenant. Returns ErrNotFound if the
 // document does not exist for the tenant.
 func (s *Documents) Rename(ctx context.Context, id, newKey string) (*models.Document, error) {
-	tenantID, err := tenant(ctx)
+	tenantID, err := auth.RequireTenant(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -126,7 +122,7 @@ func (s *Documents) Rename(ctx context.Context, id, newKey string) (*models.Docu
 // published document is refused with ErrDocumentPublished; a missing one with
 // ErrNotFound.
 func (s *Documents) Delete(ctx context.Context, id string) error {
-	tenantID, err := tenant(ctx)
+	tenantID, err := auth.RequireTenant(ctx)
 	if err != nil {
 		return err
 	}
@@ -148,12 +144,3 @@ func (s *Documents) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-// tenant pulls the request's tenant from the context, refusing to run without
-// one.
-func tenant(ctx context.Context) (string, error) {
-	id := auth.TenantFromContext(ctx)
-	if id == "" {
-		return "", ErrNoTenant
-	}
-	return id, nil
-}

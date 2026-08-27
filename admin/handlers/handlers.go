@@ -13,5 +13,8 @@ func All() []rocco.Endpoint {
 		SaveVersion,
 		ListVersions,
 		GetVersion,
+		PublishDocument,
+		UnpublishDocument,
+		RollbackDocument,
 	}
 }

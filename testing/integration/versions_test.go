@@ -82,12 +82,12 @@ func TestVersions_Save_RequiresUser(t *testing.T) {
 
 	// A tenant but no acting user — every version records who created it.
 	ctx := auth.WithPrincipal(context.Background(), auth.NewPrincipal("", testTenant, "", nil, nil))
-	if _, err := versions.Save(ctx, docID, "x"); !errors.Is(err, stores.ErrNoUser) {
+	if _, err := versions.Save(ctx, docID, "x"); !errors.Is(err, auth.ErrNoUser) {
 		t.Errorf("save without user = %v, want ErrNoUser", err)
 	}
 
 	// No tenant at all is also refused.
-	if _, err := versions.Save(context.Background(), docID, "x"); !errors.Is(err, stores.ErrNoTenant) {
+	if _, err := versions.Save(context.Background(), docID, "x"); !errors.Is(err, auth.ErrNoTenant) {
 		t.Errorf("save without tenant = %v, want ErrNoTenant", err)
 	}
 }
