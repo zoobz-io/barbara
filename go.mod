@@ -5,12 +5,16 @@ go 1.25.0
 toolchain go1.25.3
 
 require (
+	github.com/jmoiron/sqlx v1.4.0
+	github.com/lib/pq v1.10.9
 	github.com/opensearch-project/opensearch-go/v4 v4.3.0
 	github.com/zoobz-io/aperture v1.0.3
+	github.com/zoobz-io/astql v1.0.11
 	github.com/zoobz-io/capitan v1.0.2
 	github.com/zoobz-io/grub v1.0.18
 	github.com/zoobz-io/grub/opensearch v0.1.11
 	github.com/zoobz-io/lucene v0.0.4
+	github.com/zoobz-io/pipz v1.0.7
 	github.com/zoobz-io/rocco v0.1.16
 	github.com/zoobz-io/sum v0.0.12
 	go.opentelemetry.io/otel v1.38.0
@@ -31,11 +35,10 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.2 // indirect
-	github.com/jmoiron/sqlx v1.4.0 // indirect
-	github.com/zoobz-io/astql v1.0.7 // indirect
 	github.com/zoobz-io/atom v1.0.1 // indirect
 	github.com/zoobz-io/cereal v0.1.2 // indirect
 	github.com/zoobz-io/check v0.0.5 // indirect
+	github.com/zoobz-io/clockz v1.0.2 // indirect
 	github.com/zoobz-io/dbml v1.0.1 // indirect
 	github.com/zoobz-io/edamame v1.0.2 // indirect
 	github.com/zoobz-io/fig v0.0.3 // indirect
@@ -43,7 +46,7 @@ require (
 	github.com/zoobz-io/scio v0.0.5 // indirect
 	github.com/zoobz-io/sentinel v1.0.4 // indirect
 	github.com/zoobz-io/slush v0.0.3 // indirect
-	github.com/zoobz-io/soy v1.0.6 // indirect
+	github.com/zoobz-io/soy v1.0.9 // indirect
 	github.com/zoobz-io/vecna v0.0.3 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.38.0 // indirect

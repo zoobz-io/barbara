@@ -51,8 +51,13 @@ dev-reset: ## Reset development environment (removes volumes)
 # Testing
 # =============================================================================
 
-test: ## Run all tests with race detector
-	@go test -v -race -tags testing ./...
+test: ## Run all tests: race detector + coverage profile (coverage.out)
+	@# One pass produces both the race-checked result and the coverage profile,
+	@# so tests are never run twice just to measure coverage. Each package is
+	@# covered by its own tests (the jobs store's integration test lives in the
+	@# stores package for this reason), so no -coverpkg is needed — and avoiding
+	@# it sidesteps the covdata synthesis some toolchains botch for empty packages.
+	@go test -race -tags testing -covermode=atomic -coverprofile=coverage.out ./...
 
 test-unit: ## Run unit tests only (short mode)
 	@go test -v -race -tags testing -short ./...
@@ -73,12 +78,7 @@ lint: ## Run linters
 lint-fix: ## Run linters with auto-fix
 	@golangci-lint run --config=.golangci.yml --fix
 
-coverage: ## Generate coverage report (unit + integration)
-	@go test -tags testing -coverprofile=coverage-unit.out -covermode=atomic ./...
-	@go test -tags testing -coverprofile=coverage-integration.out -covermode=atomic ./testing/integration/... 2>/dev/null || true
-	@echo "mode: atomic" > coverage.out
-	@tail -n +2 coverage-unit.out >> coverage.out
-	@tail -n +2 coverage-integration.out >> coverage.out 2>/dev/null || true
+coverage: test ## Render the coverage report from the test run (coverage.html)
 	@go tool cover -html=coverage.out -o coverage.html
 	@go tool cover -func=coverage.out | tail -1
 	@echo "Coverage report: coverage.html"

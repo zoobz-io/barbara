@@ -10,15 +10,49 @@ jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        go-version: ['1.24', '1.25']
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: barbara
+          POSTGRES_PASSWORD: barbara
+          POSTGRES_DB: barbara
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U barbara"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      APP_DB_HOST: localhost
+      APP_DB_PORT: "5432"
+      APP_DB_USER: barbara
+      APP_DB_PASSWORD: barbara
+      APP_DB_NAME: barbara
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version: ${{ matrix.go-version }}
+          # Pin to the toolchain go.mod declares. "1.25" resolves to whatever
+          # the latest patch is, and some of those (e.g. go1.25.14) ship a
+          # broken covdata that fails coverage of test-less packages.
+          go-version: '1.25.3'
+      # The integration suite skips without a database; give it a real Postgres
+      # so the stores are exercised under -race instead of skipped. Use goose's
+      # prebuilt binary — `go install`ing the CLI compiles every driver it ships
+      # (turso, clickhouse, ...) and is slow and flaky against the checksum DB.
+      - name: Run migrations
+        run: |
+          curl -fsSL https://github.com/pressly/goose/releases/download/v3.24.1/goose_linux_x86_64 \
+            -o /usr/local/bin/goose && chmod +x /usr/local/bin/goose
+          goose -dir database/migrations postgres \
+            "host=localhost port=5432 user=barbara password=barbara dbname=barbara sslmode=disable" up
+      # One pass: race-checked tests + coverage profile (make test emits coverage.out).
       - run: make test
+      - uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   lint:
     name: Lint
@@ -53,19 +87,6 @@ jobs:
         with:
           sarif_file: gosec-results.sarif
 
-  coverage:
-    name: Coverage
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with:
-          go-version: '1.25'
-      - run: make coverage
-      - uses: codecov/codecov-action@v4
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-
   benchmark:
     name: Benchmark
     runs-on: ubuntu-latest
@@ -82,7 +103,7 @@ jobs:
 
   ci-complete:
     name: CI Complete
-    needs: [test, lint, security, coverage, benchmark]
+    needs: [test, lint, security, benchmark]
     runs-on: ubuntu-latest
     steps:
       - run: echo "CI complete"
