@@ -5,16 +5,12 @@
 package handlers
 
 import (
-	"errors"
-	"strconv"
-
 	"github.com/zoobz-io/rocco"
 	"github.com/zoobz-io/sum"
 
 	"github.com/zoobz-io/barbara/api/contracts"
 	"github.com/zoobz-io/barbara/api/transformers"
 	"github.com/zoobz-io/barbara/api/wire"
-	"github.com/zoobz-io/barbara/database/stores"
 	"github.com/zoobz-io/barbara/internal/auth"
 )
 
@@ -31,7 +27,7 @@ var GetPublishedDocument = rocco.GET("/documents/lookup",
 		ctx := auth.WithPrincipal(req.Context, req.Identity)
 		doc, err := reads.GetPublishedByKey(ctx, key)
 		if err != nil {
-			return wire.PublishedDocumentResponse{}, mapError(err)
+			return wire.PublishedDocumentResponse{}, transformers.ErrorToResponse(err)
 		}
 		return transformers.IndexToResponse(doc), nil
 	}).WithQueryParams("key").
@@ -46,10 +42,10 @@ var EnumerateDocuments = rocco.GET("/documents",
 	func(req *rocco.Request[rocco.NoBody]) (wire.PublishedDocumentListResponse, error) {
 		reads := sum.MustUse[contracts.Reads](req.Context)
 		ctx := auth.WithPrincipal(req.Context, req.Identity)
-		limit, offset := pagination(req)
+		limit, offset := transformers.Pagination(req.Params.Query)
 		docs, total, err := reads.Enumerate(ctx, req.Params.Query["tag"], limit, offset)
 		if err != nil {
-			return wire.PublishedDocumentListResponse{}, mapError(err)
+			return wire.PublishedDocumentListResponse{}, transformers.ErrorToResponse(err)
 		}
 		return transformers.IndexesToListResponse(docs, total, limit, offset), nil
 	}).WithQueryParams("tag", "limit", "offset").
@@ -68,10 +64,10 @@ var SearchDocuments = rocco.GET("/search",
 		}
 		reads := sum.MustUse[contracts.Reads](req.Context)
 		ctx := auth.WithPrincipal(req.Context, req.Identity)
-		limit, offset := pagination(req)
+		limit, offset := transformers.Pagination(req.Params.Query)
 		docs, total, err := reads.Search(ctx, query, limit, offset)
 		if err != nil {
-			return wire.PublishedDocumentListResponse{}, mapError(err)
+			return wire.PublishedDocumentListResponse{}, transformers.ErrorToResponse(err)
 		}
 		return transformers.IndexesToListResponse(docs, total, limit, offset), nil
 	}).WithQueryParams("q", "limit", "offset").
@@ -79,31 +75,3 @@ var SearchDocuments = rocco.GET("/search",
 	WithTags("Documents").
 	WithErrors(rocco.ErrBadRequest, rocco.ErrUnauthorized).
 	WithAuthentication()
-
-// pagination reads limit/offset from the query, applying defaults.
-func pagination(req *rocco.Request[rocco.NoBody]) (limit, offset int) {
-	limit, offset = 50, 0
-	if v := req.Params.Query["limit"]; v != "" {
-		if n, err := strconv.Atoi(v); err == nil && n > 0 {
-			limit = n
-		}
-	}
-	if v := req.Params.Query["offset"]; v != "" {
-		if n, err := strconv.Atoi(v); err == nil && n >= 0 {
-			offset = n
-		}
-	}
-	return limit, offset
-}
-
-// mapError translates store errors into HTTP responses.
-func mapError(err error) error {
-	switch {
-	case errors.Is(err, stores.ErrNotFound):
-		return rocco.ErrNotFound.WithMessage("document not found")
-	case errors.Is(err, auth.ErrNoTenant):
-		return rocco.ErrUnauthorized.WithMessage("request has no tenant")
-	default:
-		return err
-	}
-}
