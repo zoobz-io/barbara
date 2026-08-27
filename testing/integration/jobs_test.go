@@ -1,62 +1,24 @@
 //go:build testing
 
-// Integration tests for the jobs store, exercised against a real Postgres.
-// Kept in-package (not testing/integration) so coverage is attributed to the
-// store directly without cross-package -coverpkg. Skips when no database is
-// reachable, so `make test` is a no-op on machines without the dev stack.
-package stores
+package integration
 
 import (
 	"context"
 	"encoding/json"
-	"fmt"
-	"os"
 	"reflect"
 	"testing"
 
-	"github.com/jmoiron/sqlx"
 	astqlpg "github.com/zoobz-io/astql/postgres"
-	"github.com/zoobz-io/sum"
 
 	"github.com/zoobz-io/barbara/database/models"
-
-	_ "github.com/lib/pq"
+	"github.com/zoobz-io/barbara/database/stores"
 )
 
-func env(key, def string) string {
-	if v := os.Getenv(key); v != "" {
-		return v
-	}
-	return def
-}
-
-// jobsDB connects to Postgres for integration tests, skipping when it is not
-// reachable or the schema is absent — so the suite is a no-op without the dev
-// stack and real only when it is up and migrated.
-func jobsDB(t *testing.T) *sqlx.DB {
-	t.Helper()
-	sum.Reset() // fresh catalog per test — NewDatabase re-registers "db://jobs".
-	sum.New()   // sum.NewDatabase requires the service singleton.
-	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-		env("APP_DB_HOST", "127.0.0.1"), env("APP_DB_PORT", "5432"),
-		env("APP_DB_USER", "barbara"), env("APP_DB_PASSWORD", "barbara"),
-		env("APP_DB_NAME", "barbara"))
-
-	db, err := sqlx.Connect("postgres", dsn)
-	if err != nil {
-		t.Skipf("Postgres not reachable (%v); skipping integration test", err)
-	}
-	if _, err := db.Exec("DELETE FROM jobs"); err != nil {
-		_ = db.Close()
-		t.Skipf("jobs table not present (%v); skipping — run migrations first", err)
-	}
-	t.Cleanup(func() { _, _ = db.Exec("DELETE FROM jobs"); _ = db.Close() })
-	return db
-}
-
 func TestJobs_EnqueueClaimMarkDone(t *testing.T) {
-	db := jobsDB(t)
-	store := NewJobs(db, astqlpg.New())
+	db := pgDB(t)
+	t.Cleanup(func() { _, _ = db.Exec("DELETE FROM jobs"); _ = db.Close() })
+	_, _ = db.Exec("DELETE FROM jobs")
+	store := stores.NewJobs(db, astqlpg.New())
 	ctx := context.Background()
 
 	// Enqueue inside a transaction — the outbox contract.
@@ -127,8 +89,10 @@ func TestJobs_EnqueueClaimMarkDone(t *testing.T) {
 }
 
 func TestJobs_MarkFailedRecordsError(t *testing.T) {
-	db := jobsDB(t)
-	store := NewJobs(db, astqlpg.New())
+	db := pgDB(t)
+	t.Cleanup(func() { _, _ = db.Exec("DELETE FROM jobs"); _ = db.Close() })
+	_, _ = db.Exec("DELETE FROM jobs")
+	store := stores.NewJobs(db, astqlpg.New())
 	ctx := context.Background()
 
 	tx, err := db.BeginTxx(ctx, nil)

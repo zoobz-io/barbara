@@ -1,6 +1,6 @@
 //go:build testing
 
-package boot
+package integration
 
 import (
 	"context"
@@ -8,6 +8,8 @@ import (
 	"testing"
 
 	"github.com/zoobz-io/sum"
+
+	"github.com/zoobz-io/barbara/internal/boot"
 )
 
 // TestInit_WiresRuntime drives the real Init. With Postgres and OpenSearch both
@@ -19,7 +21,7 @@ import (
 func TestInit_WiresRuntime(t *testing.T) {
 	sum.Reset()
 
-	rt, err := Init(context.Background())
+	rt, err := boot.Init(context.Background())
 	if err != nil {
 		switch {
 		case strings.Contains(err.Error(), "connecting to database"):
