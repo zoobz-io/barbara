@@ -86,6 +86,86 @@ func runOnce(t *testing.T, store *mockStore, w IndexWriter, want int) {
 	r.Stop()
 }
 
+// errStore is a Store whose operations can be made to fail, for covering the
+// runner's error-logging branches. ClaimPending hands out its jobs once.
+type errStore struct {
+	jobs      []*models.Job
+	claimed   bool
+	claimErr  error
+	doneErr   error
+	failErr   error
+	doneCalls int
+	failCalls int
+}
+
+func (s *errStore) ClaimPending(context.Context, int) ([]*models.Job, error) {
+	if s.claimErr != nil {
+		return nil, s.claimErr
+	}
+	if s.claimed {
+		return nil, nil
+	}
+	s.claimed = true
+	return s.jobs, nil
+}
+func (s *errStore) MarkDone(context.Context, string) error {
+	s.doneCalls++
+	return s.doneErr
+}
+func (s *errStore) MarkFailed(context.Context, string, string) error {
+	s.failCalls++
+	return s.failErr
+}
+
+func TestNewRunner_DefaultsOnNonPositive(t *testing.T) {
+	r := NewRunner(newMockStore(), NewPipeline(&mockWriter{}, 1, time.Millisecond), 0, 0)
+	if r.interval != DefaultInterval {
+		t.Errorf("interval = %v, want default %v", r.interval, DefaultInterval)
+	}
+	if r.batch != DefaultBatch {
+		t.Errorf("batch = %d, want default %d", r.batch, DefaultBatch)
+	}
+}
+
+// drain swallows a claim error without panicking and processes no jobs.
+func TestDrain_ClaimError(t *testing.T) {
+	store := &errStore{claimErr: errors.New("db down")}
+	r := NewRunner(store, NewPipeline(&mockWriter{}, 1, time.Millisecond), time.Millisecond, 10)
+	r.drain(context.Background())
+	if store.doneCalls != 0 || store.failCalls != 0 {
+		t.Errorf("claim error should process nothing, got done=%d failed=%d", store.doneCalls, store.failCalls)
+	}
+}
+
+// drain logs a MarkDone failure after a successful pipeline run.
+func TestDrain_MarkDoneError(t *testing.T) {
+	store := &errStore{
+		jobs:    []*models.Job{{ID: "j1", DocumentID: "d1", Operation: models.JobIndex}},
+		doneErr: errors.New("mark done failed"),
+	}
+	r := NewRunner(store, NewPipeline(&mockWriter{}, 1, time.Millisecond), time.Millisecond, 10)
+	r.drain(context.Background())
+	if store.doneCalls != 1 {
+		t.Errorf("MarkDone calls = %d, want 1", store.doneCalls)
+	}
+}
+
+// drain logs a MarkFailed failure after a terminal pipeline error.
+func TestDrain_MarkFailedError(t *testing.T) {
+	store := &errStore{
+		jobs:    []*models.Job{{ID: "j1", DocumentID: "d1", Operation: models.JobIndex}},
+		failErr: errors.New("mark failed failed"),
+	}
+	w := &mockWriter{index: func(context.Context, string, []byte) error {
+		return errors.New("permanent")
+	}}
+	r := NewRunner(store, NewPipeline(w, 1, time.Millisecond), time.Millisecond, 10)
+	r.drain(context.Background())
+	if store.failCalls != 1 {
+		t.Errorf("MarkFailed calls = %d, want 1", store.failCalls)
+	}
+}
+
 func TestRunner_MarksDoneOnSuccess(t *testing.T) {
 	store := newMockStore(
 		&models.Job{ID: "j1", DocumentID: "d1", Operation: models.JobIndex},

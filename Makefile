@@ -74,11 +74,9 @@ lint-fix: ## Run linters with auto-fix
 	@golangci-lint run --config=.golangci.yml --fix
 
 coverage: ## Generate coverage report (unit + integration)
-	@go test -tags testing -coverprofile=coverage-unit.out -covermode=atomic ./...
-	@go test -tags testing -coverprofile=coverage-integration.out -covermode=atomic ./testing/integration/... 2>/dev/null || true
-	@echo "mode: atomic" > coverage.out
-	@tail -n +2 coverage-unit.out >> coverage.out
-	@tail -n +2 coverage-integration.out >> coverage.out 2>/dev/null || true
+	@# -coverpkg=./... so cross-package tests (e.g. the integration suite driving
+	@# database/stores) are attributed to the production packages they exercise.
+	@go test -tags testing -coverpkg=./... -coverprofile=coverage.out -covermode=atomic ./...
 	@go tool cover -html=coverage.out -o coverage.html
 	@go tool cover -func=coverage.out | tail -1
 	@echo "Coverage report: coverage.html"
