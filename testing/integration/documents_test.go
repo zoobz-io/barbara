@@ -1,6 +1,6 @@
 //go:build testing
 
-package stores
+package integration
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 
 	astqlpg "github.com/zoobz-io/astql/postgres"
 
-	"github.com/zoobz-io/barbara/internal/auth"
+	"github.com/zoobz-io/barbara/database/stores"
 )
 
 const (
@@ -17,17 +17,10 @@ const (
 	otherTenant = "22222222-0000-0000-0000-000000000002"
 )
 
-// tenantCtx returns a context scoped to the given tenant, the way a handler
-// bridges req.Identity before calling a store.
-func tenantCtx(tenantID string) context.Context {
-	p := auth.NewPrincipal("user-1", tenantID, "", nil, nil)
-	return auth.WithPrincipal(context.Background(), p)
-}
-
 func TestDocuments_CreateGetList(t *testing.T) {
-	db := jobsDB(t) // real Postgres + fresh sum catalog
-	t.Cleanup(func() { _, _ = db.Exec("DELETE FROM documents") })
-	store := NewDocuments(db, astqlpg.New())
+	db := pgDB(t)
+	t.Cleanup(func() { _, _ = db.Exec("DELETE FROM documents"); _ = db.Close() })
+	store := stores.NewDocuments(db, astqlpg.New())
 	ctx := tenantCtx(testTenant)
 
 	doc, err := store.Create(ctx, "guides/install.md")
@@ -52,12 +45,12 @@ func TestDocuments_CreateGetList(t *testing.T) {
 	if got.ID != doc.ID {
 		t.Errorf("get returned %s, want %s", got.ID, doc.ID)
 	}
-	if _, err := store.Get(tenantCtx(otherTenant), doc.ID); !errors.Is(err, ErrNotFound) {
+	if _, err := store.Get(tenantCtx(otherTenant), doc.ID); !errors.Is(err, stores.ErrNotFound) {
 		t.Errorf("cross-tenant get = %v, want ErrNotFound", err)
 	}
 
 	// A store call with no tenant is refused.
-	if _, err := store.Get(context.Background(), doc.ID); !errors.Is(err, ErrNoTenant) {
+	if _, err := store.Get(context.Background(), doc.ID); !errors.Is(err, stores.ErrNoTenant) {
 		t.Errorf("get without tenant = %v, want ErrNoTenant", err)
 	}
 
@@ -76,9 +69,9 @@ func TestDocuments_CreateGetList(t *testing.T) {
 }
 
 func TestDocuments_RenameFreesKey(t *testing.T) {
-	db := jobsDB(t)
-	t.Cleanup(func() { _, _ = db.Exec("DELETE FROM documents") })
-	store := NewDocuments(db, astqlpg.New())
+	db := pgDB(t)
+	t.Cleanup(func() { _, _ = db.Exec("DELETE FROM documents"); _ = db.Close() })
+	store := stores.NewDocuments(db, astqlpg.New())
 	ctx := tenantCtx(testTenant)
 
 	doc, err := store.Create(ctx, "old-key.md")
@@ -101,12 +94,13 @@ func TestDocuments_RenameFreesKey(t *testing.T) {
 }
 
 func TestDocuments_DeleteGuardsPublished(t *testing.T) {
-	db := jobsDB(t)
+	db := pgDB(t)
 	t.Cleanup(func() {
 		_, _ = db.Exec("DELETE FROM versions")
 		_, _ = db.Exec("DELETE FROM documents")
+		_ = db.Close()
 	})
-	store := NewDocuments(db, astqlpg.New())
+	store := stores.NewDocuments(db, astqlpg.New())
 	ctx := tenantCtx(testTenant)
 
 	doc, err := store.Create(ctx, "publishable.md")
@@ -122,7 +116,7 @@ func TestDocuments_DeleteGuardsPublished(t *testing.T) {
 	if err := store.Delete(ctx, dup.ID); err != nil {
 		t.Fatalf("delete unpublished: %v", err)
 	}
-	if _, err := store.Get(ctx, dup.ID); !errors.Is(err, ErrNotFound) {
+	if _, err := store.Get(ctx, dup.ID); !errors.Is(err, stores.ErrNotFound) {
 		t.Errorf("deleted doc still gettable: %v", err)
 	}
 
@@ -138,12 +132,12 @@ func TestDocuments_DeleteGuardsPublished(t *testing.T) {
 		t.Fatalf("set published pointer: %v", err)
 	}
 
-	if err := store.Delete(ctx, doc.ID); !errors.Is(err, ErrDocumentPublished) {
+	if err := store.Delete(ctx, doc.ID); !errors.Is(err, stores.ErrDocumentPublished) {
 		t.Errorf("delete published = %v, want ErrDocumentPublished", err)
 	}
 
 	// A missing document reports not found.
-	if err := store.Delete(ctx, "33333333-0000-0000-0000-000000000003"); !errors.Is(err, ErrNotFound) {
+	if err := store.Delete(ctx, "33333333-0000-0000-0000-000000000003"); !errors.Is(err, stores.ErrNotFound) {
 		t.Errorf("delete missing = %v, want ErrNotFound", err)
 	}
 }
