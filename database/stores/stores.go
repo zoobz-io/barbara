@@ -15,6 +15,7 @@ import (
 // add their stores to this struct.
 type Stores struct {
 	Documents *Documents
+	Versions  *Versions
 	Jobs      *Jobs
 	Search    *Search
 }
@@ -23,8 +24,10 @@ type Stores struct {
 // connection and astql renderer; the search store wraps the OpenSearch
 // provider.
 func New(db *sqlx.DB, renderer astql.Renderer, search grub.SearchProvider) *Stores {
+	documents := NewDocuments(db, renderer)
 	return &Stores{
-		Documents: NewDocuments(db, renderer),
+		Documents: documents,
+		Versions:  NewVersions(db, renderer, documents),
 		Jobs:      NewJobs(db, renderer),
 		Search:    NewSearch(search),
 	}
