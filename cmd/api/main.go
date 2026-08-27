@@ -11,6 +11,7 @@ import (
 	"github.com/zoobz-io/sum"
 
 	"github.com/zoobz-io/barbara/events"
+	"github.com/zoobz-io/barbara/internal/auth"
 	"github.com/zoobz-io/barbara/internal/boot"
 )
 
@@ -35,6 +36,11 @@ func run() error {
 	// if cfgErr := sum.Config[config.App](ctx, rt.K, nil); cfgErr != nil {
 	// 	return fmt.Errorf("failed to load app config: %w", cfgErr)
 	// }
+
+	// Request auth: register the identity/entitlement resolver and set it as
+	// the engine's extractor for WithAuthentication() handlers. Stubbed until
+	// janus/aegis lands — swap DefaultStub() for the mesh resolver here.
+	auth.Wire(rt.K, rt.Svc.Engine(), auth.DefaultStub())
 
 	// Public API contracts — narrow interfaces over the shared stores.
 	// sum.Register[contracts.Users](rt.K, rt.Stores.Users)
@@ -72,8 +78,6 @@ func run() error {
 	// capitan.Emit(ctx, events.StartupServerListening, events.StartupPortKey.Field(appCfg.Port))
 	// log.Printf("starting api server on port %d...", appCfg.Port)
 	// return svc.Run("", appCfg.Port)
-
-	_ = rt.Svc // Remove when using rt.Svc.Handle() above.
 
 	return fmt.Errorf("not implemented: add your initialization logic")
 }
