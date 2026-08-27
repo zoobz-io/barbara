@@ -10,9 +10,6 @@ jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        go-version: ['1.24', '1.25']
     services:
       postgres:
         image: postgres:16-alpine
@@ -37,7 +34,10 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version: ${{ matrix.go-version }}
+          # Pin to the toolchain go.mod declares. "1.25" resolves to whatever
+          # the latest patch is, and some of those (e.g. go1.25.14) ship a
+          # broken covdata that fails coverage of test-less packages.
+          go-version: '1.25.3'
       # The integration suite skips without a database; give it a real Postgres
       # so the stores are exercised under -race instead of skipped. Use goose's
       # prebuilt binary — `go install`ing the CLI compiles every driver it ships
@@ -50,10 +50,7 @@ jobs:
             "host=localhost port=5432 user=barbara password=barbara dbname=barbara sslmode=disable" up
       # One pass: race-checked tests + coverage profile (make test emits coverage.out).
       - run: make test
-      # Upload coverage once, from a single Go version — the profile is a
-      # byproduct of the test run above, so tests are never run twice.
-      - if: matrix.go-version == '1.25'
-        uses: codecov/codecov-action@v4
+      - uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
