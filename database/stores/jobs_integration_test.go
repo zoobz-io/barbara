@@ -1,6 +1,10 @@
 //go:build testing
 
-package integration
+// Integration tests for the jobs store, exercised against a real Postgres.
+// Kept in-package (not testing/integration) so coverage is attributed to the
+// store directly without cross-package -coverpkg. Skips when no database is
+// reachable, so `make test` is a no-op on machines without the dev stack.
+package stores
 
 import (
 	"context"
@@ -15,7 +19,6 @@ import (
 	"github.com/zoobz-io/sum"
 
 	"github.com/zoobz-io/barbara/database/models"
-	"github.com/zoobz-io/barbara/database/stores"
 
 	_ "github.com/lib/pq"
 )
@@ -53,7 +56,7 @@ func jobsDB(t *testing.T) *sqlx.DB {
 
 func TestJobs_EnqueueClaimMarkDone(t *testing.T) {
 	db := jobsDB(t)
-	store := stores.NewJobs(db, astqlpg.New())
+	store := NewJobs(db, astqlpg.New())
 	ctx := context.Background()
 
 	// Enqueue inside a transaction — the outbox contract.
@@ -125,7 +128,7 @@ func TestJobs_EnqueueClaimMarkDone(t *testing.T) {
 
 func TestJobs_MarkFailedRecordsError(t *testing.T) {
 	db := jobsDB(t)
-	store := stores.NewJobs(db, astqlpg.New())
+	store := NewJobs(db, astqlpg.New())
 	ctx := context.Background()
 
 	tx, err := db.BeginTxx(ctx, nil)

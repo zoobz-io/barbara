@@ -53,10 +53,11 @@ dev-reset: ## Reset development environment (removes volumes)
 
 test: ## Run all tests: race detector + coverage profile (coverage.out)
 	@# One pass produces both the race-checked result and the coverage profile,
-	@# so tests are never run twice just to measure coverage. -coverpkg=./...
-	@# attributes cross-package coverage (e.g. the integration suite driving
-	@# database/stores) to the production packages it exercises.
-	@go test -race -tags testing -coverpkg=./... -covermode=atomic -coverprofile=coverage.out ./...
+	@# so tests are never run twice just to measure coverage. Each package is
+	@# covered by its own tests (the jobs store's integration test lives in the
+	@# stores package for this reason), so no -coverpkg is needed — and avoiding
+	@# it sidesteps the covdata synthesis some toolchains botch for empty packages.
+	@go test -race -tags testing -covermode=atomic -coverprofile=coverage.out ./...
 
 test-unit: ## Run unit tests only (short mode)
 	@go test -v -race -tags testing -short ./...
