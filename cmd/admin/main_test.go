@@ -105,6 +105,44 @@ func TestVersions_EndToEnd(t *testing.T) {
 	}
 }
 
+// TestPublishing_EndToEnd runs the full authoring-to-published flow through the
+// real router: create a document, save a version, publish it, and confirm the
+// published pointer moved.
+func TestPublishing_EndToEnd(t *testing.T) {
+	d := adminDriver(t)
+	const tenant = "e2e33333-0000-0000-0000-000000000003"
+	t.Cleanup(func() {
+		db := cleanupDB(t)
+		_, _ = db.Exec("DELETE FROM jobs WHERE tenant_id = $1", tenant)
+		_, _ = db.Exec("DELETE FROM versions WHERE tenant_id = $1", tenant)
+		_, _ = db.Exec("DELETE FROM documents WHERE tenant_id = $1", tenant)
+	})
+
+	cw := d.RequestAs(t, tenant, http.MethodPost, "/documents", map[string]string{"key": "e2e/publish.md"})
+	var doc struct{ ID string }
+	_ = json.Unmarshal(cw.Body.Bytes(), &doc)
+
+	vw := d.RequestAs(t, tenant, http.MethodPost, "/documents/"+doc.ID+"/versions",
+		map[string]string{"content": "# publish me"})
+	var version struct {
+		ID string `json:"id"`
+	}
+	_ = json.Unmarshal(vw.Body.Bytes(), &version)
+
+	pw := d.RequestAs(t, tenant, http.MethodPost, "/documents/"+doc.ID+"/publish",
+		map[string]string{"version_id": version.ID})
+	if pw.Code != http.StatusOK {
+		t.Fatalf("publish status = %d, want 200; body=%s", pw.Code, pw.Body.String())
+	}
+	var published struct {
+		PublishedVersionID *string `json:"published_version_id"`
+	}
+	_ = json.Unmarshal(pw.Body.Bytes(), &published)
+	if published.PublishedVersionID == nil || *published.PublishedVersionID != version.ID {
+		t.Errorf("published_version_id = %v, want %s", published.PublishedVersionID, version.ID)
+	}
+}
+
 // adminDriver boots the admin service and returns a driver over its router,
 // skipping when the dev stack is absent.
 func adminDriver(t *testing.T) *testkit.Driver {

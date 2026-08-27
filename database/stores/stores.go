@@ -18,6 +18,8 @@ type Stores struct {
 	Versions  *Versions
 	Jobs      *Jobs
 	Search    *Search
+
+	db *sqlx.DB // for transactional aggregate methods (publishing)
 }
 
 // New constructs the stores aggregate. The SQL stores share the Postgres
@@ -30,5 +32,6 @@ func New(db *sqlx.DB, renderer astql.Renderer, search grub.SearchProvider) *Stor
 		Versions:  NewVersions(db, renderer, documents),
 		Jobs:      NewJobs(db, renderer),
 		Search:    NewSearch(search),
+		db:        db,
 	}
 }

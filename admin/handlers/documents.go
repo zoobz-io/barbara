@@ -122,6 +122,8 @@ func mapError(err error) error {
 		return rocco.ErrNotFound.WithMessage("document not found")
 	case errors.Is(err, stores.ErrDocumentPublished):
 		return rocco.ErrConflict.WithMessage("document is published; unpublish before deleting")
+	case errors.Is(err, stores.ErrVersionMismatch):
+		return rocco.ErrBadRequest.WithMessage("version does not belong to the document")
 	case errors.Is(err, stores.ErrNoTenant):
 		return rocco.ErrUnauthorized.WithMessage("request has no tenant")
 	case errors.Is(err, stores.ErrNoUser):
