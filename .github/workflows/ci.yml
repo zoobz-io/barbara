@@ -13,12 +13,46 @@ jobs:
     strategy:
       matrix:
         go-version: ['1.24', '1.25']
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: barbara
+          POSTGRES_PASSWORD: barbara
+          POSTGRES_DB: barbara
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U barbara"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      APP_DB_HOST: localhost
+      APP_DB_PORT: "5432"
+      APP_DB_USER: barbara
+      APP_DB_PASSWORD: barbara
+      APP_DB_NAME: barbara
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go-version }}
+      # The integration suite skips without a database; give it a real Postgres
+      # so the stores are exercised under -race instead of skipped.
+      - name: Run migrations
+        run: |
+          go install github.com/pressly/goose/v3/cmd/goose@latest
+          goose -dir database/migrations postgres \
+            "host=localhost port=5432 user=barbara password=barbara dbname=barbara sslmode=disable" up
+      # One pass: race-checked tests + coverage profile (make test emits coverage.out).
       - run: make test
+      # Upload coverage once, from a single Go version — the profile is a
+      # byproduct of the test run above, so tests are never run twice.
+      - if: matrix.go-version == '1.25'
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   lint:
     name: Lint
@@ -53,46 +87,6 @@ jobs:
         with:
           sarif_file: gosec-results.sarif
 
-  coverage:
-    name: Coverage
-    runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_USER: barbara
-          POSTGRES_PASSWORD: barbara
-          POSTGRES_DB: barbara
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U barbara"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
-    env:
-      APP_DB_HOST: localhost
-      APP_DB_PORT: "5432"
-      APP_DB_USER: barbara
-      APP_DB_PASSWORD: barbara
-      APP_DB_NAME: barbara
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with:
-          go-version: '1.25'
-      # A real Postgres lets the jobs-store integration tests run (they skip
-      # when it is absent), so store coverage is measured rather than zero.
-      - name: Run migrations
-        run: |
-          go install github.com/pressly/goose/v3/cmd/goose@latest
-          goose -dir database/migrations postgres \
-            "host=localhost port=5432 user=barbara password=barbara dbname=barbara sslmode=disable" up
-      - run: make coverage
-      - uses: codecov/codecov-action@v4
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-
   benchmark:
     name: Benchmark
     runs-on: ubuntu-latest
@@ -109,7 +103,7 @@ jobs:
 
   ci-complete:
     name: CI Complete
-    needs: [test, lint, security, coverage, benchmark]
+    needs: [test, lint, security, benchmark]
     runs-on: ubuntu-latest
     steps:
       - run: echo "CI complete"
