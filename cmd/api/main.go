@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/zoobz-io/capitan"
 	"github.com/zoobz-io/sum"
@@ -26,17 +27,33 @@ func run() error {
 	log.Println("starting api...")
 	ctx := context.Background()
 
+	svc, port, cleanup, err := setup(ctx)
+	if err != nil {
+		return err
+	}
+	defer cleanup()
+
+	capitan.Emit(ctx, events.StartupServerListening, events.StartupPortKey.Field(port))
+	log.Printf("starting api server on port %d...", port)
+	return svc.Run("", port)
+}
+
+// setup builds the fully wired service: shared runtime, per-surface config,
+// request auth, a frozen registry, and observability. It returns the service,
+// the port to serve on, and a cleanup to run on shutdown. Split from run so the
+// wiring is testable without starting the blocking HTTP server.
+func setup(ctx context.Context) (*sum.Service, int, func(), error) {
 	// Shared setup: sum init, common config, infra, stores, model boundaries,
 	// jobs pipeline.
 	rt, err := boot.Init(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to initialize runtime: %w", err)
+		return nil, 0, nil, fmt.Errorf("failed to initialize runtime: %w", err)
 	}
-	defer func() { _ = rt.Shutdown() }()
 
 	// Per-surface config.
 	if cfgErr := sum.Config[config.App](ctx, rt.K, nil); cfgErr != nil {
-		return fmt.Errorf("failed to load app config: %w", cfgErr)
+		_ = rt.Shutdown()
+		return nil, 0, nil, fmt.Errorf("failed to load app config: %w", cfgErr)
 	}
 
 	// Request auth: register the identity/entitlement resolver and set it as the
@@ -56,21 +73,26 @@ func run() error {
 	}
 	otelProviders, err := boot.OTEL(ctx, serviceName)
 	if err != nil {
-		return fmt.Errorf("failed to create otel providers: %w", err)
+		_ = rt.Shutdown()
+		return nil, 0, nil, fmt.Errorf("failed to create otel providers: %w", err)
 	}
-	defer func() { _ = otelProviders.Shutdown(ctx) }()
-	log.Println("observability initialized")
 	capitan.Emit(ctx, events.StartupOTELReady)
 
 	ap, err := boot.Aperture(ctx, otelProviders)
 	if err != nil {
-		return fmt.Errorf("failed to create aperture: %w", err)
+		_ = otelProviders.Shutdown(ctx)
+		_ = rt.Shutdown()
+		return nil, 0, nil, fmt.Errorf("failed to create aperture: %w", err)
 	}
-	defer ap.Close()
 	capitan.Emit(ctx, events.StartupApertureReady)
 
 	appCfg := sum.MustUse[config.App](ctx)
-	capitan.Emit(ctx, events.StartupServerListening, events.StartupPortKey.Field(appCfg.APIPort))
-	log.Printf("starting api server on port %d...", appCfg.APIPort)
-	return rt.Svc.Run("", appCfg.APIPort)
+	cleanup := func() {
+		ap.Close()
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		_ = otelProviders.Shutdown(shutdownCtx)
+		_ = rt.Shutdown()
+	}
+	return rt.Svc, appCfg.APIPort, cleanup, nil
 }
