@@ -2,9 +2,18 @@ package auth
 
 import (
 	"context"
+	"errors"
 
 	"github.com/zoobz-io/rocco"
 )
+
+// ErrNoTenant is returned when a request reaches a tenant-scoped store without a
+// tenant — every query is tenant-scoped, so the store refuses to run.
+var ErrNoTenant = errors.New("no tenant in context")
+
+// ErrNoUser is returned when a write reaches a store without an acting user —
+// authoring writes record who made them.
+var ErrNoUser = errors.New("no acting user in context")
 
 // principalContextKey is barbara's private context key for the resolved
 // identity. rocco stores the identity under its own unexported key (readable
@@ -42,4 +51,22 @@ func UserFromContext(ctx context.Context) string {
 		return id.ID()
 	}
 	return ""
+}
+
+// RequireTenant returns the request's tenant, or ErrNoTenant if none is carried.
+// Tenant-scoped stores call this instead of extracting the tenant themselves.
+func RequireTenant(ctx context.Context) (string, error) {
+	if id := TenantFromContext(ctx); id != "" {
+		return id, nil
+	}
+	return "", ErrNoTenant
+}
+
+// RequireUser returns the acting user, or ErrNoUser if none is carried. Stores
+// that stamp created_by call this.
+func RequireUser(ctx context.Context) (string, error) {
+	if id := UserFromContext(ctx); id != "" {
+		return id, nil
+	}
+	return "", ErrNoUser
 }

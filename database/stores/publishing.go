@@ -11,6 +11,8 @@ import (
 	"github.com/jmoiron/sqlx"
 
 	"github.com/zoobz-io/barbara/database/models"
+	"github.com/zoobz-io/barbara/database/transformers"
+	"github.com/zoobz-io/barbara/internal/auth"
 )
 
 // ErrVersionMismatch is returned when publishing a version that belongs to a
@@ -35,7 +37,7 @@ func (s *Stores) Rollback(ctx context.Context, documentID, versionID string) (*m
 // belongs to the document, build the projection, then atomically move the
 // published pointer and enqueue the index write.
 func (s *Stores) publishVersion(ctx context.Context, documentID, versionID string) (*models.Document, error) {
-	tenantID, err := tenant(ctx)
+	tenantID, err := auth.RequireTenant(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -51,9 +53,9 @@ func (s *Stores) publishVersion(ctx context.Context, documentID, versionID strin
 	if err != nil {
 		return nil, err
 	}
-	payload, err := projection(doc, version)
+	payload, err := json.Marshal(transformers.Projection(doc, version))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("building projection: %w", err)
 	}
 
 	var updated *models.Document
@@ -73,7 +75,7 @@ func (s *Stores) publishVersion(ctx context.Context, documentID, versionID strin
 // Unpublish clears a document's published pointer and enqueues removal of its
 // OpenSearch entry. Returns the updated document.
 func (s *Stores) Unpublish(ctx context.Context, documentID string) (*models.Document, error) {
-	tenantID, err := tenant(ctx)
+	tenantID, err := auth.RequireTenant(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -142,23 +144,3 @@ func (s *Stores) inTx(ctx context.Context, fn func(tx *sqlx.Tx) error) error {
 	return nil
 }
 
-// projection merges a document's metadata with a version's content into the
-// OpenSearch document, marshaled as the job payload.
-func projection(doc *models.Document, version *models.Version) ([]byte, error) {
-	idx := models.DocumentIndex{
-		DocumentID:    doc.ID,
-		TenantID:      doc.TenantID,
-		Key:           doc.Key,
-		Tags:          []string(doc.Tags),
-		VersionID:     version.ID,
-		VersionNumber: version.VersionNumber,
-		Content:       version.Content,
-		CreatedAt:     doc.CreatedAt,
-		UpdatedAt:     time.Now(),
-	}
-	b, err := json.Marshal(idx)
-	if err != nil {
-		return nil, fmt.Errorf("building projection: %w", err)
-	}
-	return b, nil
-}

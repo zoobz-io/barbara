@@ -10,6 +10,7 @@ import (
 	astqlpg "github.com/zoobz-io/astql/postgres"
 
 	"github.com/zoobz-io/barbara/database/stores"
+	"github.com/zoobz-io/barbara/internal/auth"
 )
 
 const (
@@ -50,7 +51,7 @@ func TestDocuments_CreateGetList(t *testing.T) {
 	}
 
 	// A store call with no tenant is refused.
-	if _, err := store.Get(context.Background(), doc.ID); !errors.Is(err, stores.ErrNoTenant) {
+	if _, err := store.Get(context.Background(), doc.ID); !errors.Is(err, auth.ErrNoTenant) {
 		t.Errorf("get without tenant = %v, want ErrNoTenant", err)
 	}
 

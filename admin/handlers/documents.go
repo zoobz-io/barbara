@@ -124,9 +124,9 @@ func mapError(err error) error {
 		return rocco.ErrConflict.WithMessage("document is published; unpublish before deleting")
 	case errors.Is(err, stores.ErrVersionMismatch):
 		return rocco.ErrBadRequest.WithMessage("version does not belong to the document")
-	case errors.Is(err, stores.ErrNoTenant):
+	case errors.Is(err, auth.ErrNoTenant):
 		return rocco.ErrUnauthorized.WithMessage("request has no tenant")
-	case errors.Is(err, stores.ErrNoUser):
+	case errors.Is(err, auth.ErrNoUser):
 		return rocco.ErrUnauthorized.WithMessage("request has no acting user")
 	case isUniqueViolation(err):
 		return rocco.ErrConflict.WithMessage("a document with that key already exists")
