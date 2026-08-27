@@ -14,8 +14,9 @@ import (
 // It grows as capabilities land: Documents (#13), Versions (#14), Assets (#17)
 // add their stores to this struct.
 type Stores struct {
-	Jobs   *Jobs
-	Search *Search
+	Documents *Documents
+	Jobs      *Jobs
+	Search    *Search
 }
 
 // New constructs the stores aggregate. The SQL stores share the Postgres
@@ -23,7 +24,8 @@ type Stores struct {
 // provider.
 func New(db *sqlx.DB, renderer astql.Renderer, search grub.SearchProvider) *Stores {
 	return &Stores{
-		Jobs:   NewJobs(db, renderer),
-		Search: NewSearch(search),
+		Documents: NewDocuments(db, renderer),
+		Jobs:      NewJobs(db, renderer),
+		Search:    NewSearch(search),
 	}
 }

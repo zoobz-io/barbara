@@ -11,6 +11,8 @@ import (
 	"github.com/zoobz-io/capitan"
 	"github.com/zoobz-io/sum"
 
+	"github.com/zoobz-io/barbara/admin/contracts"
+	"github.com/zoobz-io/barbara/admin/handlers"
 	"github.com/zoobz-io/barbara/config"
 	"github.com/zoobz-io/barbara/events"
 	"github.com/zoobz-io/barbara/internal/auth"
@@ -61,10 +63,13 @@ func setup(ctx context.Context) (*sum.Service, int, func(), error) {
 	// janus/aegis lands — swap DefaultStub() for the mesh resolver here.
 	auth.Wire(rt.K, rt.Svc.Engine(), auth.DefaultStub())
 
-	// Authoring contracts and handlers land with the feature tickets (#13+).
+	// Authoring contracts — narrow interfaces over the shared stores.
+	sum.Register[contracts.Documents](rt.K, rt.Stores.Documents)
 
 	sum.Freeze(rt.K)
 	capitan.Emit(ctx, events.StartupServicesReady)
+
+	rt.Svc.Handle(handlers.All()...)
 
 	// Observability.
 	serviceName := os.Getenv("OTEL_SERVICE_NAME")
