@@ -10,27 +10,35 @@ import (
 	"github.com/zoobz-io/sum"
 )
 
-// TestInit_ConnectsThenEnsuresIndices drives the real Init far enough to prove
-// the wiring: shared config loads, Postgres connects, and the object-storage
-// and OpenSearch clients construct. With no OpenSearch reachable, Init fails at
-// EnsureIndices — which is exactly the boundary this asserts. Skips when
-// Postgres itself is absent, so it's a no-op without the dev stack.
-func TestInit_ConnectsThenEnsuresIndices(t *testing.T) {
+// TestInit_WiresRuntime drives the real Init. With Postgres and OpenSearch both
+// reachable it boots the whole spine — connections, index bootstrap, stores,
+// boundaries, and the jobs runner — and Shutdown tears it back down. Without a
+// reachable cluster Init fails at EnsureIndices, which still proves the DB and
+// client wiring; without Postgres it skips entirely. So it's a no-op on a bare
+// machine and a full end-to-end boot when the dev stack is up.
+func TestInit_WiresRuntime(t *testing.T) {
 	sum.Reset()
 
 	rt, err := Init(context.Background())
-	if err == nil {
-		// OpenSearch was reachable too — full boot succeeded.
-		_ = rt.Shutdown()
-		return
+	if err != nil {
+		switch {
+		case strings.Contains(err.Error(), "connecting to database"):
+			t.Skipf("Postgres not reachable; skipping: %v", err)
+		case strings.Contains(err.Error(), "ensuring indices"):
+			t.Skipf("OpenSearch not reachable; DB/clients wired, skipping full boot: %v", err)
+		default:
+			t.Fatalf("Init failed with an unexpected wiring error: %v", err)
+		}
 	}
 
-	switch {
-	case strings.Contains(err.Error(), "connecting to database"):
-		t.Skipf("Postgres not reachable; skipping: %v", err)
-	case strings.Contains(err.Error(), "ensuring indices"):
-		// Reached EnsureIndices: config loaded, DB connected, clients built.
-	default:
-		t.Fatalf("Init failed before reaching indices — wiring bug: %v", err)
+	// Full boot succeeded — the spine is wired.
+	if rt.DB == nil || rt.Svc == nil || rt.Bucket == nil {
+		t.Error("Runtime is missing a core connection")
+	}
+	if rt.Stores == nil || rt.Stores.Jobs == nil || rt.Stores.Search == nil {
+		t.Error("stores aggregate is not fully constructed")
+	}
+	if err := rt.Shutdown(); err != nil {
+		t.Errorf("Shutdown: %v", err)
 	}
 }

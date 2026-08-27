@@ -24,12 +24,21 @@ jobs:
           --health-interval 5s
           --health-timeout 5s
           --health-retries 10
+      opensearch:
+        image: opensearchproject/opensearch:2.19.1
+        env:
+          discovery.type: single-node
+          DISABLE_SECURITY_PLUGIN: "true"
+          OPENSEARCH_JAVA_OPTS: "-Xms512m -Xmx512m"
+        ports:
+          - 9200:9200
     env:
       APP_DB_HOST: localhost
       APP_DB_PORT: "5432"
       APP_DB_USER: barbara
       APP_DB_PASSWORD: barbara
       APP_DB_NAME: barbara
+      APP_OPENSEARCH_ADDR: http://localhost:9200
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
@@ -38,16 +47,22 @@ jobs:
           # the latest patch is, and some of those (e.g. go1.25.14) ship a
           # broken covdata that fails coverage of test-less packages.
           go-version: '1.25.3'
-      # The integration suite skips without a database; give it a real Postgres
-      # so the stores are exercised under -race instead of skipped. Use goose's
-      # prebuilt binary — `go install`ing the CLI compiles every driver it ships
-      # (turso, clickhouse, ...) and is slow and flaky against the checksum DB.
+      # Give the integration suite the real infra it needs (Postgres +
+      # OpenSearch) so boot and the stores are exercised end to end under -race
+      # instead of skipped. goose comes from its prebuilt binary — `go install`
+      # of the CLI compiles every driver it ships and is slow and flaky.
       - name: Run migrations
         run: |
           curl -fsSL https://github.com/pressly/goose/releases/download/v3.24.1/goose_linux_x86_64 \
             -o /usr/local/bin/goose && chmod +x /usr/local/bin/goose
           goose -dir database/migrations postgres \
             "host=localhost port=5432 user=barbara password=barbara dbname=barbara sslmode=disable" up
+      - name: Wait for OpenSearch
+        run: |
+          for i in $(seq 1 60); do
+            curl -sf http://localhost:9200/_cluster/health && break
+            sleep 3
+          done
       # One pass: race-checked tests + coverage profile (make test emits coverage.out).
       - run: make test
       - uses: codecov/codecov-action@v4
