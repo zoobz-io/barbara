@@ -10,23 +10,46 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/jmoiron/sqlx"
+	minio "github.com/minio/minio-go/v7"
+	miniocreds "github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/zoobz-io/aperture"
 	"github.com/zoobz-io/capitan"
+	"github.com/zoobz-io/grub"
+	grubminio "github.com/zoobz-io/grub/minio"
+	"github.com/zoobz-io/sum"
 
+	"github.com/zoobz-io/barbara/config"
 	intotel "github.com/zoobz-io/barbara/internal/otel"
+
+	_ "github.com/lib/pq" // postgres driver
 )
 
-// Database creates a PostgreSQL connection from config.
-// Uncomment once config.Database exists.
-//
-// func Database(ctx context.Context) (*sqlx.DB, error) {
-// 	cfg := sum.MustUse[config.Database](ctx)
-// 	db, err := sqlx.Connect("postgres", cfg.DSN())
-// 	if err != nil {
-// 		return nil, fmt.Errorf("connecting to database: %w", err)
-// 	}
-// 	return db, nil
-// }
+// Database opens a PostgreSQL connection from config. The caller owns the
+// connection — defer Close.
+func Database(ctx context.Context) (*sqlx.DB, error) {
+	cfg := sum.MustUse[config.Database](ctx)
+	db, err := sqlx.ConnectContext(ctx, "postgres", cfg.DSN())
+	if err != nil {
+		return nil, fmt.Errorf("connecting to database: %w", err)
+	}
+	return db, nil
+}
+
+// Bucket creates the object-storage provider from config (MinIO in dev,
+// S3-compatible in prod). Assets are stored here; the provider is wrapped by an
+// asset store when that capability lands.
+func Bucket(ctx context.Context) (grub.BucketProvider, error) {
+	cfg := sum.MustUse[config.Storage](ctx)
+	client, err := minio.New(cfg.Endpoint, &minio.Options{
+		Creds:  miniocreds.NewStaticV4(cfg.AccessKey, cfg.SecretKey, ""),
+		Secure: cfg.UseSSL,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("creating minio client: %w", err)
+	}
+	return grubminio.New(client, cfg.Bucket), nil
+}
 
 // OTEL creates OpenTelemetry providers. serviceName identifies the process
 // in traces and metrics.

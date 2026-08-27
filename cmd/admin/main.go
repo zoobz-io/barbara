@@ -1,4 +1,4 @@
-// Package main is the entry point for the public, site-facing HTTP API.
+// Package main is the entry point for the admin, authoring HTTP API.
 package main
 
 import (
@@ -24,7 +24,7 @@ func main() {
 }
 
 func run() error {
-	log.Println("starting api...")
+	log.Println("starting admin...")
 	ctx := context.Background()
 
 	svc, port, cleanup, err := setup(ctx)
@@ -34,7 +34,7 @@ func run() error {
 	defer cleanup()
 
 	capitan.Emit(ctx, events.StartupServerListening, events.StartupPortKey.Field(port))
-	log.Printf("starting api server on port %d...", port)
+	log.Printf("starting admin server on port %d...", port)
 	return svc.Run("", port)
 }
 
@@ -61,7 +61,7 @@ func setup(ctx context.Context) (*sum.Service, int, func(), error) {
 	// janus/aegis lands — swap DefaultStub() for the mesh resolver here.
 	auth.Wire(rt.K, rt.Svc.Engine(), auth.DefaultStub())
 
-	// Site-facing contracts and handlers land with the read surface (#18).
+	// Authoring contracts and handlers land with the feature tickets (#13+).
 
 	sum.Freeze(rt.K)
 	capitan.Emit(ctx, events.StartupServicesReady)
@@ -69,7 +69,7 @@ func setup(ctx context.Context) (*sum.Service, int, func(), error) {
 	// Observability.
 	serviceName := os.Getenv("OTEL_SERVICE_NAME")
 	if serviceName == "" {
-		serviceName = "barbara-api"
+		serviceName = "barbara-admin"
 	}
 	otelProviders, err := boot.OTEL(ctx, serviceName)
 	if err != nil {
@@ -94,5 +94,5 @@ func setup(ctx context.Context) (*sum.Service, int, func(), error) {
 		_ = otelProviders.Shutdown(shutdownCtx)
 		_ = rt.Shutdown()
 	}
-	return rt.Svc, appCfg.APIPort, cleanup, nil
+	return rt.Svc, appCfg.AdminPort, cleanup, nil
 }
