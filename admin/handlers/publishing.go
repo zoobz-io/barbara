@@ -17,7 +17,7 @@ var PublishDocument = rocco.POST("/documents/{id}/publish",
 		ctx := auth.WithPrincipal(req.Context, req.Identity)
 		doc, err := publishing.Publish(ctx, req.Params.Path["id"], req.Body.VersionID)
 		if err != nil {
-			return wire.DocumentResponse{}, mapError(err)
+			return wire.DocumentResponse{}, transformers.ErrorToResponse(err)
 		}
 		return transformers.DocumentToResponse(doc), nil
 	}).WithPathParams("id").
@@ -33,7 +33,7 @@ var UnpublishDocument = rocco.POST("/documents/{id}/unpublish",
 		ctx := auth.WithPrincipal(req.Context, req.Identity)
 		doc, err := publishing.Unpublish(ctx, req.Params.Path["id"])
 		if err != nil {
-			return wire.DocumentResponse{}, mapError(err)
+			return wire.DocumentResponse{}, transformers.ErrorToResponse(err)
 		}
 		return transformers.DocumentToResponse(doc), nil
 	}).WithPathParams("id").
@@ -49,7 +49,7 @@ var RollbackDocument = rocco.POST("/documents/{id}/rollback",
 		ctx := auth.WithPrincipal(req.Context, req.Identity)
 		doc, err := publishing.Rollback(ctx, req.Params.Path["id"], req.Body.VersionID)
 		if err != nil {
-			return wire.DocumentResponse{}, mapError(err)
+			return wire.DocumentResponse{}, transformers.ErrorToResponse(err)
 		}
 		return transformers.DocumentToResponse(doc), nil
 	}).WithPathParams("id").

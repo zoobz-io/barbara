@@ -11,6 +11,8 @@ import (
 	"github.com/zoobz-io/capitan"
 	"github.com/zoobz-io/sum"
 
+	"github.com/zoobz-io/barbara/api/contracts"
+	"github.com/zoobz-io/barbara/api/handlers"
 	"github.com/zoobz-io/barbara/config"
 	"github.com/zoobz-io/barbara/events"
 	"github.com/zoobz-io/barbara/internal/auth"
@@ -61,10 +63,14 @@ func setup(ctx context.Context) (*sum.Service, int, func(), error) {
 	// janus/aegis lands — swap DefaultStub() for the mesh resolver here.
 	auth.Wire(rt.K, rt.Svc.Engine(), auth.DefaultStub())
 
-	// Site-facing contracts and handlers land with the read surface (#18).
+	// Site-facing contract — a narrow read interface over the shared search
+	// store, tenant-scoped and served from OpenSearch exclusively.
+	sum.Register[contracts.Reads](rt.K, rt.Stores.Search)
 
 	sum.Freeze(rt.K)
 	capitan.Emit(ctx, events.StartupServicesReady)
+
+	rt.Svc.Handle(handlers.All()...)
 
 	// Observability.
 	serviceName := os.Getenv("OTEL_SERVICE_NAME")

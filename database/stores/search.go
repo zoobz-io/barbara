@@ -6,9 +6,11 @@ import (
 	"fmt"
 
 	"github.com/zoobz-io/grub"
+	"github.com/zoobz-io/lucene"
 	"github.com/zoobz-io/sum"
 
 	"github.com/zoobz-io/barbara/database/models"
+	"github.com/zoobz-io/barbara/internal/auth"
 )
 
 // documentIndex is the OpenSearch index holding the published-document
@@ -16,17 +18,21 @@ import (
 const documentIndex = "documents"
 
 // Search is the serving-store access layer over the DocumentIndex projection.
-// The jobs pipeline writes through it (Index/Delete below) and the site-facing
-// surface reads through it. It embeds sum.Search for the typed query/index
-// primitives; the write side here takes the job's raw JSON payload so the
-// pipeline stays decoupled from the projection type.
+// The jobs pipeline writes through it (Index/Delete) and the site-facing surface
+// reads through it (GetPublishedByKey/Enumerate/Search). The write side takes
+// the job's raw JSON payload so the pipeline stays decoupled from the projection
+// type; the read side builds typed lucene queries, tenant-scoped.
 type Search struct {
-	*sum.Search[models.DocumentIndex]
+	index *sum.Search[models.DocumentIndex]
+	qb    *lucene.Builder[models.DocumentIndex]
 }
 
 // NewSearch creates the search store against the documents index.
 func NewSearch(provider grub.SearchProvider) *Search {
-	return &Search{Search: sum.NewSearch[models.DocumentIndex](provider, documentIndex)}
+	return &Search{
+		index: sum.NewSearch[models.DocumentIndex](provider, documentIndex),
+		qb:    lucene.New[models.DocumentIndex](),
+	}
 }
 
 // Index upserts a document projection by document ID. payload is the JSONB
@@ -37,7 +43,7 @@ func (s *Search) Index(ctx context.Context, documentID string, payload []byte) e
 	if err := json.Unmarshal(payload, &doc); err != nil {
 		return fmt.Errorf("decoding projection for %s: %w", documentID, err)
 	}
-	if err := s.Search.Index(ctx, documentID, &doc); err != nil {
+	if err := s.index.Index(ctx, documentID, &doc); err != nil {
 		return fmt.Errorf("indexing document %s: %w", documentID, err)
 	}
 	return nil
@@ -46,8 +52,74 @@ func (s *Search) Index(ctx context.Context, documentID string, payload []byte) e
 // Delete removes a document's projection by document ID. Satisfies
 // jobs.IndexWriter.
 func (s *Search) Delete(ctx context.Context, documentID string) error {
-	if err := s.Search.Delete(ctx, documentID); err != nil {
+	if err := s.index.Delete(ctx, documentID); err != nil {
 		return fmt.Errorf("deleting document %s: %w", documentID, err)
 	}
 	return nil
+}
+
+// GetPublishedByKey returns the published document with the given key, scoped to
+// the request's tenant. ErrNotFound when no published document has that key.
+func (s *Search) GetPublishedByKey(ctx context.Context, key string) (*models.DocumentIndex, error) {
+	tenantID, err := auth.RequireTenant(ctx)
+	if err != nil {
+		return nil, err
+	}
+	q := s.qb.Bool().Filter(s.qb.Term("tenant_id", tenantID), s.qb.Term("key", key))
+	res, err := s.index.Execute(ctx, lucene.NewSearch().Query(q).Size(1))
+	if err != nil {
+		return nil, fmt.Errorf("looking up %q: %w", key, err)
+	}
+	if len(res.Hits) == 0 {
+		return nil, ErrNotFound
+	}
+	doc := res.Hits[0].Content
+	return &doc, nil
+}
+
+// Enumerate lists published documents for the request's tenant, optionally
+// filtered by tag. Returns the page and the total match count.
+func (s *Search) Enumerate(ctx context.Context, tag string, limit, offset int) ([]models.DocumentIndex, int64, error) {
+	tenantID, err := auth.RequireTenant(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+	filters := []lucene.Query{s.qb.Term("tenant_id", tenantID)}
+	if tag != "" {
+		filters = append(filters, s.qb.Term("tags", tag))
+	}
+	return s.run(ctx, s.qb.Bool().Filter(filters...), limit, offset)
+}
+
+// Search runs a full-text search over published content for the request's
+// tenant. Returns the page and the total match count.
+func (s *Search) Search(ctx context.Context, query string, limit, offset int) ([]models.DocumentIndex, int64, error) {
+	tenantID, err := auth.RequireTenant(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+	q := s.qb.Bool().
+		Filter(s.qb.Term("tenant_id", tenantID)).
+		Must(s.qb.MultiMatch(query, "content"))
+	return s.run(ctx, q, limit, offset)
+}
+
+// SearchAll runs a full-text search across all tenants — admin use only, not
+// exposed on the site-facing surface.
+func (s *Search) SearchAll(ctx context.Context, query string, limit, offset int) ([]models.DocumentIndex, int64, error) {
+	q := s.qb.Bool().Must(s.qb.MultiMatch(query, "content"))
+	return s.run(ctx, q, limit, offset)
+}
+
+// run executes a query and returns the page of projections plus the total.
+func (s *Search) run(ctx context.Context, q lucene.Query, limit, offset int) ([]models.DocumentIndex, int64, error) {
+	res, err := s.index.Execute(ctx, lucene.NewSearch().Query(q).Size(limit).From(offset))
+	if err != nil {
+		return nil, 0, fmt.Errorf("executing search: %w", err)
+	}
+	docs := make([]models.DocumentIndex, len(res.Hits))
+	for i, hit := range res.Hits {
+		docs[i] = hit.Content
+	}
+	return docs, res.Total, nil
 }
