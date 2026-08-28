@@ -93,6 +93,27 @@ func (s *Documents) List(ctx context.Context, limit, offset int) ([]*models.Docu
 	return docs, nil
 }
 
+// ListByTag returns the tenant's documents carrying the given tag, oldest
+// first, paginated. The filter is a Postgres array-containment test on the tags
+// column (tags @> ARRAY[tag]).
+func (s *Documents) ListByTag(ctx context.Context, tag string, limit, offset int) ([]*models.Document, error) {
+	tenantID, err := auth.RequireTenant(ctx)
+	if err != nil {
+		return nil, err
+	}
+	docs, err := s.Query().
+		Where("tenant_id", "=", "tenant_id").
+		Where("tags", "@>", "tag").
+		OrderBy("created_at", "asc").
+		Limit(limit).
+		Offset(offset).
+		Exec(ctx, map[string]any{"tenant_id": tenantID, "tag": pq.StringArray{tag}})
+	if err != nil {
+		return nil, fmt.Errorf("listing documents by tag: %w", err)
+	}
+	return docs, nil
+}
+
 // Rename changes a document's key, freeing the old one (the old key 404s
 // afterward). The new key must be unique per tenant. Returns ErrNotFound if the
 // document does not exist for the tenant.

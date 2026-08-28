@@ -23,6 +23,7 @@ type mockDocuments struct {
 	list    []*models.Document
 	err     error
 	gotKey  string
+	gotTag  string
 	deleted bool
 }
 
@@ -34,6 +35,10 @@ func (m *mockDocuments) Get(context.Context, string) (*models.Document, error) {
 	return m.doc, m.err
 }
 func (m *mockDocuments) List(context.Context, int, int) ([]*models.Document, error) {
+	return m.list, m.err
+}
+func (m *mockDocuments) ListByTag(_ context.Context, tag string, _, _ int) ([]*models.Document, error) {
+	m.gotTag = tag
 	return m.list, m.err
 }
 func (m *mockDocuments) Rename(_ context.Context, _, key string) (*models.Document, error) {
@@ -105,6 +110,17 @@ func TestListDocuments_OK(t *testing.T) {
 	_ = json.Unmarshal(w.Body.Bytes(), &resp)
 	if resp.Total != 2 {
 		t.Errorf("total = %d, want 2", resp.Total)
+	}
+}
+
+func TestListDocuments_ByTag(t *testing.T) {
+	mock := &mockDocuments{list: []*models.Document{{ID: "d1", Key: "a.md"}}}
+	w := driver(t, mock).Request(t, http.MethodGet, "/documents?tag=guide", nil)
+	if w.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200; body=%s", w.Code, w.Body.String())
+	}
+	if mock.gotTag != "guide" {
+		t.Errorf("store got tag %q, want guide (tag filter routed to ListByTag)", mock.gotTag)
 	}
 }
 

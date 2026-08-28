@@ -10,6 +10,7 @@ import (
 	"github.com/zoobz-io/barbara/admin/contracts"
 	"github.com/zoobz-io/barbara/admin/transformers"
 	"github.com/zoobz-io/barbara/admin/wire"
+	"github.com/zoobz-io/barbara/database/models"
 	dbtransformers "github.com/zoobz-io/barbara/database/transformers"
 	"github.com/zoobz-io/barbara/internal/auth"
 )
@@ -46,18 +47,27 @@ var GetDocument = rocco.GET("/documents/{id}",
 	WithErrors(rocco.ErrNotFound, rocco.ErrUnauthorized).
 	WithAuthentication()
 
-// ListDocuments returns the tenant's documents, paginated.
+// ListDocuments returns the tenant's documents, paginated. An optional tag
+// query parameter filters to documents carrying that tag.
 var ListDocuments = rocco.GET("/documents",
 	func(req *rocco.Request[rocco.NoBody]) (wire.DocumentListResponse, error) {
 		docs := sum.MustUse[contracts.Documents](req.Context)
 		ctx := auth.WithPrincipal(req.Context, req.Identity)
 		limit, offset := dbtransformers.Pagination(req.Params.Query)
-		list, err := docs.List(ctx, limit, offset)
+		var (
+			list []*models.Document
+			err  error
+		)
+		if tag := req.Params.Query["tag"]; tag != "" {
+			list, err = docs.ListByTag(ctx, tag, limit, offset)
+		} else {
+			list, err = docs.List(ctx, limit, offset)
+		}
 		if err != nil {
 			return wire.DocumentListResponse{}, transformers.ErrorToResponse(err)
 		}
 		return transformers.DocumentsToListResponse(list, limit, offset), nil
-	}).WithQueryParams("limit", "offset").
+	}).WithQueryParams("tag", "limit", "offset").
 	WithSummary("List documents").
 	WithTags("Documents").
 	WithErrors(rocco.ErrUnauthorized).

@@ -14,6 +14,14 @@ type RenameDocumentRequest struct {
 	Key string `json:"key" description:"New key, unique per tenant" example:"guides/setup.md"`
 }
 
+// AddTagRequest is the body for adding a tag to a document.
+type AddTagRequest struct {
+	Tag string `json:"tag" description:"Organizational tag to add" example:"guide"`
+}
+
+// Clone returns a deep copy.
+func (r AddTagRequest) Clone() AddTagRequest { return r }
+
 // DocumentResponse is the admin API representation of a document.
 type DocumentResponse struct {
 	CreatedAt          time.Time `json:"created_at" description:"Creation timestamp"`
