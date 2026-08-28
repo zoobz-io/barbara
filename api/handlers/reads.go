@@ -11,6 +11,7 @@ import (
 	"github.com/zoobz-io/barbara/api/contracts"
 	"github.com/zoobz-io/barbara/api/transformers"
 	"github.com/zoobz-io/barbara/api/wire"
+	dbtransformers "github.com/zoobz-io/barbara/database/transformers"
 	"github.com/zoobz-io/barbara/internal/auth"
 )
 
@@ -42,7 +43,7 @@ var EnumerateDocuments = rocco.GET("/documents",
 	func(req *rocco.Request[rocco.NoBody]) (wire.PublishedDocumentListResponse, error) {
 		reads := sum.MustUse[contracts.Reads](req.Context)
 		ctx := auth.WithPrincipal(req.Context, req.Identity)
-		limit, offset := transformers.Pagination(req.Params.Query)
+		limit, offset := dbtransformers.Pagination(req.Params.Query)
 		docs, total, err := reads.Enumerate(ctx, req.Params.Query["tag"], limit, offset)
 		if err != nil {
 			return wire.PublishedDocumentListResponse{}, transformers.ErrorToResponse(err)
@@ -64,7 +65,7 @@ var SearchDocuments = rocco.GET("/search",
 		}
 		reads := sum.MustUse[contracts.Reads](req.Context)
 		ctx := auth.WithPrincipal(req.Context, req.Identity)
-		limit, offset := transformers.Pagination(req.Params.Query)
+		limit, offset := dbtransformers.Pagination(req.Params.Query)
 		docs, total, err := reads.Search(ctx, query, limit, offset)
 		if err != nil {
 			return wire.PublishedDocumentListResponse{}, transformers.ErrorToResponse(err)

@@ -10,6 +10,7 @@ import (
 	"github.com/zoobz-io/barbara/admin/contracts"
 	"github.com/zoobz-io/barbara/admin/transformers"
 	"github.com/zoobz-io/barbara/admin/wire"
+	dbtransformers "github.com/zoobz-io/barbara/database/transformers"
 	"github.com/zoobz-io/barbara/internal/auth"
 )
 
@@ -50,7 +51,7 @@ var ListDocuments = rocco.GET("/documents",
 	func(req *rocco.Request[rocco.NoBody]) (wire.DocumentListResponse, error) {
 		docs := sum.MustUse[contracts.Documents](req.Context)
 		ctx := auth.WithPrincipal(req.Context, req.Identity)
-		limit, offset := transformers.Pagination(req.Params.Query)
+		limit, offset := dbtransformers.Pagination(req.Params.Query)
 		list, err := docs.List(ctx, limit, offset)
 		if err != nil {
 			return wire.DocumentListResponse{}, transformers.ErrorToResponse(err)
