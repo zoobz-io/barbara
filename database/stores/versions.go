@@ -93,6 +93,21 @@ func (s *Versions) Save(ctx context.Context, documentID, content string) (*model
 	return created, nil
 }
 
+// GetByID retrieves a version by primary key, WITHOUT tenant scoping —
+// operational machinery for the full reindex, which runs outside any tenant
+// context and loads each published version to rebuild its projection. The
+// version id is a globally-unique primary key, so this is unambiguous.
+// Tenant-facing callers use Get, which scopes to the request's tenant.
+func (s *Versions) GetByID(ctx context.Context, id string) (*models.Version, error) {
+	v, err := s.Select().
+		Where("id", "=", "id").
+		Exec(ctx, map[string]any{"id": id})
+	if err != nil {
+		return nil, err
+	}
+	return v, nil
+}
+
 // List returns a document's versions, newest first, scoped to the tenant.
 func (s *Versions) List(ctx context.Context, documentID string, limit, offset int) ([]*models.Version, error) {
 	tenantID, err := auth.RequireTenant(ctx)
