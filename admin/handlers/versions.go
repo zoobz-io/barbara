@@ -17,7 +17,7 @@ var SaveVersion = rocco.POST("/documents/{document_id}/versions",
 		ctx := auth.WithPrincipal(req.Context, req.Identity)
 		v, err := versions.Save(ctx, req.Params.Path["document_id"], req.Body.Content)
 		if err != nil {
-			return wire.VersionResponse{}, mapError(err)
+			return wire.VersionResponse{}, transformers.ErrorToResponse(err)
 		}
 		return transformers.VersionToResponse(v), nil
 	}).WithPathParams("document_id").
@@ -32,10 +32,10 @@ var ListVersions = rocco.GET("/documents/{document_id}/versions",
 	func(req *rocco.Request[rocco.NoBody]) (wire.VersionListResponse, error) {
 		versions := sum.MustUse[contracts.Versions](req.Context)
 		ctx := auth.WithPrincipal(req.Context, req.Identity)
-		limit, offset := pagination(req)
+		limit, offset := transformers.Pagination(req.Params.Query)
 		list, err := versions.List(ctx, req.Params.Path["document_id"], limit, offset)
 		if err != nil {
-			return wire.VersionListResponse{}, mapError(err)
+			return wire.VersionListResponse{}, transformers.ErrorToResponse(err)
 		}
 		return transformers.VersionsToListResponse(list, limit, offset), nil
 	}).WithPathParams("document_id").
@@ -52,7 +52,7 @@ var GetVersion = rocco.GET("/versions/{id}",
 		ctx := auth.WithPrincipal(req.Context, req.Identity)
 		v, err := versions.Get(ctx, req.Params.Path["id"])
 		if err != nil {
-			return wire.VersionResponse{}, mapError(err)
+			return wire.VersionResponse{}, transformers.ErrorToResponse(err)
 		}
 		return transformers.VersionToResponse(v), nil
 	}).WithPathParams("id").

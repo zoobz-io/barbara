@@ -4,17 +4,12 @@
 package handlers
 
 import (
-	"errors"
-	"strconv"
-
-	"github.com/lib/pq"
 	"github.com/zoobz-io/rocco"
 	"github.com/zoobz-io/sum"
 
 	"github.com/zoobz-io/barbara/admin/contracts"
 	"github.com/zoobz-io/barbara/admin/transformers"
 	"github.com/zoobz-io/barbara/admin/wire"
-	"github.com/zoobz-io/barbara/database/stores"
 	"github.com/zoobz-io/barbara/internal/auth"
 )
 
@@ -25,7 +20,7 @@ var CreateDocument = rocco.POST("/documents",
 		ctx := auth.WithPrincipal(req.Context, req.Identity)
 		doc, err := docs.Create(ctx, req.Body.Key)
 		if err != nil {
-			return wire.DocumentResponse{}, mapError(err)
+			return wire.DocumentResponse{}, transformers.ErrorToResponse(err)
 		}
 		return transformers.DocumentToResponse(doc), nil
 	}).WithSummary("Create a document").
@@ -41,7 +36,7 @@ var GetDocument = rocco.GET("/documents/{id}",
 		ctx := auth.WithPrincipal(req.Context, req.Identity)
 		doc, err := docs.Get(ctx, req.Params.Path["id"])
 		if err != nil {
-			return wire.DocumentResponse{}, mapError(err)
+			return wire.DocumentResponse{}, transformers.ErrorToResponse(err)
 		}
 		return transformers.DocumentToResponse(doc), nil
 	}).WithPathParams("id").
@@ -55,10 +50,10 @@ var ListDocuments = rocco.GET("/documents",
 	func(req *rocco.Request[rocco.NoBody]) (wire.DocumentListResponse, error) {
 		docs := sum.MustUse[contracts.Documents](req.Context)
 		ctx := auth.WithPrincipal(req.Context, req.Identity)
-		limit, offset := pagination(req)
+		limit, offset := transformers.Pagination(req.Params.Query)
 		list, err := docs.List(ctx, limit, offset)
 		if err != nil {
-			return wire.DocumentListResponse{}, mapError(err)
+			return wire.DocumentListResponse{}, transformers.ErrorToResponse(err)
 		}
 		return transformers.DocumentsToListResponse(list, limit, offset), nil
 	}).WithQueryParams("limit", "offset").
@@ -74,7 +69,7 @@ var RenameDocument = rocco.PATCH("/documents/{id}",
 		ctx := auth.WithPrincipal(req.Context, req.Identity)
 		doc, err := docs.Rename(ctx, req.Params.Path["id"], req.Body.Key)
 		if err != nil {
-			return wire.DocumentResponse{}, mapError(err)
+			return wire.DocumentResponse{}, transformers.ErrorToResponse(err)
 		}
 		return transformers.DocumentToResponse(doc), nil
 	}).WithPathParams("id").
@@ -89,7 +84,7 @@ var DeleteDocument = rocco.DELETE("/documents/{id}",
 		docs := sum.MustUse[contracts.Documents](req.Context)
 		ctx := auth.WithPrincipal(req.Context, req.Identity)
 		if err := docs.Delete(ctx, req.Params.Path["id"]); err != nil {
-			return wire.DocumentResponse{}, mapError(err)
+			return wire.DocumentResponse{}, transformers.ErrorToResponse(err)
 		}
 		return wire.DocumentResponse{}, nil
 	}).WithPathParams("id").
@@ -98,46 +93,3 @@ var DeleteDocument = rocco.DELETE("/documents/{id}",
 	WithSuccessStatus(204).
 	WithErrors(rocco.ErrNotFound, rocco.ErrConflict, rocco.ErrUnauthorized).
 	WithAuthentication()
-
-// pagination reads limit/offset from the query, applying defaults.
-func pagination(req *rocco.Request[rocco.NoBody]) (limit, offset int) {
-	limit, offset = 50, 0
-	if v := req.Params.Query["limit"]; v != "" {
-		if n, err := strconv.Atoi(v); err == nil && n > 0 {
-			limit = n
-		}
-	}
-	if v := req.Params.Query["offset"]; v != "" {
-		if n, err := strconv.Atoi(v); err == nil && n >= 0 {
-			offset = n
-		}
-	}
-	return limit, offset
-}
-
-// mapError translates store errors into HTTP responses.
-func mapError(err error) error {
-	switch {
-	case errors.Is(err, stores.ErrNotFound):
-		return rocco.ErrNotFound.WithMessage("document not found")
-	case errors.Is(err, stores.ErrDocumentPublished):
-		return rocco.ErrConflict.WithMessage("document is published; unpublish before deleting")
-	case errors.Is(err, stores.ErrVersionMismatch):
-		return rocco.ErrBadRequest.WithMessage("version does not belong to the document")
-	case errors.Is(err, auth.ErrNoTenant):
-		return rocco.ErrUnauthorized.WithMessage("request has no tenant")
-	case errors.Is(err, auth.ErrNoUser):
-		return rocco.ErrUnauthorized.WithMessage("request has no acting user")
-	case isUniqueViolation(err):
-		return rocco.ErrConflict.WithMessage("a document with that key already exists")
-	default:
-		return err
-	}
-}
-
-// isUniqueViolation reports whether err is a Postgres unique-constraint
-// violation (a duplicate key).
-func isUniqueViolation(err error) bool {
-	var pqErr *pq.Error
-	return errors.As(err, &pqErr) && pqErr.Code == "23505"
-}
