@@ -10,6 +10,8 @@ func All() []rocco.Endpoint {
 		ListDocuments,
 		RenameDocument,
 		DeleteDocument,
+		AddDocumentTag,
+		RemoveDocumentTag,
 		SaveVersion,
 		ListVersions,
 		GetVersion,

@@ -18,6 +18,8 @@ type Documents interface {
 	Get(ctx context.Context, id string) (*models.Document, error)
 	// List returns the tenant's documents, paginated.
 	List(ctx context.Context, limit, offset int) ([]*models.Document, error)
+	// ListByTag returns the tenant's documents carrying the given tag, paginated.
+	ListByTag(ctx context.Context, tag string, limit, offset int) ([]*models.Document, error)
 	// Rename changes a document's key, freeing the old one.
 	Rename(ctx context.Context, id, newKey string) (*models.Document, error)
 	// Delete removes an unpublished document (cascading to its versions).
