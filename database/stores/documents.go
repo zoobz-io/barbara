@@ -114,6 +114,26 @@ func (s *Documents) ListByTag(ctx context.Context, tag string, limit, offset int
 	return docs, nil
 }
 
+// ListPublishedAfter returns published documents across ALL tenants with id
+// greater than afterID, ordered by id, up to limit — a keyset page for the full
+// reindex. It is deliberately tenant-agnostic operational machinery (cf.
+// Search.SearchAll): the reindex runs outside any tenant context and must see
+// every tenant's published documents. Pass the zero UUID to start. Not exposed
+// on any tenant-facing surface. Keyset (id > afterID) rather than OFFSET so
+// walking a large table stays linear.
+func (s *Documents) ListPublishedAfter(ctx context.Context, afterID string, limit int) ([]*models.Document, error) {
+	docs, err := s.Query().
+		WhereNotNull("published_version_id").
+		Where("id", ">", "after_id").
+		OrderBy("id", "asc").
+		Limit(limit).
+		Exec(ctx, map[string]any{"after_id": afterID})
+	if err != nil {
+		return nil, fmt.Errorf("listing published documents: %w", err)
+	}
+	return docs, nil
+}
+
 // Rename changes a document's key, freeing the old one (the old key 404s
 // afterward). The new key must be unique per tenant. Returns ErrNotFound if the
 // document does not exist for the tenant.
