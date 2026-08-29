@@ -16,8 +16,8 @@ import (
 // Skips when the infra it needs is absent.
 //
 // The admin surface no longer serves tenant-scoped authoring — that folded onto
-// the public API (#46) — so this only asserts the binary boots. The cross-tenant
-// SearchAll route lands in #51.
+// the public API — so this only asserts the binary boots. The cross-tenant
+// SearchAll route is covered by its handler tests.
 func TestSetup_WiresService(t *testing.T) {
 	sum.Reset()
 

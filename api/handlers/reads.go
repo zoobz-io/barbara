@@ -1,7 +1,7 @@
 // Package handlers defines the public-API HTTP endpoints: the site-facing
 // published reads (served from OpenSearch under /published/*) and the
 // tenant-scoped authoring surface — documents, versions, tags, publishing,
-// assets — folded onto the public API in #46. Handlers are thin: resolve the
+// assets. Handlers are thin: resolve the
 // contract, bridge the request identity into the context so the store is
 // tenant-scoped, call the contract, and transform the result.
 package handlers

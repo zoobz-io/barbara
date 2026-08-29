@@ -11,7 +11,7 @@ import (
 	"github.com/zoobz-io/barbara/testing/testkit"
 )
 
-// TestDocumentHead_Integration drives the single-call editing read (#48) against
+// TestDocumentHead_Integration drives the single-call editing read against
 // real Postgres: opening an empty document, then one carrying versions, and
 // confirming the head version and its content come back with the document.
 func TestDocumentHead_Integration(t *testing.T) {

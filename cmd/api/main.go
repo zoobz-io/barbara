@@ -67,8 +67,8 @@ func setup(ctx context.Context) (*sum.Service, int, func(), error) {
 	// store, tenant-scoped and served from OpenSearch exclusively.
 	sum.Register[contracts.Reads](rt.K, rt.Stores.Search)
 
-	// Authoring contracts — the tenant-scoped write/lifecycle surface, folded
-	// onto the public API (#46). Narrow interfaces over the shared stores.
+	// Authoring contracts — the tenant-scoped write/lifecycle surface. Narrow
+	// interfaces over the shared stores.
 	sum.Register[contracts.Documents](rt.K, rt.Stores.Documents)
 	sum.Register[contracts.Versions](rt.K, rt.Stores.Versions)
 	sum.Register[contracts.Publishing](rt.K, rt.Stores)

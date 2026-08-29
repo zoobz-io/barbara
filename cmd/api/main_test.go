@@ -44,7 +44,7 @@ func TestSetup_WiresService(t *testing.T) {
 
 // TestDocuments_EndToEnd drives real HTTP requests through the public-API router
 // into the real store and Postgres: create a document, then list it back. (The
-// authoring surface was folded onto the public API in #46.)
+// authoring surface was folded onto the public API.)
 func TestDocuments_EndToEnd(t *testing.T) {
 	d := apiDriver(t)
 	const tenant = "e2e11111-0000-0000-0000-000000000001"

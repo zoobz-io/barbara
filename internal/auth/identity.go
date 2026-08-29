@@ -2,7 +2,7 @@
 //
 // Barbara has no user table. Identity and entitlement belong to janus, reached
 // over the aegis mesh; services authenticate to each other with mesh CA client
-// certificates (docs/plans/001-domain.md, "Auth"). Until that integration
+// certificates. Until that integration
 // lands, a stub resolver stands in so surface work is not blocked — see
 // [StubAuthenticator]. The real janus/aegis resolver is a drop-in that
 // satisfies [Authenticator]; nothing else in the package changes.

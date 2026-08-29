@@ -63,7 +63,7 @@ func setup(ctx context.Context) (*sum.Service, int, func(), error) {
 	// janus/aegis lands — swap DefaultStub() for the mesh resolver here.
 	auth.Wire(rt.K, rt.Svc.Engine(), auth.DefaultStub())
 
-	// Admin is the tenant-agnostic internal platform (#46/#51): no tenant-scoped
+	// Admin is the tenant-agnostic internal platform: no tenant-scoped
 	// authoring, just the cross-tenant capabilities gated behind an admin
 	// entitlement. Cross-tenant search is the one seeded here.
 	sum.Register[contracts.Search](rt.K, rt.Stores.Search)

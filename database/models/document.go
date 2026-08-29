@@ -10,13 +10,13 @@ import (
 // and no versioning. key is the materialized full path — derived from the
 // tree (collection ancestry + name), rewritten in-transaction when an
 // ancestor moves or renames — and stays the unique lookup handle.
-// published_version_id points at the one published version; it dies when the
-// release rebase (plan 002) lands and publish state moves to releases.
+// published_version_id points at the one published version; it drops once
+// release-based publishing replaces it as the record of what is live.
 //
-// app_id, collection_id, and name are the tree placement (plan 002).
-// collection_id nil means the app root and stays nullable forever; app_id and
-// name are pointers only until the backfill has run everywhere and the
-// tightening migration lands. deleted_at marks a soft-deleted document — one
+// app_id, collection_id, and name are the tree placement. collection_id nil
+// means the app root and stays nullable forever; app_id and name are pointers
+// only until every write path populates them and the schema tightens to NOT
+// NULL. deleted_at marks a soft-deleted document — one
 // referenced by a historical release, whose key and name are freed but whose
 // versions survive.
 type Document struct {

@@ -164,10 +164,14 @@ concurrency, admin stub) land first — none are invalidated, all get app/
 collection scoping folded in as this plan's migrations arrive. This plan is
 migrations 005+ plus store/handler work on top of the folded surface.
 
-Migration of existing data: current documents' path-like keys can seed
-collections mechanically (split on slash, create the tree, attach documents);
-each tenant's flat corpus becomes one app. A one-shot migration, part of this
-plan's first ticket.
+Migration of existing data: none — no deployed environment exists, so there
+is no data to carry across. (An earlier revision planned a one-shot backfill
+seeding the tree from path-like keys; it was built and then withdrawn when
+this was pointed out.) The schema consequence survives for a different
+reason: the new document columns stay nullable until every write path
+populates them, then a follow-up migration tightens NOT NULL, swaps the key
+uniqueness from per-tenant to per-app, and adds the namespace indexes — that
+tightening sequences on code landing, not on any backfill run.
 
 ## Assets (amended 2026-08-29)
 

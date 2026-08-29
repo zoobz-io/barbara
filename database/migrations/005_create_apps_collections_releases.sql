@@ -1,17 +1,15 @@
 -- +goose Up
--- Plan 002: apps, collections, releases (docs/plans/002-collections-apps-releases.md).
+-- Apps, collections, and releases: the tree and the release model.
 --
--- Sequencing notes, load-bearing:
---   - documents.published_version_id is NOT dropped here. The publish path
---     still reads it until the release rebase (#64) lands; the drop is a later
---     migration, after the backfill tool (#57) has read the pointers to cut
---     each app's release 1.
---   - The new document columns are nullable and carry no unique indexes yet.
---     goose applies migrations back-to-back on deploy, but the backfill tool
---     runs between 005 and the tightening — so NOT NULL and the per-app
---     namespace/key indexes ship in a follow-up migration once every
---     environment is backfilled. Until then the existing per-tenant key index
---     remains the uniqueness guarantee.
+-- Sequencing constraints, load-bearing:
+--   - documents.published_version_id is NOT dropped here. Publish state still
+--     lives in that pointer; it drops only once release-based publishing
+--     replaces it as the record of what is live.
+--   - The new document columns are nullable and carry no unique indexes yet:
+--     the write paths do not populate them until the tree stores exist. NOT
+--     NULL and the per-app namespace/key indexes ship in a later migration,
+--     once every code path writes the columns. Until then the existing
+--     per-tenant key index remains the uniqueness guarantee.
 
 -- The release unit. A tenant owns many apps; an app owns a collection tree and
 -- a linear release history. current_release_id is the only mutable pointer in
@@ -53,9 +51,9 @@ CREATE INDEX idx_collections_parent_id ON collections(parent_id);
 CREATE INDEX idx_collections_tenant_id ON collections(tenant_id);
 
 -- An immutable snapshot of everything live in an app. Append-only: never
--- mutated, never deleted. number is monotonic per app; the unique index is
--- the backstop that turns racing cuts into a retryable error (the store also
--- locks the app row so cuts are serial per app).
+-- mutated, never deleted. number is monotonic per app; serializing cuts is
+-- the store's job (app-row lock), and the unique index is the schema backstop
+-- that turns a racing cut into a retryable error.
 CREATE TABLE releases (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     app_id UUID NOT NULL REFERENCES apps(id),
@@ -92,10 +90,10 @@ ALTER TABLE apps ADD CONSTRAINT fk_apps_current_release
     FOREIGN KEY (current_release_id) REFERENCES releases(id);
 
 -- Tree placement for documents. collection_id NULL means the app root and
--- stays nullable forever; app_id and name are nullable only until the
--- backfill, then tighten. deleted_at is the soft-delete marker for documents
--- referenced by a historical release (delete frees the key and name via the
--- future partial indexes; versions survive).
+-- stays nullable forever; app_id and name are nullable only until the write
+-- paths populate them, then tighten. deleted_at is the soft-delete marker for
+-- documents referenced by a historical release (delete frees the key and name
+-- via the future partial indexes; versions survive).
 ALTER TABLE documents ADD COLUMN app_id UUID REFERENCES apps(id);
 ALTER TABLE documents ADD COLUMN collection_id UUID REFERENCES collections(id);
 ALTER TABLE documents ADD COLUMN name TEXT;

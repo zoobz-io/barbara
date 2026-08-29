@@ -120,7 +120,7 @@ func (s *Documents) ListByTag(ctx context.Context, tag string, limit, offset int
 }
 
 // GetWithHead retrieves a document together with its head (latest) version — the
-// read behind opening a document for editing in one call (#48). Head is nil when
+// read behind opening a document for editing in one call. Head is nil when
 // the document has no versions yet (an empty document, not a 404).
 func (s *Documents) GetWithHead(ctx context.Context, id string) (*models.DocumentHead, error) {
 	doc, err := s.Get(ctx, id)

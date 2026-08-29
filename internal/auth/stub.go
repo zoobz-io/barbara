@@ -30,7 +30,7 @@ var _ Authenticator = (*StubAuthenticator)(nil)
 // StubAuthenticator is the local-dev and test resolver: it authenticates
 // nothing and resolves every request to a fixed, injected identity. It stands
 // in for janus/aegis so surface work proceeds before the mesh integration
-// lands (docs/plans/001-domain.md, "Auth").
+// lands.
 //
 // It honors an X-Tenant-ID header override so multi-tenant behaviour can be
 // exercised locally and in tests — mirroring how the real resolver selects a
