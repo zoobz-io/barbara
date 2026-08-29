@@ -6,9 +6,10 @@ import "github.com/zoobz-io/rocco"
 // site-facing published reads plus the tenant-scoped authoring surface.
 func All() []rocco.Endpoint {
 	return []rocco.Endpoint{
-		// Published reads (OpenSearch, under /published/*).
+		// Published reads (OpenSearch, under /published/apps/{app_id}/*).
 		GetPublishedDocument,
 		EnumerateDocuments,
+		ListPublishedFolder,
 		SearchDocuments,
 		// Apps.
 		CreateApp,

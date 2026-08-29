@@ -81,7 +81,8 @@ func TestEndToEnd_PublishThroughPipelineIsSearchable(t *testing.T) {
 	st, provider := e2eFixture(t)
 	ctx := tenantCtx(testTenant)
 
-	doc, err := seedDoc(st, ctx, "guides/install.md")
+	app := seedApp(t, st, ctx)
+	doc, err := seedDoc(st, ctx, app.ID, "guides/install.md")
 	if err != nil {
 		t.Fatalf("create document: %v", err)
 	}
@@ -95,7 +96,7 @@ func TestEndToEnd_PublishThroughPipelineIsSearchable(t *testing.T) {
 
 	// pg is committed but the OpenSearch write is still an outbox job: the site
 	// surface lags authoring, so the document is not yet served.
-	if _, err := st.Search.GetPublishedByKey(ctx, "guides/install.md"); !errors.Is(err, stores.ErrNotFound) {
+	if _, err := st.Search.GetPublishedByKey(ctx, app.ID, "guides/install.md"); !errors.Is(err, stores.ErrNotFound) {
 		t.Errorf("pre-drain get = %v, want ErrNotFound (write has not landed yet)", err)
 	}
 
@@ -109,7 +110,7 @@ func TestEndToEnd_PublishThroughPipelineIsSearchable(t *testing.T) {
 	}
 
 	// Site-facing get-by-key now serves the merged projection.
-	got, err := st.Search.GetPublishedByKey(ctx, "guides/install.md")
+	got, err := st.Search.GetPublishedByKey(ctx, app.ID, "guides/install.md")
 	if err != nil {
 		t.Fatalf("get by key after drain: %v", err)
 	}
@@ -118,7 +119,7 @@ func TestEndToEnd_PublishThroughPipelineIsSearchable(t *testing.T) {
 	}
 
 	// And full-text search over the analyzed content finds it.
-	hits, total, err := st.Search.Search(ctx, "install", 10, 0)
+	hits, total, err := st.Search.Search(ctx, app.ID, "install", 10, 0)
 	if err != nil {
 		t.Fatalf("full-text search: %v", err)
 	}
@@ -135,7 +136,8 @@ func TestEndToEnd_UnpublishRemovesFromSearch(t *testing.T) {
 	ctx := tenantCtx(testTenant)
 	pipeline := jobs.NewPipeline(st.Search, 3, 10*time.Millisecond)
 
-	doc, err := seedDoc(st, ctx, "guides/config.md")
+	app := seedApp(t, st, ctx)
+	doc, err := seedDoc(st, ctx, app.ID, "guides/config.md")
 	if err != nil {
 		t.Fatalf("create document: %v", err)
 	}
@@ -150,7 +152,7 @@ func TestEndToEnd_UnpublishRemovesFromSearch(t *testing.T) {
 	if err := provider.Refresh(context.Background(), "documents"); err != nil {
 		t.Fatalf("refresh after publish: %v", err)
 	}
-	if _, err := st.Search.GetPublishedByKey(ctx, "guides/config.md"); err != nil {
+	if _, err := st.Search.GetPublishedByKey(ctx, app.ID, "guides/config.md"); err != nil {
 		t.Fatalf("precondition: document should be served after publish: %v", err)
 	}
 
@@ -165,7 +167,7 @@ func TestEndToEnd_UnpublishRemovesFromSearch(t *testing.T) {
 		t.Fatalf("refresh after unpublish: %v", err)
 	}
 
-	if _, err := st.Search.GetPublishedByKey(ctx, "guides/config.md"); !errors.Is(err, stores.ErrNotFound) {
+	if _, err := st.Search.GetPublishedByKey(ctx, app.ID, "guides/config.md"); !errors.Is(err, stores.ErrNotFound) {
 		t.Errorf("post-unpublish get = %v, want ErrNotFound (live entry removed)", err)
 	}
 }
@@ -200,7 +202,8 @@ func TestEndToEnd_TransientOSFailureRetriesAndLands(t *testing.T) {
 	st, provider := e2eFixture(t)
 	ctx := tenantCtx(testTenant)
 
-	doc, err := seedDoc(st, ctx, "guides/retry.md")
+	app := seedApp(t, st, ctx)
+	doc, err := seedDoc(st, ctx, app.ID, "guides/retry.md")
 	if err != nil {
 		t.Fatalf("create document: %v", err)
 	}
@@ -226,7 +229,7 @@ func TestEndToEnd_TransientOSFailureRetriesAndLands(t *testing.T) {
 	}
 
 	// The retry landed, so the site surface serves the document.
-	if _, err := st.Search.GetPublishedByKey(ctx, "guides/retry.md"); err != nil {
+	if _, err := st.Search.GetPublishedByKey(ctx, app.ID, "guides/retry.md"); err != nil {
 		t.Errorf("get after retry = %v, want the document served (retry should have landed)", err)
 	}
 	// And the job settled done, not failed: nothing pending remains.

@@ -75,7 +75,7 @@ func TestReleaseProjection_AddChangeRemove(t *testing.T) {
 	}
 	drain()
 
-	got, err := st.Search.GetPublishedByKey(ctx, "guides/a.md")
+	got, err := st.Search.GetPublishedByKey(ctx, app.ID, "guides/a.md")
 	if err != nil {
 		t.Fatalf("a should be indexed after r1: %v", err)
 	}
@@ -96,10 +96,10 @@ func TestReleaseProjection_AddChangeRemove(t *testing.T) {
 	}
 	drain()
 
-	if got, err := st.Search.GetPublishedByKey(ctx, "guides/a.md"); err != nil || got.Content != "a two" {
+	if got, err := st.Search.GetPublishedByKey(ctx, app.ID, "guides/a.md"); err != nil || got.Content != "a two" {
 		t.Errorf("a should be re-indexed at v2 after r2: content=%q err=%v", got.Content, err)
 	}
-	if _, err := st.Search.GetPublishedByKey(ctx, "b.md"); err != nil {
+	if _, err := st.Search.GetPublishedByKey(ctx, app.ID, "b.md"); err != nil {
 		t.Errorf("b should be indexed after r2: %v", err)
 	}
 
@@ -112,10 +112,10 @@ func TestReleaseProjection_AddChangeRemove(t *testing.T) {
 	}
 	drain()
 
-	if _, err := st.Search.GetPublishedByKey(ctx, "b.md"); !errors.Is(err, stores.ErrNotFound) {
+	if _, err := st.Search.GetPublishedByKey(ctx, app.ID, "b.md"); !errors.Is(err, stores.ErrNotFound) {
 		t.Errorf("b should be gone from the index after r3 dropped it: %v", err)
 	}
-	if _, err := st.Search.GetPublishedByKey(ctx, "guides/a.md"); err != nil {
+	if _, err := st.Search.GetPublishedByKey(ctx, app.ID, "guides/a.md"); err != nil {
 		t.Errorf("a should still be indexed after r3: %v", err)
 	}
 }

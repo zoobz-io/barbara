@@ -25,7 +25,7 @@ func versionsFixture(t *testing.T) (*stores.Versions, string) {
 		_ = db.Close()
 	})
 	st := stores.New(db, astqlpg.New(), testkit.NewSearchProvider(), testkit.NewBucketProvider())
-	doc, err := seedDoc(st, tenantCtx(testTenant), "versioned.md")
+	doc, err := seedDoc(st, tenantCtx(testTenant), seedApp(t, st, tenantCtx(testTenant)).ID, "versioned.md")
 	if err != nil {
 		t.Fatalf("create parent document: %v", err)
 	}

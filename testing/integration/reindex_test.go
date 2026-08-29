@@ -9,6 +9,7 @@ import (
 
 	astqlpg "github.com/zoobz-io/astql/postgres"
 
+	"github.com/zoobz-io/barbara/database/models"
 	"github.com/zoobz-io/barbara/database/stores"
 	"github.com/zoobz-io/barbara/internal/boot"
 	"github.com/zoobz-io/barbara/testing/testkit"
@@ -17,7 +18,7 @@ import (
 // reindexFixture builds the aggregate over real Postgres AND a real OpenSearch
 // index (reindex writes projections straight through the search store), with
 // published documents under two tenants plus one draft that must be excluded.
-func reindexFixture(t *testing.T) *stores.Stores {
+func reindexFixture(t *testing.T) (*stores.Stores, *models.App, *models.App) {
 	t.Helper()
 	db := pgDB(t)
 	addr := osAddr(t)
@@ -40,7 +41,8 @@ func reindexFixture(t *testing.T) *stores.Stores {
 
 	// t1: one published doc.
 	t1 := tenantCtx(testTenant)
-	a, err := seedDoc(st, t1, "guides/a.md")
+	app1 := seedApp(t, st, t1)
+	a, err := seedDoc(st, t1, app1.ID, "guides/a.md")
 	if err != nil {
 		t.Fatalf("create a: %v", err)
 	}
@@ -53,7 +55,7 @@ func reindexFixture(t *testing.T) *stores.Stores {
 	}
 
 	// t1: a draft (saved but never published) — must not be reindexed.
-	d, err := seedDoc(st, t1, "draft.md")
+	d, err := seedDoc(st, t1, app1.ID, "draft.md")
 	if err != nil {
 		t.Fatalf("create draft: %v", err)
 	}
@@ -63,7 +65,8 @@ func reindexFixture(t *testing.T) *stores.Stores {
 
 	// t2: one published doc — proves the reindex crosses tenants.
 	t2 := tenantCtx(otherTenant)
-	b, err := seedDoc(st, t2, "guides/b.md")
+	app2 := seedApp(t, st, t2)
+	b, err := seedDoc(st, t2, app2.ID, "guides/b.md")
 	if err != nil {
 		t.Fatalf("create b: %v", err)
 	}
@@ -77,11 +80,11 @@ func reindexFixture(t *testing.T) *stores.Stores {
 
 	// Publish only enqueued outbox jobs; the index is still empty. Reindex must
 	// rebuild it from Postgres alone.
-	return st
+	return st, app1, app2
 }
 
 func TestReindex_RebuildsPublishedSetFromPostgres(t *testing.T) {
-	st := reindexFixture(t)
+	st, app1, app2 := reindexFixture(t)
 	provider := osProvider(t)
 	ctx := context.Background()
 
@@ -98,25 +101,25 @@ func TestReindex_RebuildsPublishedSetFromPostgres(t *testing.T) {
 
 	// The site-facing surface now serves exactly the published set.
 	t1 := tenantCtx(testTenant)
-	if doc, err := st.Search.GetPublishedByKey(t1, "guides/a.md"); err != nil || doc.Content != "# alpha" {
+	if doc, err := st.Search.GetPublishedByKey(t1, app1.ID, "guides/a.md"); err != nil || doc.Content != "# alpha" {
 		t.Errorf("t1 guides/a.md = %+v, %v; want the published projection", doc, err)
 	}
 	// The draft was excluded.
-	if _, err := st.Search.GetPublishedByKey(t1, "draft.md"); !errors.Is(err, stores.ErrNotFound) {
+	if _, err := st.Search.GetPublishedByKey(t1, app1.ID, "draft.md"); !errors.Is(err, stores.ErrNotFound) {
 		t.Errorf("draft.md = %v, want ErrNotFound (drafts are not projected)", err)
 	}
 	// Each tenant sees only its own published document.
-	if _, total, err := st.Search.Enumerate(t1, "", 50, 0); err != nil || total != 1 {
+	if _, total, err := st.Search.Enumerate(t1, app1.ID, "", 50, 0); err != nil || total != 1 {
 		t.Errorf("t1 enumerate total = %d, %v; want 1", total, err)
 	}
 	t2 := tenantCtx(otherTenant)
-	if doc, err := st.Search.GetPublishedByKey(t2, "guides/b.md"); err != nil || doc.Content != "# beta" {
+	if doc, err := st.Search.GetPublishedByKey(t2, app2.ID, "guides/b.md"); err != nil || doc.Content != "# beta" {
 		t.Errorf("t2 guides/b.md = %+v, %v; want the published projection", doc, err)
 	}
 }
 
 func TestReindex_Idempotent(t *testing.T) {
-	st := reindexFixture(t)
+	st, app1, _ := reindexFixture(t)
 	provider := osProvider(t)
 	ctx := context.Background()
 
@@ -135,7 +138,7 @@ func TestReindex_Idempotent(t *testing.T) {
 	}
 
 	// Re-running converges to one live entry per published document, not duplicates.
-	if _, total, err := st.Search.Enumerate(tenantCtx(testTenant), "", 50, 0); err != nil || total != 1 {
+	if _, total, err := st.Search.Enumerate(tenantCtx(testTenant), app1.ID, "", 50, 0); err != nil || total != 1 {
 		t.Errorf("t1 enumerate total after re-run = %d, %v; want 1 (upsert, no duplicates)", total, err)
 	}
 }

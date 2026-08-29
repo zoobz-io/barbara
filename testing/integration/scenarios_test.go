@@ -43,10 +43,10 @@ func settle(t *testing.T, st *stores.Stores, provider grub.SearchProvider, pipel
 // document, save a first version, publish it. It returns the document and
 // version ids. It does NOT drain — the caller settles when it wants the write
 // visible, so tests can assert the pre-convergence state too.
-func authorAndPublish(t *testing.T, st *stores.Stores, tenant, key, content string) (docID, versionID string) {
+func authorAndPublish(t *testing.T, st *stores.Stores, tenant, appID, key, content string) (docID, versionID string) {
 	t.Helper()
 	ctx := tenantCtx(tenant)
-	doc, err := seedDoc(st, ctx, key)
+	doc, err := seedDoc(st, ctx, appID, key)
 	if err != nil {
 		t.Fatalf("create %s: %v", key, err)
 	}
@@ -70,10 +70,11 @@ func TestScenario_EditAndRepublish_UpdatesServedProjection(t *testing.T) {
 	pipeline := newPipeline(st)
 	ctx := tenantCtx(testTenant)
 
-	docID, _ := authorAndPublish(t, st, testTenant, "guides/widget.md", "the widget points upward")
+	app := seedApp(t, st, ctx)
+	docID, _ := authorAndPublish(t, st, testTenant, app.ID, "guides/widget.md", "the widget points upward")
 	settle(t, st, provider, pipeline)
 
-	got, err := st.Search.GetPublishedByKey(ctx, "guides/widget.md")
+	got, err := st.Search.GetPublishedByKey(ctx, app.ID, "guides/widget.md")
 	if err != nil {
 		t.Fatalf("get after first publish: %v", err)
 	}
@@ -91,7 +92,7 @@ func TestScenario_EditAndRepublish_UpdatesServedProjection(t *testing.T) {
 	}
 	settle(t, st, provider, pipeline)
 
-	got, err = st.Search.GetPublishedByKey(ctx, "guides/widget.md")
+	got, err = st.Search.GetPublishedByKey(ctx, app.ID, "guides/widget.md")
 	if err != nil {
 		t.Fatalf("get after republish: %v", err)
 	}
@@ -104,10 +105,10 @@ func TestScenario_EditAndRepublish_UpdatesServedProjection(t *testing.T) {
 
 	// The new content is findable; the replaced content is not — one live entry
 	// per document (upsert by id), not an accumulating history.
-	if _, total, err := st.Search.Search(ctx, "downward", 10, 0); err != nil || total != 1 {
+	if _, total, err := st.Search.Search(ctx, app.ID, "downward", 10, 0); err != nil || total != 1 {
 		t.Errorf("search 'downward' = %d,%v; want 1 hit", total, err)
 	}
-	if _, total, err := st.Search.Search(ctx, "upward", 10, 0); err != nil || total != 0 {
+	if _, total, err := st.Search.Search(ctx, app.ID, "upward", 10, 0); err != nil || total != 0 {
 		t.Errorf("search 'upward' = %d,%v; want 0 (the replaced version's content is no longer served)", total, err)
 	}
 }
@@ -121,7 +122,8 @@ func TestScenario_Rollback_RevertsServedContent(t *testing.T) {
 	pipeline := newPipeline(st)
 	ctx := tenantCtx(testTenant)
 
-	docID, v1 := authorAndPublish(t, st, testTenant, "post.md", "alpha draft")
+	app := seedApp(t, st, ctx)
+	docID, v1 := authorAndPublish(t, st, testTenant, app.ID, "post.md", "alpha draft")
 	v2, err := st.Versions.Save(ctx, docID, "beta rewrite", 1)
 	if err != nil {
 		t.Fatalf("save v2: %v", err)
@@ -131,7 +133,7 @@ func TestScenario_Rollback_RevertsServedContent(t *testing.T) {
 	}
 	settle(t, st, provider, pipeline)
 
-	if got, err := st.Search.GetPublishedByKey(ctx, "post.md"); err != nil || got.Content != "beta rewrite" {
+	if got, err := st.Search.GetPublishedByKey(ctx, app.ID, "post.md"); err != nil || got.Content != "beta rewrite" {
 		t.Fatalf("precondition: served = %+v,%v; want beta", got, err)
 	}
 
@@ -141,14 +143,14 @@ func TestScenario_Rollback_RevertsServedContent(t *testing.T) {
 	}
 	settle(t, st, provider, pipeline)
 
-	got, err := st.Search.GetPublishedByKey(ctx, "post.md")
+	got, err := st.Search.GetPublishedByKey(ctx, app.ID, "post.md")
 	if err != nil {
 		t.Fatalf("get after rollback: %v", err)
 	}
 	if got.VersionNumber != 1 || got.Content != "alpha draft" {
 		t.Errorf("served after rollback = {n:%d %q}, want {1 alpha draft}", got.VersionNumber, got.Content)
 	}
-	if _, total, err := st.Search.Search(ctx, "beta", 10, 0); err != nil || total != 0 {
+	if _, total, err := st.Search.Search(ctx, app.ID, "beta", 10, 0); err != nil || total != 0 {
 		t.Errorf("search 'beta' after rollback = %d,%v; want 0 (rolled-back content not served)", total, err)
 	}
 }
@@ -162,11 +164,12 @@ func TestScenario_TagChangeOnPublished_ReachesSearch(t *testing.T) {
 	pipeline := newPipeline(st)
 	ctx := tenantCtx(testTenant)
 
-	docID, _ := authorAndPublish(t, st, testTenant, "howto.md", "step by step")
+	app := seedApp(t, st, ctx)
+	docID, _ := authorAndPublish(t, st, testTenant, app.ID, "howto.md", "step by step")
 	settle(t, st, provider, pipeline)
 
 	// Not yet tagged: the tag filter finds nothing.
-	if _, total, err := st.Search.Enumerate(ctx, "guide", 50, 0); err != nil || total != 0 {
+	if _, total, err := st.Search.Enumerate(ctx, app.ID, "guide", 50, 0); err != nil || total != 0 {
 		t.Fatalf("enumerate 'guide' before tagging = %d,%v; want 0", total, err)
 	}
 
@@ -176,12 +179,12 @@ func TestScenario_TagChangeOnPublished_ReachesSearch(t *testing.T) {
 	}
 	settle(t, st, provider, pipeline)
 
-	hits, total, err := st.Search.Enumerate(ctx, "guide", 50, 0)
+	hits, total, err := st.Search.Enumerate(ctx, app.ID, "guide", 50, 0)
 	if err != nil || total != 1 || hits[0].DocumentID != docID {
 		t.Fatalf("enumerate 'guide' after tagging = %d,%v; want 1 (%s)", total, err, docID)
 	}
 	// Still published, still served by key.
-	if got, err := st.Search.GetPublishedByKey(ctx, "howto.md"); err != nil || got.DocumentID != docID {
+	if got, err := st.Search.GetPublishedByKey(ctx, app.ID, "howto.md"); err != nil || got.DocumentID != docID {
 		t.Errorf("get by key after tagging = %+v,%v; want the doc still served", got, err)
 	}
 
@@ -190,10 +193,10 @@ func TestScenario_TagChangeOnPublished_ReachesSearch(t *testing.T) {
 		t.Fatalf("remove tag: %v", err)
 	}
 	settle(t, st, provider, pipeline)
-	if _, total, err := st.Search.Enumerate(ctx, "guide", 50, 0); err != nil || total != 0 {
+	if _, total, err := st.Search.Enumerate(ctx, app.ID, "guide", 50, 0); err != nil || total != 0 {
 		t.Errorf("enumerate 'guide' after untagging = %d,%v; want 0", total, err)
 	}
-	if _, err := st.Search.GetPublishedByKey(ctx, "howto.md"); err != nil {
+	if _, err := st.Search.GetPublishedByKey(ctx, app.ID, "howto.md"); err != nil {
 		t.Errorf("doc should still be published after untagging: %v", err)
 	}
 }
@@ -206,7 +209,8 @@ func TestScenario_DraftIsNeverServed(t *testing.T) {
 	pipeline := newPipeline(st)
 	ctx := tenantCtx(testTenant)
 
-	doc, err := seedDoc(st, ctx, "draft.md")
+	app := seedApp(t, st, ctx)
+	doc, err := seedDoc(st, ctx, app.ID, "draft.md")
 	if err != nil {
 		t.Fatalf("create: %v", err)
 	}
@@ -223,13 +227,13 @@ func TestScenario_DraftIsNeverServed(t *testing.T) {
 	}
 
 	// And it is served by nothing.
-	if _, err := st.Search.GetPublishedByKey(ctx, "draft.md"); !errors.Is(err, stores.ErrNotFound) {
+	if _, err := st.Search.GetPublishedByKey(ctx, app.ID, "draft.md"); !errors.Is(err, stores.ErrNotFound) {
 		t.Errorf("get draft by key = %v, want ErrNotFound", err)
 	}
-	if _, total, err := st.Search.Search(ctx, "unpublished", 10, 0); err != nil || total != 0 {
+	if _, total, err := st.Search.Search(ctx, app.ID, "unpublished", 10, 0); err != nil || total != 0 {
 		t.Errorf("search for draft content = %d,%v; want 0", total, err)
 	}
-	if _, total, err := st.Search.Enumerate(ctx, "", 50, 0); err != nil || total != 0 {
+	if _, total, err := st.Search.Enumerate(ctx, app.ID, "", 50, 0); err != nil || total != 0 {
 		t.Errorf("enumerate = %d,%v; want 0 (nothing published)", total, err)
 	}
 }
@@ -242,24 +246,26 @@ func TestScenario_TenantIsolation_SameKeyThroughPipeline(t *testing.T) {
 	st, provider := e2eFixture(t)
 	pipeline := newPipeline(st)
 
-	t1Doc, _ := authorAndPublish(t, st, testTenant, "shared/readme.md", "tenant one handbook")
-	t2Doc, _ := authorAndPublish(t, st, otherTenant, "shared/readme.md", "tenant two handbook")
+	app1 := seedApp(t, st, tenantCtx(testTenant))
+	app2 := seedApp(t, st, tenantCtx(otherTenant))
+	t1Doc, _ := authorAndPublish(t, st, testTenant, app1.ID, "shared/readme.md", "tenant one handbook")
+	t2Doc, _ := authorAndPublish(t, st, otherTenant, app2.ID, "shared/readme.md", "tenant two handbook")
 	settle(t, st, provider, pipeline) // drains both tenants' index jobs
 
 	t1 := tenantCtx(testTenant)
 	t2 := tenantCtx(otherTenant)
 
-	got1, err := st.Search.GetPublishedByKey(t1, "shared/readme.md")
+	got1, err := st.Search.GetPublishedByKey(t1, app1.ID, "shared/readme.md")
 	if err != nil || got1.DocumentID != t1Doc || got1.Content != "tenant one handbook" {
 		t.Errorf("tenant one get = %+v,%v; want its own doc %s", got1, err, t1Doc)
 	}
-	got2, err := st.Search.GetPublishedByKey(t2, "shared/readme.md")
+	got2, err := st.Search.GetPublishedByKey(t2, app2.ID, "shared/readme.md")
 	if err != nil || got2.DocumentID != t2Doc || got2.Content != "tenant two handbook" {
 		t.Errorf("tenant two get = %+v,%v; want its own doc %s", got2, err, t2Doc)
 	}
 
 	// Tenant-scoped full-text search never crosses the boundary.
-	if hits, total, err := st.Search.Search(t1, "handbook", 10, 0); err != nil || total != 1 || hits[0].DocumentID != t1Doc {
+	if hits, total, err := st.Search.Search(t1, app1.ID, "handbook", 10, 0); err != nil || total != 1 || hits[0].DocumentID != t1Doc {
 		t.Errorf("tenant one search 'handbook' = %d hits,%v; want just %s", total, err, t1Doc)
 	}
 	// The admin cross-tenant search sees both.
@@ -279,14 +285,15 @@ func TestScenario_Enumerate_PaginatesStably(t *testing.T) {
 	pipeline := newPipeline(st)
 	ctx := tenantCtx(testTenant)
 
+	app := seedApp(t, st, ctx)
 	keys := []string{"a.md", "b.md", "c.md", "d.md", "e.md"}
 	for _, k := range keys {
-		authorAndPublish(t, st, testTenant, k, "body "+k)
+		authorAndPublish(t, st, testTenant, app.ID, k, "body "+k)
 	}
 	settle(t, st, provider, pipeline)
 
 	// A limited page is capped at the limit, but the total is the full count.
-	page, total, err := st.Search.Enumerate(ctx, "", 2, 0)
+	page, total, err := st.Search.Enumerate(ctx, app.ID, "", 2, 0)
 	if err != nil {
 		t.Fatalf("enumerate limit 2: %v", err)
 	}
@@ -302,7 +309,7 @@ func TestScenario_Enumerate_PaginatesStably(t *testing.T) {
 	seen := map[string]bool{}
 	var lastCreated time.Time
 	for offset := 0; offset < len(keys); offset += 2 {
-		p, _, err := st.Search.Enumerate(ctx, "", 2, offset)
+		p, _, err := st.Search.Enumerate(ctx, app.ID, "", 2, offset)
 		if err != nil {
 			t.Fatalf("enumerate page @%d: %v", offset, err)
 		}
@@ -331,7 +338,8 @@ func TestScenario_TerminalOSFailure_ReindexReconciles(t *testing.T) {
 	st, provider := e2eFixture(t)
 	ctx := tenantCtx(testTenant)
 
-	authorAndPublish(t, st, testTenant, "durable.md", "must survive a bad write")
+	app := seedApp(t, st, ctx)
+	authorAndPublish(t, st, testTenant, app.ID, "durable.md", "must survive a bad write")
 
 	// Every attempt fails: the pipeline exhausts its retries and the job goes
 	// terminal-failed. The publish is committed in Postgres, but nothing lands
@@ -342,7 +350,7 @@ func TestScenario_TerminalOSFailure_ReindexReconciles(t *testing.T) {
 	if err := provider.Refresh(context.Background(), "documents"); err != nil {
 		t.Fatalf("refresh: %v", err)
 	}
-	if _, err := st.Search.GetPublishedByKey(ctx, "durable.md"); !errors.Is(err, stores.ErrNotFound) {
+	if _, err := st.Search.GetPublishedByKey(ctx, app.ID, "durable.md"); !errors.Is(err, stores.ErrNotFound) {
 		t.Fatalf("after terminal failure, get = %v; want ErrNotFound (write never landed)", err)
 	}
 
@@ -358,7 +366,7 @@ func TestScenario_TerminalOSFailure_ReindexReconciles(t *testing.T) {
 		t.Fatalf("refresh after reindex: %v", err)
 	}
 
-	got, err := st.Search.GetPublishedByKey(ctx, "durable.md")
+	got, err := st.Search.GetPublishedByKey(ctx, app.ID, "durable.md")
 	if err != nil {
 		t.Fatalf("get after reindex = %v; want the document served again", err)
 	}

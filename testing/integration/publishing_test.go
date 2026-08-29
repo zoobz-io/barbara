@@ -28,7 +28,7 @@ func publishFixture(t *testing.T) (*stores.Stores, string, string) {
 	})
 	st := stores.New(db, astqlpg.New(), testkit.NewSearchProvider(), testkit.NewBucketProvider())
 	ctx := tenantCtx(testTenant)
-	doc, err := seedDoc(st, ctx, "publishable.md")
+	doc, err := seedDoc(st, ctx, seedApp(t, st, ctx).ID, "publishable.md")
 	if err != nil {
 		t.Fatalf("create document: %v", err)
 	}
@@ -127,7 +127,7 @@ func TestPublish_RejectsForeignVersion(t *testing.T) {
 	ctx := tenantCtx(testTenant)
 
 	// A version belonging to a different document.
-	other, err := seedDoc(st, ctx, "other.md")
+	other, err := seedDoc(st, ctx, seedApp(t, st, ctx).ID, "other.md")
 	if err != nil {
 		t.Fatalf("create other doc: %v", err)
 	}

@@ -21,8 +21,8 @@ func Projection(doc *models.Document, version *models.Version) models.DocumentIn
 	return models.DocumentIndex{
 		DocumentID:    doc.ID,
 		TenantID:      doc.TenantID,
-		Key:           doc.Key,
 		AppID:         appID,
+		Key:           doc.Key,
 		ParentPath:    parentPath(doc.Key),
 		Tags:          []string(doc.Tags),
 		VersionID:     version.ID,
@@ -34,7 +34,9 @@ func Projection(doc *models.Document, version *models.Version) models.DocumentIn
 }
 
 // parentPath is the folder portion of a key — everything before the last slash,
-// or "" for a root key.
+// or "" for a root key. The empty-string root convention is load-bearing: the
+// folder read resolves an absent path parameter to "" and must match what is
+// written here.
 func parentPath(key string) string {
 	if i := strings.LastIndex(key, "/"); i >= 0 {
 		return key[:i]
