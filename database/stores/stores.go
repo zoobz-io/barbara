@@ -40,7 +40,7 @@ func New(db *sqlx.DB, renderer astql.Renderer, search grub.SearchProvider, bucke
 		Collections: NewCollections(db, renderer, documents, apps),
 		Jobs:        NewJobs(db, renderer),
 		Search:      NewSearch(search),
-		Assets:      NewAssets(bucket),
+		Assets:      NewAssets(bucket, apps),
 		db:          db,
 	}
 }

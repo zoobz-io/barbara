@@ -223,6 +223,7 @@ var Version = struct {
 type AssetWrittenEvent struct {
 	Key         string
 	TenantID    string
+	AppID       string
 	ContentType string
 	Size        int64
 }
@@ -231,6 +232,7 @@ type AssetWrittenEvent struct {
 type AssetDeletedEvent struct {
 	Key      string
 	TenantID string
+	AppID    string
 }
 
 var (

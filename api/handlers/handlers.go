@@ -47,5 +47,6 @@ func All() []rocco.Endpoint {
 		GetAsset,
 		ListAssets,
 		DeleteAsset,
+		GetPublishedAsset,
 	}
 }
