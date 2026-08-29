@@ -23,7 +23,8 @@ var PublishDocument = rocco.POST("/documents/{id}/publish",
 	}).WithPathParams("id").
 	WithSummary("Publish a document version").
 	WithTags("Publishing").
-	WithErrors(rocco.ErrNotFound, rocco.ErrBadRequest, rocco.ErrUnauthorized).
+	WithScopes(auth.ScopeDocumentsPublish).
+	WithErrors(rocco.ErrNotFound, rocco.ErrBadRequest, rocco.ErrForbidden, rocco.ErrUnauthorized).
 	WithAuthentication()
 
 // UnpublishDocument clears a document's published pointer and removes its entry.
@@ -39,7 +40,8 @@ var UnpublishDocument = rocco.POST("/documents/{id}/unpublish",
 	}).WithPathParams("id").
 	WithSummary("Unpublish a document").
 	WithTags("Publishing").
-	WithErrors(rocco.ErrNotFound, rocco.ErrUnauthorized).
+	WithScopes(auth.ScopeDocumentsPublish).
+	WithErrors(rocco.ErrNotFound, rocco.ErrForbidden, rocco.ErrUnauthorized).
 	WithAuthentication()
 
 // RollbackDocument republishes an older version of a document.
@@ -55,5 +57,6 @@ var RollbackDocument = rocco.POST("/documents/{id}/rollback",
 	}).WithPathParams("id").
 	WithSummary("Roll back to an older document version").
 	WithTags("Publishing").
-	WithErrors(rocco.ErrNotFound, rocco.ErrBadRequest, rocco.ErrUnauthorized).
+	WithScopes(auth.ScopeDocumentsPublish).
+	WithErrors(rocco.ErrNotFound, rocco.ErrBadRequest, rocco.ErrForbidden, rocco.ErrUnauthorized).
 	WithAuthentication()

@@ -27,7 +27,8 @@ var AddDocumentTag = rocco.POST("/documents/{id}/tags",
 	}).WithPathParams("id").
 	WithSummary("Add a tag to a document").
 	WithTags("Documents").
-	WithErrors(rocco.ErrBadRequest, rocco.ErrNotFound, rocco.ErrUnauthorized).
+	WithScopes(auth.ScopeDocumentsWrite).
+	WithErrors(rocco.ErrBadRequest, rocco.ErrNotFound, rocco.ErrForbidden, rocco.ErrUnauthorized).
 	WithAuthentication()
 
 // RemoveDocumentTag removes a tag from a document. The tag is a query parameter
@@ -51,5 +52,6 @@ var RemoveDocumentTag = rocco.DELETE("/documents/{id}/tags",
 	WithQueryParams("tag").
 	WithSummary("Remove a tag from a document").
 	WithTags("Documents").
-	WithErrors(rocco.ErrBadRequest, rocco.ErrNotFound, rocco.ErrUnauthorized).
+	WithScopes(auth.ScopeDocumentsWrite).
+	WithErrors(rocco.ErrBadRequest, rocco.ErrNotFound, rocco.ErrForbidden, rocco.ErrUnauthorized).
 	WithAuthentication()
