@@ -1,15 +1,15 @@
 # contracts
 
-Interface definitions for the admin API surface.
+Interface definitions for the admin (internal-platform) API surface.
 
 ## Purpose
 
-Define the boundaries between layers for admin operations. Admin contracts may expose broader capabilities than public contracts - system-wide access, bulk operations, and internal data.
+Define the boundaries between layers. Handlers depend on contracts, stores implement contracts. This enables testing with mocks and keeps dependencies flowing in one direction.
 
 ## Pattern
 
 ```go
-// admin/contracts/users.go
+// contracts/users.go
 package contracts
 
 import (
@@ -23,20 +23,17 @@ type Users interface {
     Get(ctx context.Context, key string) (*models.User, error)
     // Set creates or updates a user.
     Set(ctx context.Context, key string, user *models.User) error
-    // List returns all users with pagination.
-    List(ctx context.Context, limit, offset int) ([]*models.User, error)
-    // Search finds users by criteria.
-    Search(ctx context.Context, query string) ([]*models.User, error)
-    // Impersonate generates a token for the target user.
-    Impersonate(ctx context.Context, targetID string) (string, error)
+    // GetByLogin retrieves a user by login name.
+    GetByLogin(ctx context.Context, login string) (*models.User, error)
 }
 ```
 
 ## Guidelines
 
-- Admin contracts may expose more methods than public equivalents
-- Include bulk operations (List, Search, BatchUpdate)
-- Include administrative operations (Impersonate, Audit, Suspend)
+- One interface per domain entity
+- First parameter is always `context.Context`
+- Return pointers for single entities, slices for lists
+- Return `error` as the last return value
 - Document each method with a brief comment
 - Keep interfaces focused - prefer multiple small interfaces over one large one
 

@@ -1,15 +1,15 @@
 # handlers
 
-HTTP handlers for the admin API surface.
+HTTP handlers for the admin (internal-platform) API surface.
 
 ## Purpose
 
-Define HTTP endpoints for internal team operations. Admin handlers provide system-wide visibility, bulk operations, and administrative capabilities not exposed to customers.
+Define HTTP endpoints using rocco's handler pattern. Handlers are the entry point for HTTP requests and orchestrate calls to contracts.
 
 ## Pattern
 
 ```go
-// admin/handlers/users.go
+// handlers/users.go
 package handlers
 
 import (
@@ -20,36 +20,36 @@ import (
     "github.com/zoobz-io/barbara/wire"
 )
 
-var ListUsers = rocco.GET("/users", func(req *rocco.Request[rocco.NoBody]) (wire.AdminUserListResponse, error) {
+var GetMe = rocco.GET("/me", func(req *rocco.Request[rocco.NoBody]) (wire.UserResponse, error) {
     users := sum.MustUse[contracts.Users](req.Context)
 
-    limit := 50
-    offset := 0
-    // Parse pagination from query params...
-
-    list, err := users.List(req.Context, limit, offset)
+    user, err := users.Get(req.Context, req.Identity.ID())
     if err != nil {
-        return wire.AdminUserListResponse{}, err
+        return wire.UserResponse{}, err
     }
 
-    return transformers.UsersToAdminList(list), nil
-}).WithSummary("List all users").
-   WithDescription("Returns paginated list of all users in the system.").
+    return transformers.UserToResponse(user), nil
+}).WithSummary("Get current user").
+   WithDescription("Returns the authenticated user's profile.").
    WithTags("Users").
-   WithQueryParams("limit", "offset").
    WithAuthentication()
 
-var GetUser = rocco.GET("/users/{id}", func(req *rocco.Request[rocco.NoBody]) (wire.AdminUserResponse, error) {
+var UpdateMe = rocco.PATCH("/me", func(req *rocco.Request[wire.UserUpdateRequest]) (wire.UserResponse, error) {
     users := sum.MustUse[contracts.Users](req.Context)
 
-    user, err := users.Get(req.Context, req.Params.Path["id"])
+    user, err := users.Get(req.Context, req.Identity.ID())
     if err != nil {
-        return wire.AdminUserResponse{}, err
+        return wire.UserResponse{}, err
     }
 
-    return transformers.UserToAdminResponse(user), nil
-}).WithPathParams("id").
-   WithSummary("Get user by ID").
+    transformers.ApplyUserUpdate(req.Body, user)
+
+    if err := users.Set(req.Context, req.Identity.ID(), user); err != nil {
+        return wire.UserResponse{}, err
+    }
+
+    return transformers.UserToResponse(user), nil
+}).WithSummary("Update current user").
    WithTags("Users").
    WithAuthentication()
 ```
@@ -57,18 +57,16 @@ var GetUser = rocco.GET("/users/{id}", func(req *rocco.Request[rocco.NoBody]) (w
 ## Handler Registration
 
 ```go
-// admin/handlers/handlers.go
+// handlers/handlers.go
 package handlers
 
 import "github.com/zoobz-io/rocco"
 
 func All() []rocco.Endpoint {
     return []rocco.Endpoint{
-        ListUsers,
-        GetUser,
-        SearchUsers,
-        ImpersonateUser,
-        // ... all admin handlers
+        GetMe,
+        UpdateMe,
+        // ... all handlers
     }
 }
 ```
@@ -76,22 +74,63 @@ func All() []rocco.Endpoint {
 ## Error Definitions
 
 ```go
-// admin/handlers/errors.go
+// handlers/errors.go
 package handlers
 
 import "github.com/zoobz-io/rocco"
 
 var (
-    ErrUserNotFound    = rocco.ErrNotFound.WithMessage("user not found")
-    ErrCannotImpersonate = rocco.ErrForbidden.WithMessage("cannot impersonate this user")
+    ErrUserNotFound = rocco.ErrNotFound.WithMessage("user not found")
+    ErrMissingQuery = rocco.ErrBadRequest.WithMessage("query parameter required")
 )
+```
+
+## Chainable Methods
+
+| Method | Purpose |
+|--------|---------|
+| `.WithSummary()` | OpenAPI summary |
+| `.WithDescription()` | OpenAPI description |
+| `.WithTags()` | OpenAPI tag grouping |
+| `.WithAuthentication()` | Require auth |
+| `.WithPathParams()` | Define path variables |
+| `.WithQueryParams()` | Document query parameters |
+| `.WithErrors()` | Document expected errors |
+| `.WithSuccessStatus()` | Override default 200 |
+
+## Streaming (SSE)
+
+For real-time updates, use `rocco.NewStreamHandler`:
+
+```go
+var StreamProgress = rocco.NewStreamHandler[rocco.NoBody, wire.ProgressUpdate](
+    "progress-stream",
+    http.MethodGet,
+    "/jobs/{id}/progress",
+    func(req *rocco.Request[rocco.NoBody], stream rocco.Stream[wire.ProgressUpdate]) error {
+        for {
+            select {
+            case <-stream.Done():
+                return nil // Client disconnected
+            case update := <-progress:
+                if err := stream.Send(update); err != nil {
+                    return err
+                }
+            }
+        }
+    },
+).WithPathParams("id").
+    WithSummary("Stream job progress").
+    WithAuthentication()
 ```
 
 ## Guidelines
 
-- Admin handlers expose system-wide operations
-- Include list/search endpoints with pagination
-- Include administrative operations (impersonate, suspend, audit)
-- Expose more data than public handlers (less masking)
+- Handlers are module-level variables, not methods
+- Use `rocco.NoBody` for requests without a body
+- Retrieve contracts via `sum.MustUse[contracts.T](req.Context)`
+- Use transformers for model ↔ wire conversion
 - Keep handler logic minimal - orchestration only
+- Define domain-specific errors in `errors.go`
 - Register all handlers in the `All()` function
+- For streams: always check `stream.Done()` for client disconnect

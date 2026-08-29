@@ -25,7 +25,8 @@ var CreateDocument = rocco.POST("/documents",
 	}).WithSummary("Create a document").
 	WithTags("Documents").
 	WithSuccessStatus(201).
-	WithErrors(rocco.ErrConflict, rocco.ErrUnauthorized).
+	WithScopes(auth.ScopeDocumentsWrite).
+	WithErrors(rocco.ErrConflict, rocco.ErrForbidden, rocco.ErrUnauthorized).
 	WithAuthentication()
 
 // GetDocument returns a document by ID, carrying its draft/published status.
@@ -41,7 +42,8 @@ var GetDocument = rocco.GET("/documents/{id}",
 	}).WithPathParams("id").
 	WithSummary("Get a document by ID").
 	WithTags("Documents").
-	WithErrors(rocco.ErrNotFound, rocco.ErrUnauthorized).
+	WithScopes(auth.ScopeDocumentsRead).
+	WithErrors(rocco.ErrNotFound, rocco.ErrForbidden, rocco.ErrUnauthorized).
 	WithAuthentication()
 
 // GetDocumentContent returns a document together with its head version's content
@@ -60,7 +62,8 @@ var GetDocumentContent = rocco.GET("/documents/{id}/content",
 	}).WithPathParams("id").
 	WithSummary("Get a document with its head version content").
 	WithTags("Documents").
-	WithErrors(rocco.ErrNotFound, rocco.ErrUnauthorized).
+	WithScopes(auth.ScopeDocumentsRead).
+	WithErrors(rocco.ErrNotFound, rocco.ErrForbidden, rocco.ErrUnauthorized).
 	WithAuthentication()
 
 // ListDocuments returns the tenant's documents, paginated. An optional tag
@@ -86,7 +89,8 @@ var ListDocuments = rocco.GET("/documents",
 	}).WithQueryParams("tag", "limit", "offset").
 	WithSummary("List documents").
 	WithTags("Documents").
-	WithErrors(rocco.ErrUnauthorized).
+	WithScopes(auth.ScopeDocumentsRead).
+	WithErrors(rocco.ErrForbidden, rocco.ErrUnauthorized).
 	WithAuthentication()
 
 // RenameDocument changes a document's key.
@@ -102,7 +106,8 @@ var RenameDocument = rocco.PATCH("/documents/{id}",
 	}).WithPathParams("id").
 	WithSummary("Rename a document").
 	WithTags("Documents").
-	WithErrors(rocco.ErrNotFound, rocco.ErrConflict, rocco.ErrUnauthorized).
+	WithScopes(auth.ScopeDocumentsWrite).
+	WithErrors(rocco.ErrNotFound, rocco.ErrConflict, rocco.ErrForbidden, rocco.ErrUnauthorized).
 	WithAuthentication()
 
 // DeleteDocument removes an unpublished document.
@@ -118,5 +123,6 @@ var DeleteDocument = rocco.DELETE("/documents/{id}",
 	WithSummary("Delete an unpublished document").
 	WithTags("Documents").
 	WithSuccessStatus(204).
-	WithErrors(rocco.ErrNotFound, rocco.ErrConflict, rocco.ErrUnauthorized).
+	WithScopes(auth.ScopeDocumentsWrite).
+	WithErrors(rocco.ErrNotFound, rocco.ErrConflict, rocco.ErrForbidden, rocco.ErrUnauthorized).
 	WithAuthentication()

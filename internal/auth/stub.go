@@ -65,9 +65,10 @@ func NewStub(userID, tenantID, email string, roles, scopes []string) *StubAuthen
 }
 
 // DefaultStub returns the stub resolver with the dev defaults: the dev user on
-// the dev tenant, holding the admin role.
+// the dev tenant, holding the admin role and every authoring scope — broad
+// enough that local callers pass all entitlement gates.
 func DefaultStub() *StubAuthenticator {
-	return NewStub(DefaultUserID, DefaultTenantID, DefaultEmail, []string{RoleAdmin}, nil)
+	return NewStub(DefaultUserID, DefaultTenantID, DefaultEmail, []string{RoleAdmin}, AuthoringScopes())
 }
 
 // Authenticate resolves the request to the stub's fixed identity. If the

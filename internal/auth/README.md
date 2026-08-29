@@ -74,3 +74,14 @@ changes.
 
 The stub is not an authenticator in any security sense and must never be wired
 in a deployed binary.
+
+## Internal (admin) vs tenant entitlements
+
+The public API and the admin binary share this stub but stand for different
+identities. Tenant users (public API) carry tenant-scoped scopes — `documents:*`
+for the authoring lifecycle — and operate within a single tenant. Internal
+admin identities are tenant-agnostic and carry a platform entitlement (the
+`admin` role) that tenant users never hold; the admin cross-tenant search is
+gated on it. When the mesh resolver replaces the stub, it issues each kind of
+identity its own entitlements — the swap point in `Wire` is unchanged, and the
+handler-level gates (`WithScopes` / `WithRoles`) stay as they are.

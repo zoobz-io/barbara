@@ -25,7 +25,8 @@ var SaveVersion = rocco.POST("/documents/{document_id}/versions",
 	WithSummary("Save a new version of a document").
 	WithTags("Versions").
 	WithSuccessStatus(201).
-	WithErrors(rocco.ErrNotFound, rocco.ErrUnauthorized).
+	WithScopes(auth.ScopeDocumentsWrite).
+	WithErrors(rocco.ErrNotFound, rocco.ErrForbidden, rocco.ErrUnauthorized).
 	WithAuthentication()
 
 // ListVersions returns a document's versions, newest first.
@@ -43,7 +44,8 @@ var ListVersions = rocco.GET("/documents/{document_id}/versions",
 	WithQueryParams("limit", "offset").
 	WithSummary("List a document's versions").
 	WithTags("Versions").
-	WithErrors(rocco.ErrUnauthorized).
+	WithScopes(auth.ScopeDocumentsRead).
+	WithErrors(rocco.ErrForbidden, rocco.ErrUnauthorized).
 	WithAuthentication()
 
 // GetVersion returns a single version by ID.
@@ -59,5 +61,6 @@ var GetVersion = rocco.GET("/versions/{id}",
 	}).WithPathParams("id").
 	WithSummary("Get a version by ID").
 	WithTags("Versions").
-	WithErrors(rocco.ErrNotFound, rocco.ErrUnauthorized).
+	WithScopes(auth.ScopeDocumentsRead).
+	WithErrors(rocco.ErrNotFound, rocco.ErrForbidden, rocco.ErrUnauthorized).
 	WithAuthentication()

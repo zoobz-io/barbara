@@ -30,7 +30,8 @@ var UploadAsset = rocco.PUT("/assets/object",
 	WithSummary("Upload an asset (overwrites an existing key)").
 	WithTags("Assets").
 	WithMaxBodySize(maxAssetBytes).
-	WithErrors(rocco.ErrBadRequest, rocco.ErrUnauthorized).
+	WithScopes(auth.ScopeDocumentsWrite).
+	WithErrors(rocco.ErrBadRequest, rocco.ErrForbidden, rocco.ErrUnauthorized).
 	WithAuthentication()
 
 // GetAsset downloads an asset's bytes by key, served with its stored content
@@ -48,7 +49,8 @@ var GetAsset = rocco.GET("/assets/object",
 	WithSummary("Download an asset").
 	WithTags("Assets").
 	WithMediaTypes("application/octet-stream", "image/png", "image/jpeg", "application/pdf").
-	WithErrors(rocco.ErrNotFound, rocco.ErrUnauthorized).
+	WithScopes(auth.ScopeDocumentsRead).
+	WithErrors(rocco.ErrNotFound, rocco.ErrForbidden, rocco.ErrUnauthorized).
 	WithAuthentication()
 
 // ListAssets returns metadata for the request tenant's assets (no bytes).
@@ -63,7 +65,8 @@ var ListAssets = rocco.GET("/assets",
 		return transformers.AssetsToListResponse(list), nil
 	}).WithSummary("List assets").
 	WithTags("Assets").
-	WithErrors(rocco.ErrUnauthorized).
+	WithScopes(auth.ScopeDocumentsRead).
+	WithErrors(rocco.ErrForbidden, rocco.ErrUnauthorized).
 	WithAuthentication()
 
 // DeleteAsset removes an asset by key for the request's tenant.
@@ -79,5 +82,6 @@ var DeleteAsset = rocco.DELETE("/assets/object",
 	WithSummary("Delete an asset").
 	WithTags("Assets").
 	WithSuccessStatus(204).
-	WithErrors(rocco.ErrNotFound, rocco.ErrUnauthorized).
+	WithScopes(auth.ScopeDocumentsWrite).
+	WithErrors(rocco.ErrNotFound, rocco.ErrForbidden, rocco.ErrUnauthorized).
 	WithAuthentication()
