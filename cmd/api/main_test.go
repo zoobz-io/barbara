@@ -89,7 +89,7 @@ func TestVersions_EndToEnd(t *testing.T) {
 	_ = json.Unmarshal(cw.Body.Bytes(), &doc)
 
 	vw := d.RequestAs(t, tenant, http.MethodPost, "/documents/"+doc.ID+"/versions",
-		map[string]string{"content": "# hello"})
+		map[string]any{"content": "# hello", "base_version": 0})
 	if vw.Code != http.StatusCreated {
 		t.Fatalf("save version status = %d, want 201; body=%s", vw.Code, vw.Body.String())
 	}
@@ -124,7 +124,7 @@ func TestPublishing_EndToEnd(t *testing.T) {
 	_ = json.Unmarshal(cw.Body.Bytes(), &doc)
 
 	vw := d.RequestAs(t, tenant, http.MethodPost, "/documents/"+doc.ID+"/versions",
-		map[string]string{"content": "# publish me"})
+		map[string]any{"content": "# publish me", "base_version": 0})
 	var version struct {
 		ID string `json:"id"`
 	}
