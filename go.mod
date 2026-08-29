@@ -13,7 +13,7 @@ require (
 	github.com/zoobz-io/aperture v1.0.3
 	github.com/zoobz-io/astql v1.0.11
 	github.com/zoobz-io/capitan v1.0.2
-	github.com/zoobz-io/grub v1.0.18
+	github.com/zoobz-io/grub v1.0.19
 	github.com/zoobz-io/grub/minio v1.0.18
 	github.com/zoobz-io/grub/opensearch v0.1.11
 	github.com/zoobz-io/lucene v0.0.4
