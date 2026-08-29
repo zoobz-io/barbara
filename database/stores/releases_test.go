@@ -161,6 +161,25 @@ func TestReleases_Cut_UnchangedPathSkipped(t *testing.T) {
 	}
 }
 
+// If the projection can't be built (a document behind an entry fails to load),
+// the whole cut fails and rolls back rather than committing a half-projected
+// release.
+func TestReleases_Cut_ProjectionLoadFailureRollsBack(t *testing.T) {
+	st, _, cfg := newQueryTestCfg(t)
+	cfg.PushRowData(docRow(nil))                           // snapshotHeads: d-1
+	cfg.PushRowData(versionRow())                          // head v-1
+	cfg.PushRowData(appRow())                              // app lock (no prev release)
+	cfg.PushRowData(countRow(0))                           // number 1
+	cfg.PushRowData(releaseRow("r-1", 1))                  // release insert
+	cfg.PushRowData(releaseEntryRow("a.md", "d-1", "v-1")) // entry insert
+	cfg.PushRowData(appRow())                              // pointer update
+	cfg.PushQueryErr(errors.New("doc load boom"))          // projection: doc load fails
+
+	if _, err := st.Releases.Cut(tenantCtx(), testApp); err == nil {
+		t.Fatal("expected the cut to fail when the projection load errors")
+	}
+}
+
 // List is app- and tenant-scoped, newest number first, paginated.
 func TestReleases_List_Query(t *testing.T) {
 	st, capture := newQueryTest(t)
