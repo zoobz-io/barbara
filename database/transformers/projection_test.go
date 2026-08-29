@@ -33,3 +33,20 @@ func TestProjection(t *testing.T) {
 		t.Errorf("tags not carried: %v", idx.Tags)
 	}
 }
+
+// app_id and parent_path are materialized: parent_path is the key's folder, and
+// a nil app_id projects as empty.
+func TestProjection_MaterializesAppAndParentPath(t *testing.T) {
+	app := "app-1"
+	version := &models.Version{ID: "v1"}
+
+	nested := Projection(&models.Document{ID: "d1", Key: "guides/api/ref.md", AppID: &app}, version)
+	if nested.AppID != "app-1" || nested.ParentPath != "guides/api" {
+		t.Errorf("nested projection = app:%q parent:%q; want app-1/guides/api", nested.AppID, nested.ParentPath)
+	}
+
+	root := Projection(&models.Document{ID: "d2", Key: "readme.md"}, version)
+	if root.AppID != "" || root.ParentPath != "" {
+		t.Errorf("root projection = app:%q parent:%q; want empty/empty", root.AppID, root.ParentPath)
+	}
+}

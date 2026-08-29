@@ -19,6 +19,8 @@ type DocumentIndex struct {
 	TenantID      string    `json:"tenant_id"`
 	DocumentID    string    `json:"document_id"`
 	VersionID     string    `json:"version_id"`
+	AppID         string    `json:"app_id"`
+	ParentPath    string    `json:"parent_path"`
 	Tags          []string  `json:"tags"`
 	VersionNumber int       `json:"version_number"`
 }

@@ -120,5 +120,5 @@ func (s *Stores) enqueueReprojection(ctx context.Context, tx *sqlx.Tx, tenantID 
 	if err != nil {
 		return fmt.Errorf("building projection: %w", err)
 	}
-	return s.Jobs.Enqueue(ctx, tx, s.newJob(tenantID, doc.ID, models.JobIndex, payload))
+	return s.Jobs.Enqueue(ctx, tx, newJob(tenantID, doc.ID, models.JobIndex, payload))
 }
