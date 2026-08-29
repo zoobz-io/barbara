@@ -79,7 +79,7 @@ func TestReleases_Cut_MovesPointerWithMonotonicNumber(t *testing.T) {
 // A full-tree cut snapshots each live document's head version into an entry.
 func TestReleases_Cut_SnapshotsHeadVersions(t *testing.T) {
 	st, capture, cfg := newQueryTestCfg(t)
-	cfg.PushRowData(docRow(nil))                           // snapshotHeads: one live document (d-1, a.md)
+	cfg.PushRowData(docRow(testApp))                           // snapshotHeads: one live document (d-1, a.md)
 	cfg.PushRowData(versionRow())                          // its head version (v-1)
 	cfg.PushRowData(appRow())                              // app lock
 	cfg.PushRowData(countRow(0))                           // first release → number 1
@@ -88,7 +88,7 @@ func TestReleases_Cut_SnapshotsHeadVersions(t *testing.T) {
 	cfg.PushRowData(appRow())                              // pointer UPDATE
 	// projection (prev release nil → the one entry is an add): load doc, load
 	// version, enqueue one index job.
-	cfg.PushRowData(docRow(nil))
+	cfg.PushRowData(docRow(testApp))
 	cfg.PushRowData(versionRow())
 	cfg.PushRowData(jobRow())
 
@@ -110,7 +110,7 @@ func TestReleases_Cut_SnapshotsHeadVersions(t *testing.T) {
 // added/changed path and a delete job for the removed one.
 func TestReleases_Cut_ProjectsDiff(t *testing.T) {
 	st, capture, cfg := newQueryTestCfg(t)
-	cfg.PushRowData(docRow(nil))                           // snapshotHeads: live doc d-1 (a.md)
+	cfg.PushRowData(docRow(testApp))                           // snapshotHeads: live doc d-1 (a.md)
 	cfg.PushRowData(versionRow())                          // its head v-1
 	cfg.PushRowData(appRowWithRelease("r-prev"))           // app lock — has a current release
 	cfg.PushRowData(countRow(1))                           // → number 2
@@ -118,7 +118,7 @@ func TestReleases_Cut_ProjectsDiff(t *testing.T) {
 	cfg.PushRowData(releaseEntryRow("a.md", "d-1", "v-1")) // entry insert
 	cfg.PushRowData(appRow())                              // pointer update
 	cfg.PushRowData(entryRowFor("old.md", "d-2", "v-9"))   // prev entries: only d-2 (now gone)
-	cfg.PushRowData(docRow(nil))                           // upsert d-1: doc load
+	cfg.PushRowData(docRow(testApp))                           // upsert d-1: doc load
 	cfg.PushRowData(versionRow())                          // upsert d-1: version load
 	cfg.PushRowData(jobRow())                              // index job for d-1
 	cfg.PushRowData(jobRow())                              // delete job for d-2
@@ -143,7 +143,7 @@ func TestReleases_Cut_ProjectsDiff(t *testing.T) {
 // projection job.
 func TestReleases_Cut_UnchangedPathSkipped(t *testing.T) {
 	st, capture, cfg := newQueryTestCfg(t)
-	cfg.PushRowData(docRow(nil))                           // snapshotHeads: d-1 (a.md)
+	cfg.PushRowData(docRow(testApp))                           // snapshotHeads: d-1 (a.md)
 	cfg.PushRowData(versionRow())                          // head v-1
 	cfg.PushRowData(appRowWithRelease("r-prev"))           // app lock with a current release
 	cfg.PushRowData(countRow(1))                           // number 2
@@ -166,7 +166,7 @@ func TestReleases_Cut_UnchangedPathSkipped(t *testing.T) {
 // release.
 func TestReleases_Cut_ProjectionLoadFailureRollsBack(t *testing.T) {
 	st, _, cfg := newQueryTestCfg(t)
-	cfg.PushRowData(docRow(nil))                           // snapshotHeads: d-1
+	cfg.PushRowData(docRow(testApp))                           // snapshotHeads: d-1
 	cfg.PushRowData(versionRow())                          // head v-1
 	cfg.PushRowData(appRow())                              // app lock (no prev release)
 	cfg.PushRowData(countRow(0))                           // number 1
@@ -218,7 +218,7 @@ func TestReleases_Rollback_CopiesEntriesForward(t *testing.T) {
 	cfg.PushRowData(releaseEntryRow("a.md", "d-1", "v-1")) // copied entry insert
 	cfg.PushRowData(appRow())                              // pointer update
 	// projection (prev release nil in the mock → the copied entry is an add).
-	cfg.PushRowData(docRow(nil))
+	cfg.PushRowData(docRow(testApp))
 	cfg.PushRowData(versionRow())
 	cfg.PushRowData(jobRow())
 
