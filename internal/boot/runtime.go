@@ -96,7 +96,7 @@ func Init(ctx context.Context) (*Runtime, error) {
 	capitan.Emit(ctx, events.StartupIndicesReady)
 
 	// Stores aggregate — one instance shared by all surfaces.
-	allStores := stores.New(db, astqlpg.New(), searchProvider)
+	allStores := stores.New(db, astqlpg.New(), searchProvider, bucket)
 
 	// Model boundaries — the same for every binary that touches the stores.
 	sum.NewBoundary[models.Document](k)

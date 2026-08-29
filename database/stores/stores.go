@@ -18,20 +18,22 @@ type Stores struct {
 	Versions  *Versions
 	Jobs      *Jobs
 	Search    *Search
+	Assets    *Assets
 
 	db *sqlx.DB // for transactional aggregate methods (publishing)
 }
 
 // New constructs the stores aggregate. The SQL stores share the Postgres
 // connection and astql renderer; the search store wraps the OpenSearch
-// provider.
-func New(db *sqlx.DB, renderer astql.Renderer, search grub.SearchProvider) *Stores {
+// provider; the assets store wraps the object-storage bucket.
+func New(db *sqlx.DB, renderer astql.Renderer, search grub.SearchProvider, bucket grub.BucketProvider) *Stores {
 	documents := NewDocuments(db, renderer)
 	return &Stores{
 		Documents: documents,
 		Versions:  NewVersions(db, renderer, documents),
 		Jobs:      NewJobs(db, renderer),
 		Search:    NewSearch(search),
+		Assets:    NewAssets(bucket),
 		db:        db,
 	}
 }

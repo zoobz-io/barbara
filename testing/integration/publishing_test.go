@@ -26,7 +26,7 @@ func publishFixture(t *testing.T) (*stores.Stores, string, string) {
 		_, _ = db.Exec("DELETE FROM documents")
 		_ = db.Close()
 	})
-	st := stores.New(db, astqlpg.New(), testkit.NewSearchProvider())
+	st := stores.New(db, astqlpg.New(), testkit.NewSearchProvider(), testkit.NewBucketProvider())
 	ctx := tenantCtx(testTenant)
 	doc, err := st.Documents.Create(ctx, "publishable.md")
 	if err != nil {

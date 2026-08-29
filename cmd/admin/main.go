@@ -68,6 +68,7 @@ func setup(ctx context.Context) (*sum.Service, int, func(), error) {
 	sum.Register[contracts.Versions](rt.K, rt.Stores.Versions)
 	sum.Register[contracts.Publishing](rt.K, rt.Stores)
 	sum.Register[contracts.Tagging](rt.K, rt.Stores)
+	sum.Register[contracts.Assets](rt.K, rt.Stores.Assets)
 
 	sum.Freeze(rt.K)
 	capitan.Emit(ctx, events.StartupServicesReady)

@@ -39,6 +39,10 @@ jobs:
       APP_DB_PASSWORD: barbara
       APP_DB_NAME: barbara
       APP_OPENSEARCH_ADDR: http://localhost:9200
+      APP_STORAGE_ENDPOINT: localhost:9000
+      APP_STORAGE_ACCESS_KEY: minioadmin
+      APP_STORAGE_SECRET_KEY: minioadmin
+      APP_STORAGE_BUCKET: barbara
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
@@ -61,6 +65,21 @@ jobs:
         run: |
           for i in $(seq 1 60); do
             curl -sf http://localhost:9200/_cluster/health && break
+            sleep 3
+          done
+      # Object storage for the assets suite. The official minio image needs a
+      # "server" command, which a service container can't supply, so run it as a
+      # step where we control the command. The asset store creates the bucket.
+      - name: Start MinIO
+        run: |
+          docker run -d --name minio -p 9000:9000 \
+            -e MINIO_ROOT_USER=minioadmin \
+            -e MINIO_ROOT_PASSWORD=minioadmin \
+            minio/minio:latest server /data
+      - name: Wait for MinIO
+        run: |
+          for i in $(seq 1 60); do
+            curl -sf http://localhost:9000/minio/health/live && break
             sleep 3
           done
       # One pass: race-checked tests + coverage profile (make test emits coverage.out).

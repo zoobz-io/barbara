@@ -14,6 +14,7 @@ import (
 	"github.com/zoobz-io/barbara/database/stores"
 	"github.com/zoobz-io/barbara/internal/boot"
 	"github.com/zoobz-io/barbara/internal/jobs"
+	"github.com/zoobz-io/barbara/testing/testkit"
 )
 
 // e2eFixture wires the stores aggregate over BOTH real backends — Postgres and a
@@ -44,7 +45,7 @@ func e2eFixture(t *testing.T) (*stores.Stores, grub.SearchProvider) {
 		deleteIndex(t, addr, "documents")
 	})
 
-	return stores.New(db, astqlpg.New(), provider), provider
+	return stores.New(db, astqlpg.New(), provider, testkit.NewBucketProvider()), provider
 }
 
 // drainOutbox claims every pending job and drives each through the pipeline,

@@ -16,7 +16,7 @@ import (
 func ErrorToResponse(err error) error {
 	switch {
 	case errors.Is(err, stores.ErrNotFound):
-		return rocco.ErrNotFound.WithMessage("document not found")
+		return rocco.ErrNotFound.WithMessage("resource not found")
 	case errors.Is(err, stores.ErrDocumentPublished):
 		return rocco.ErrConflict.WithMessage("document is published; unpublish before deleting")
 	case errors.Is(err, stores.ErrVersionMismatch):

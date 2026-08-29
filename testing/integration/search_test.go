@@ -9,6 +9,7 @@ import (
 	astqlpg "github.com/zoobz-io/astql/postgres"
 
 	"github.com/zoobz-io/barbara/database/stores"
+	"github.com/zoobz-io/barbara/testing/testkit"
 )
 
 // TestSearch_IndexDelete exercises the search store's write side against a real
@@ -19,7 +20,7 @@ func TestSearch_IndexDelete(t *testing.T) {
 	provider := osProvider(t)
 	db := pgDB(t) // real Postgres; pgDB also does sum.Reset()+New() for the catalog
 	t.Cleanup(func() { _ = db.Close() })
-	st := stores.New(db, astqlpg.New(), provider)
+	st := stores.New(db, astqlpg.New(), provider, testkit.NewBucketProvider())
 	ctx := context.Background()
 
 	const id = "doc-int-0000-0000-0000-000000000001"

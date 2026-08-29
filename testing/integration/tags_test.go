@@ -27,7 +27,7 @@ func tagsFixture(t *testing.T) (*stores.Stores, string) {
 		_, _ = db.Exec("DELETE FROM documents")
 		_ = db.Close()
 	})
-	st := stores.New(db, astqlpg.New(), testkit.NewSearchProvider())
+	st := stores.New(db, astqlpg.New(), testkit.NewSearchProvider(), testkit.NewBucketProvider())
 	doc, err := st.Documents.Create(tenantCtx(testTenant), "taggable.md")
 	if err != nil {
 		t.Fatalf("create document: %v", err)
