@@ -20,7 +20,8 @@ type Stores struct {
 	Search    *Search
 	Assets    *Assets
 
-	db *sqlx.DB // for transactional aggregate methods (publishing)
+	db       *sqlx.DB       // for transactional aggregate methods (publishing)
+	renderer astql.Renderer // for aggregate methods that build ad-hoc table handles (backfill)
 }
 
 // New constructs the stores aggregate. The SQL stores share the Postgres
@@ -40,5 +41,6 @@ func New(db *sqlx.DB, renderer astql.Renderer, search grub.SearchProvider, bucke
 		Search:    NewSearch(search),
 		Assets:    NewAssets(bucket),
 		db:        db,
+		renderer:  renderer,
 	}
 }
