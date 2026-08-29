@@ -28,6 +28,7 @@ type DocumentResponse struct {
 	ID                 string    `json:"id" description:"Document ID" example:"b1e1..."`
 	TenantID           string    `json:"tenant_id" description:"Owning tenant"`
 	Key                string    `json:"key" description:"Document key" example:"guides/install.md"`
+	Status             string    `json:"status" description:"Lifecycle status: draft or published" example:"published"`
 	Tags               []string  `json:"tags" description:"Organizational tags"`
 }
 
@@ -41,6 +42,33 @@ func (r DocumentResponse) Clone() DocumentResponse {
 	if r.Tags != nil {
 		c.Tags = make([]string, len(r.Tags))
 		copy(c.Tags, r.Tags)
+	}
+	return c
+}
+
+// DocumentContentResponse is a document together with its head (latest) version's
+// content — the single-request read behind opening a document for editing.
+// Content is null when the document has no versions yet (an empty document).
+type DocumentContentResponse struct {
+	Content  *ContentBlock    `json:"content" description:"The head version's content, or null if the document has no versions"`
+	Document DocumentResponse `json:"document"`
+}
+
+// ContentBlock is the head version carried on a DocumentContentResponse.
+type ContentBlock struct {
+	CreatedAt     time.Time `json:"created_at" description:"When the head version was saved"`
+	VersionID     string    `json:"version_id" description:"Head version ID"`
+	Content       string    `json:"content" description:"Head version content"`
+	VersionNumber int       `json:"version_number" description:"Head version number"`
+}
+
+// Clone returns a deep copy.
+func (r DocumentContentResponse) Clone() DocumentContentResponse {
+	c := r
+	c.Document = r.Document.Clone()
+	if r.Content != nil {
+		b := *r.Content
+		c.Content = &b
 	}
 	return c
 }

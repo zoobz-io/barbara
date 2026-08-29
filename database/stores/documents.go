@@ -28,6 +28,7 @@ var ErrDocumentPublished = errors.New("document is published; unpublish before d
 // scoped to the tenant carried in the request context.
 type Documents struct {
 	*sum.Database[models.Document]
+	versions *Versions // for head-version enrichment (GetWithHead/ListWithHead); wired in New
 }
 
 // NewDocuments creates a documents store.
@@ -116,6 +117,21 @@ func (s *Documents) ListByTag(ctx context.Context, tag string, limit, offset int
 		return nil, fmt.Errorf("listing documents by tag: %w", err)
 	}
 	return docs, nil
+}
+
+// GetWithHead retrieves a document together with its head (latest) version — the
+// read behind opening a document for editing in one call (#48). Head is nil when
+// the document has no versions yet (an empty document, not a 404).
+func (s *Documents) GetWithHead(ctx context.Context, id string) (*models.DocumentHead, error) {
+	doc, err := s.Get(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	head, err := s.versions.Head(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return &models.DocumentHead{Document: doc, Head: head}, nil
 }
 
 // ListPublishedAfter returns published documents across ALL tenants with id

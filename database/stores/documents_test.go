@@ -114,3 +114,23 @@ func TestDocuments_Delete_Query(t *testing.T) {
 	wantArg(t, q, "d-1")
 	wantArg(t, q, testTenant)
 }
+
+// GetWithHead issues the tenant-scoped document read, then the head-version
+// lookup — the doc plus its latest version in one method (#48/#49).
+func TestDocuments_GetWithHead_Query(t *testing.T) {
+	st, capture, cfg := newQueryTestCfg(t)
+	cfg.PushRowData(docRow("v-1")) // Documents.Get succeeds (published doc)
+	cfg.PushRowData(versionRow())  // Versions.Head returns the head
+	_, _ = st.Documents.GetWithHead(tenantCtx(), "d-1")
+
+	get := queryAt(t, capture, 0)
+	wantSQL(t, get, `FROM "documents"`, `"id" = ?`, `"tenant_id" = ?`)
+
+	head := queryAt(t, capture, 1)
+	wantSQL(t, head,
+		`FROM "versions"`,
+		`"document_id" = ?`,
+		`ORDER BY "version_number" DESC`,
+		`LIMIT 1`,
+	)
+}
