@@ -121,8 +121,11 @@ func TestPublishing_EndToEnd(t *testing.T) {
 	const tenant = "e2e33333-0000-0000-0000-000000000003"
 	t.Cleanup(func() {
 		db := cleanupDB(t)
+		// Publish cuts a release, so tear down in FK order.
+		_, _ = db.Exec("UPDATE apps SET current_release_id = NULL WHERE tenant_id = $1", tenant)
+		_, _ = db.Exec("DELETE FROM release_entries WHERE release_id IN (SELECT id FROM releases WHERE tenant_id = $1)", tenant)
+		_, _ = db.Exec("DELETE FROM releases WHERE tenant_id = $1", tenant)
 		_, _ = db.Exec("DELETE FROM jobs WHERE tenant_id = $1", tenant)
-		_, _ = db.Exec("DELETE FROM versions WHERE tenant_id = $1", tenant)
 		_, _ = db.Exec("DELETE FROM documents WHERE tenant_id = $1", tenant)
 		_, _ = db.Exec("DELETE FROM apps WHERE tenant_id = $1", tenant)
 	})
@@ -145,11 +148,11 @@ func TestPublishing_EndToEnd(t *testing.T) {
 		t.Fatalf("publish status = %d, want 200; body=%s", pw.Code, pw.Body.String())
 	}
 	var published struct {
-		PublishedVersionID *string `json:"published_version_id"`
+		Status string `json:"status"`
 	}
 	_ = json.Unmarshal(pw.Body.Bytes(), &published)
-	if published.PublishedVersionID == nil || *published.PublishedVersionID != version.ID {
-		t.Errorf("published_version_id = %v, want %s", published.PublishedVersionID, version.ID)
+	if published.Status != "published" {
+		t.Errorf("status after publish = %q, want published; body=%s", published.Status, pw.Body.String())
 	}
 }
 

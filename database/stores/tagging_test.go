@@ -70,26 +70,25 @@ func TestAddTag_Draft_WritesTagsNoReproject(t *testing.T) {
 	}
 }
 
-// AddTag on a PUBLISHED document reprojects in the same transaction: it writes
-// the tags, then — seeing a published pointer — loads the published version and
-// enqueues an index job, WITHOUT moving the pointer.
-func TestAddTag_Published_WritesTagsAndEnqueuesReprojection(t *testing.T) {
+// AddTag on a LIVE document (carried by the current release) reprojects in the
+// same transaction: it writes the tags, then — finding the document in the
+// current release — loads the release-served version and enqueues an index job,
+// without cutting a new release.
+func TestAddTag_Live_WritesTagsAndEnqueuesReprojection(t *testing.T) {
 	st, capture, cfg := newQueryTestCfg(t)
-	cfg.PushRowData(docRow("v-1"))  // lock select — published
-	cfg.PushRowData(docRow("v-1"))  // setTags RETURNING (still published)
-	cfg.PushRowData(versionRow())   // Versions.Get(publishedVersionID)
-	cfg.PushRowData(jobRow())       // reprojection Jobs.Enqueue RETURNING
+	cfg.PushRowData(docRow(testApp))                  // lock select — placed
+	cfg.PushRowData(docRow(testApp))                  // setTags RETURNING
+	cfg.PushRowData(appRowWithRelease("r-1"))         // CurrentEntryFor: apps.Get (has a release)
+	cfg.PushRowData(entryRowFor("a.md", "d-1", "v-1")) // ...which carries d-1 at v-1
+	cfg.PushRowData(versionRow())                     // enqueueReprojection: Versions.Get(v-1)
+	cfg.PushRowData(jobRow())                         // Jobs.Enqueue RETURNING
 	_, _ = st.AddTag(tenantCtx(), "d-1", "guide")
 
-	// The tags update does NOT touch published_version_id — a tag change is
-	// metadata, not a publish.
 	set := queryAt(t, capture, 1)
 	wantSQL(t, set, `UPDATE "documents" SET`, `"tags" = ?`)
-	// The SET clause assigns tags, not the pointer (it appears only in RETURNING).
-	notSQL(t, set, `"published_version_id" =`)
 
-	// A reprojection index job is enqueued.
-	enqueue := queryAt(t, capture, 3)
+	// A reprojection index job is enqueued off the release entry.
+	enqueue := queryAt(t, capture, 5)
 	wantSQL(t, enqueue, `INSERT INTO "jobs"`, `ON CONFLICT`)
 	wantArg(t, enqueue, models.JobIndex)
 }

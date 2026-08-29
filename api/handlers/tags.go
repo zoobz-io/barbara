@@ -18,12 +18,13 @@ var AddDocumentTag = rocco.POST("/documents/{id}/tags",
 			return wire.DocumentResponse{}, rocco.ErrBadRequest.WithMessage("tag is required")
 		}
 		tagging := sum.MustUse[contracts.Tagging](req.Context)
+		docs := sum.MustUse[contracts.Documents](req.Context)
 		ctx := auth.WithPrincipal(req.Context, req.Identity)
 		doc, err := tagging.AddTag(ctx, req.Params.Path["id"], req.Body.Tag)
 		if err != nil {
 			return wire.DocumentResponse{}, transformers.ErrorToResponse(err)
 		}
-		return transformers.DocumentToResponse(doc), nil
+		return documentResponse(ctx, docs, doc)
 	}).WithPathParams("id").
 	WithSummary("Add a tag to a document").
 	WithTags("Documents").
@@ -42,12 +43,13 @@ var RemoveDocumentTag = rocco.DELETE("/documents/{id}/tags",
 			return wire.DocumentResponse{}, rocco.ErrBadRequest.WithMessage("tag query parameter required")
 		}
 		tagging := sum.MustUse[contracts.Tagging](req.Context)
+		docs := sum.MustUse[contracts.Documents](req.Context)
 		ctx := auth.WithPrincipal(req.Context, req.Identity)
 		doc, err := tagging.RemoveTag(ctx, req.Params.Path["id"], tag)
 		if err != nil {
 			return wire.DocumentResponse{}, transformers.ErrorToResponse(err)
 		}
-		return transformers.DocumentToResponse(doc), nil
+		return documentResponse(ctx, docs, doc)
 	}).WithPathParams("id").
 	WithQueryParams("tag").
 	WithSummary("Remove a tag from a document").

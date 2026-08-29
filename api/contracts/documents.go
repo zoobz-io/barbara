@@ -24,6 +24,10 @@ type Documents interface {
 	ListByTag(ctx context.Context, tag string, limit, offset int) ([]*models.Document, error)
 	// Move reparents and/or renames a document, rewriting its key.
 	Move(ctx context.Context, appID, id string, newCollectionID *string, newName string) (*models.Document, error)
+	// Status derives a document's lifecycle status from the current release.
+	Status(ctx context.Context, doc *models.Document) (string, error)
+	// Statuses derives several documents' statuses, keyed by document id.
+	Statuses(ctx context.Context, docs []*models.Document) (map[string]string, error)
 	// Delete removes a document absent from the current release (hard-deleting an
 	// unreferenced one, soft-deleting one a historical release references).
 	Delete(ctx context.Context, id string) error

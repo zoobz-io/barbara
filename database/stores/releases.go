@@ -130,6 +130,51 @@ func (s *Releases) Get(ctx context.Context, appID, releaseID string) (*models.Re
 	return s.getTx(ctx, nil, appID, tenantID, releaseID)
 }
 
+// CurrentEntries returns the entries of the app's current release, or an empty
+// slice when the app has no current release. The publish sugar builds the next
+// release's entry set from these.
+func (s *Releases) CurrentEntries(ctx context.Context, appID string) ([]*models.ReleaseEntry, error) {
+	tenantID, err := auth.RequireTenant(ctx)
+	if err != nil {
+		return nil, err
+	}
+	app, err := s.apps.Get(ctx, appID)
+	if err != nil {
+		return nil, err // ErrNotFound when the app is not the tenant's
+	}
+	if app.CurrentReleaseID == nil {
+		return nil, nil
+	}
+	_, entries, err := s.getTx(ctx, nil, appID, tenantID, *app.CurrentReleaseID)
+	if err != nil {
+		return nil, err
+	}
+	return entries, nil
+}
+
+// CurrentEntryFor returns the document's entry in the app's current release, or
+// nil when the document is not live — the read behind derived status.
+func (s *Releases) CurrentEntryFor(ctx context.Context, appID, documentID string) (*models.ReleaseEntry, error) {
+	app, err := s.apps.Get(ctx, appID)
+	if err != nil {
+		return nil, err
+	}
+	if app.CurrentReleaseID == nil {
+		return nil, nil
+	}
+	entries, err := s.entries.Query().
+		Where("release_id", "=", "release_id").
+		Where("document_id", "=", "document_id").
+		Exec(ctx, map[string]any{"release_id": *app.CurrentReleaseID, "document_id": documentID})
+	if err != nil {
+		return nil, fmt.Errorf("loading current entry: %w", err)
+	}
+	if len(entries) == 0 {
+		return nil, nil
+	}
+	return entries[0], nil
+}
+
 // Contains reports whether a release carries the document — the current-release
 // membership check the documents delete rules consult.
 func (s *Releases) Contains(ctx context.Context, releaseID, documentID string) (bool, error) {

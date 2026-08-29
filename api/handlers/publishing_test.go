@@ -38,12 +38,14 @@ func (m *mockPublishing) Rollback(_ context.Context, _, versionID string) (*mode
 func pdriver(t *testing.T, mock contracts.Publishing) *testkit.Driver {
 	return testkit.Handlers(t, func(k sum.Key) {
 		sum.Register[contracts.Publishing](k, mock)
+		// The publish handlers derive the response status through the documents
+		// store; register a stub returning "published".
+		sum.Register[contracts.Documents](k, &mockDocuments{status: "published"})
 	}, All()...)
 }
 
 func TestPublishDocument_OK(t *testing.T) {
-	pv := "v1"
-	mock := &mockPublishing{doc: &models.Document{ID: "d1", PublishedVersionID: &pv}}
+	mock := &mockPublishing{doc: &models.Document{ID: "d1"}}
 	w := pdriver(t, mock).Request(t, http.MethodPost, "/documents/d1/publish",
 		map[string]string{"version_id": "v1"})
 
@@ -54,11 +56,11 @@ func TestPublishDocument_OK(t *testing.T) {
 		t.Errorf("store got version %q", mock.gotVersion)
 	}
 	var resp struct {
-		PublishedVersionID *string `json:"published_version_id"`
+		Status string `json:"status"`
 	}
 	_ = json.Unmarshal(w.Body.Bytes(), &resp)
-	if resp.PublishedVersionID == nil || *resp.PublishedVersionID != "v1" {
-		t.Errorf("unexpected response: %s", w.Body.String())
+	if resp.Status != "published" {
+		t.Errorf("published document status = %q, want published; body=%s", resp.Status, w.Body.String())
 	}
 }
 
@@ -87,8 +89,7 @@ func TestUnpublishDocument_OK(t *testing.T) {
 }
 
 func TestRollbackDocument_OK(t *testing.T) {
-	pv := "v1"
-	mock := &mockPublishing{doc: &models.Document{ID: "d1", PublishedVersionID: &pv}}
+	mock := &mockPublishing{doc: &models.Document{ID: "d1"}}
 	w := pdriver(t, mock).Request(t, http.MethodPost, "/documents/d1/rollback",
 		map[string]string{"version_id": "v1"})
 	if w.Code != http.StatusOK {

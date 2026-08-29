@@ -7,6 +7,7 @@ import (
 
 	astqlpg "github.com/zoobz-io/astql/postgres"
 
+	"github.com/zoobz-io/barbara/database/models"
 	"github.com/zoobz-io/barbara/database/stores"
 	"github.com/zoobz-io/barbara/testing/testkit"
 )
@@ -18,9 +19,13 @@ func TestDocumentHead_Integration(t *testing.T) {
 	db := pgDB(t)
 	const tenant = testTenant
 	t.Cleanup(func() {
-		_, _ = db.Exec("DELETE FROM jobs WHERE tenant_id = $1", tenant)
-		_, _ = db.Exec("DELETE FROM versions WHERE tenant_id = $1", tenant)
-		_, _ = db.Exec("DELETE FROM documents WHERE tenant_id = $1", tenant)
+		_, _ = db.Exec("UPDATE apps SET current_release_id = NULL")
+		_, _ = db.Exec("DELETE FROM release_entries")
+		_, _ = db.Exec("DELETE FROM releases")
+		_, _ = db.Exec("DELETE FROM jobs")
+		_, _ = db.Exec("DELETE FROM documents")
+		_, _ = db.Exec("DELETE FROM collections")
+		_, _ = db.Exec("DELETE FROM apps")
 		_ = db.Close()
 	})
 	st := stores.New(db, astqlpg.New(), testkit.NewSearchProvider(), testkit.NewBucketProvider())
@@ -39,8 +44,8 @@ func TestDocumentHead_Integration(t *testing.T) {
 	if dh.Head != nil {
 		t.Errorf("empty document has a head version: %+v", dh.Head)
 	}
-	if dh.Document.PublishedVersionID != nil {
-		t.Errorf("empty document is published: %v", dh.Document.PublishedVersionID)
+	if status, _ := st.Documents.Status(ctx, dh.Document); status != models.StatusDraft {
+		t.Errorf("empty document status = %q, want draft", status)
 	}
 
 	// Two versions: the head is the latest, and its content comes back in the
@@ -60,13 +65,14 @@ func TestDocumentHead_Integration(t *testing.T) {
 		t.Fatalf("head = %+v, want v2 with its content", dh.Head)
 	}
 
-	// Publishing sets the pointer; the head still reads back as the latest version.
+	// Publishing makes it live (via a release); the head still reads back as the
+	// latest version, and the status flips to published.
 	if _, err := st.Publish(ctx, doc.ID, v2.ID); err != nil {
 		t.Fatalf("publish: %v", err)
 	}
 	dh, _ = st.Documents.GetWithHead(ctx, doc.ID)
-	if dh.Document.PublishedVersionID == nil || *dh.Document.PublishedVersionID != v2.ID {
-		t.Errorf("published pointer = %v, want %s", dh.Document.PublishedVersionID, v2.ID)
+	if status, _ := st.Documents.Status(ctx, dh.Document); status != models.StatusPublished {
+		t.Errorf("status after publish = %q, want published", status)
 	}
 	if dh.Head == nil || dh.Head.ID != v2.ID {
 		t.Errorf("head after publish = %+v, want v2", dh.Head)

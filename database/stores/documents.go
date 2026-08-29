@@ -159,6 +159,74 @@ func (s *Documents) ListByTag(ctx context.Context, tag string, limit, offset int
 	return docs, nil
 }
 
+// Status derives a document's lifecycle status from the app's current release:
+// draft when the release does not carry it, published when the release carries
+// its head version, and published-with-newer-draft when the release carries an
+// older version than the head (a newer draft is waiting). An unplaced document
+// (no app) is always a draft.
+func (s *Documents) Status(ctx context.Context, doc *models.Document) (string, error) {
+	if doc.AppID == nil {
+		return models.StatusDraft, nil
+	}
+	entry, err := s.releases.CurrentEntryFor(ctx, *doc.AppID, doc.ID)
+	if err != nil {
+		return "", err
+	}
+	if entry == nil {
+		return models.StatusDraft, nil
+	}
+	head, err := s.versions.Head(ctx, doc.ID)
+	if err != nil {
+		return "", err
+	}
+	// The head is always the latest version, so a different id in the release
+	// entry means the live version is behind the head — a newer draft exists.
+	if head == nil || head.ID == entry.VersionID {
+		return models.StatusPublished, nil
+	}
+	return models.StatusPublishedWithNewerDraft, nil
+}
+
+// Statuses derives the status of several documents, returned by document id. It
+// loads each app's current-release entries once, then compares each document's
+// head against its entry.
+func (s *Documents) Statuses(ctx context.Context, docs []*models.Document) (map[string]string, error) {
+	out := make(map[string]string, len(docs))
+	entryByDoc := map[string]string{} // document id -> live version id in the current release
+	loadedApps := map[string]bool{}
+	for _, doc := range docs {
+		if doc.AppID == nil {
+			out[doc.ID] = models.StatusDraft
+			continue
+		}
+		if !loadedApps[*doc.AppID] {
+			entries, err := s.releases.CurrentEntries(ctx, *doc.AppID)
+			if err != nil {
+				return nil, err
+			}
+			for _, e := range entries {
+				entryByDoc[e.DocumentID] = e.VersionID
+			}
+			loadedApps[*doc.AppID] = true
+		}
+		liveVersion, live := entryByDoc[doc.ID]
+		if !live {
+			out[doc.ID] = models.StatusDraft
+			continue
+		}
+		head, err := s.versions.Head(ctx, doc.ID)
+		if err != nil {
+			return nil, err
+		}
+		if head == nil || head.ID == liveVersion {
+			out[doc.ID] = models.StatusPublished
+		} else {
+			out[doc.ID] = models.StatusPublishedWithNewerDraft
+		}
+	}
+	return out, nil
+}
+
 // GetWithHead retrieves a document together with its head (latest) version — the
 // read behind opening a document for editing in one call. Head is nil when
 // the document has no versions yet (an empty document, not a 404).
@@ -172,26 +240,6 @@ func (s *Documents) GetWithHead(ctx context.Context, id string) (*models.Documen
 		return nil, err
 	}
 	return &models.DocumentHead{Document: doc, Head: head}, nil
-}
-
-// ListPublishedAfter returns published documents across ALL tenants with id
-// greater than afterID, ordered by id, up to limit — a keyset page for the full
-// reindex. It is deliberately tenant-agnostic operational machinery (cf.
-// Search.SearchAll): the reindex runs outside any tenant context and must see
-// every tenant's published documents. Pass the zero UUID to start. Not exposed
-// on any tenant-facing surface. Keyset (id > afterID) rather than OFFSET so
-// walking a large table stays linear.
-func (s *Documents) ListPublishedAfter(ctx context.Context, afterID string, limit int) ([]*models.Document, error) {
-	docs, err := s.Query().
-		WhereNotNull("published_version_id").
-		Where("id", ">", "after_id").
-		OrderBy("id", "asc").
-		Limit(limit).
-		Exec(ctx, map[string]any{"after_id": afterID})
-	if err != nil {
-		return nil, fmt.Errorf("listing published documents: %w", err)
-	}
-	return docs, nil
 }
 
 // Move reparents a document under newCollectionID (nil = app root) and/or renames
@@ -278,9 +326,6 @@ func (s *Documents) Delete(ctx context.Context, id string) error {
 	doc, err := s.Get(ctx, id)
 	if err != nil {
 		return err // ErrNotFound when absent for the tenant
-	}
-	if doc.PublishedVersionID != nil {
-		return ErrDocumentPublished
 	}
 	live, err := s.inCurrentRelease(ctx, doc)
 	if err != nil {

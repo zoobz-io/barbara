@@ -76,10 +76,19 @@ func (s *Stores) changeTags(ctx context.Context, documentID string, mutate func(
 		if err != nil {
 			return err
 		}
-		if doc.PublishedVersionID == nil {
-			return nil // draft: Postgres only, nothing to reproject
+		// Reproject only if the document is live — carried by the app's current
+		// release — using the release-recorded version and path, not the head.
+		var entry *models.ReleaseEntry
+		if result.AppID != nil {
+			entry, err = s.Releases.CurrentEntryFor(ctx, *result.AppID, documentID)
+			if err != nil {
+				return err
+			}
 		}
-		return s.enqueueReprojection(ctx, tx, tenantID, result)
+		if entry == nil {
+			return nil // not in the current release: Postgres only, nothing to reproject
+		}
+		return s.enqueueReprojection(ctx, tx, tenantID, result, entry)
 	})
 	if err != nil {
 		return nil, err
@@ -109,14 +118,16 @@ func (s *Stores) setTags(ctx context.Context, tx *sqlx.Tx, documentID, tenantID 
 }
 
 // enqueueReprojection enqueues an index job rebuilding the OpenSearch entry from
-// the document and its currently-published version — used when published-document
-// metadata (tags) changes without a pointer move.
-func (s *Stores) enqueueReprojection(ctx context.Context, tx *sqlx.Tx, tenantID string, doc *models.Document) error {
-	version, err := s.Versions.Get(ctx, *doc.PublishedVersionID)
+// the document and the version the current release serves — used when a live
+// document's metadata (tags) changes, so the index entry must update without
+// cutting a new release. The entry's key and version keep the projection aligned
+// with what is live, even if the head has moved on.
+func (s *Stores) enqueueReprojection(ctx context.Context, tx *sqlx.Tx, tenantID string, doc *models.Document, entry *models.ReleaseEntry) error {
+	version, err := s.Versions.Get(ctx, entry.VersionID)
 	if err != nil {
 		return err
 	}
-	payload, err := json.Marshal(transformers.Projection(doc, version, doc.Key))
+	payload, err := json.Marshal(transformers.Projection(doc, version, entry.Key))
 	if err != nil {
 		return fmt.Errorf("building projection: %w", err)
 	}

@@ -79,25 +79,6 @@ func TestDocuments_ListByTag_Query(t *testing.T) {
 	wantArg(t, q, `{"guide"}`)
 }
 
-// ListPublishedAfter is the reindex keyset page: published-only, id > afterID,
-// ordered by id — and deliberately NOT tenant-scoped (it runs cross-tenant,
-// outside any request context).
-func TestDocuments_ListPublishedAfter_Query(t *testing.T) {
-	st, capture := newQueryTest(t)
-	_, _ = st.Documents.ListPublishedAfter(tenantCtx(), zeroUUID, 100)
-
-	q := lastQuery(t, capture)
-	wantSQL(t, q,
-		`FROM "documents"`,
-		`"published_version_id" IS NOT NULL`,
-		`"id" > ?`,
-		`ORDER BY "id" ASC`,
-		`LIMIT 100`,
-	)
-	notSQL(t, q, "tenant_id")
-	wantArg(t, q, zeroUUID)
-}
-
 // Move locks the document, then updates collection_id, name, and the rewritten
 // key, tenant-scoped, returning the row.
 func TestDocuments_Move_Query(t *testing.T) {
@@ -129,9 +110,8 @@ func TestDocuments_Move_Query(t *testing.T) {
 	wantArg(t, upd, testTenant)
 }
 
-// Delete loads the document, and — for an unpublished, unplaced one — hard-deletes
-// it, tenant-scoped. The published-pointer guard now happens in Go against the
-// loaded row, not in the DELETE's WHERE.
+// Delete loads the document, and — for an unplaced one not in any release —
+// hard-deletes it, tenant-scoped.
 func TestDocuments_Delete_Query(t *testing.T) {
 	st, capture, cfg := newQueryTestCfg(t)
 	cfg.PushRowData(docRow(nil)) // Get: a draft, unplaced document (app_id nil)
@@ -206,14 +186,16 @@ func TestDocuments_RequiresTenant(t *testing.T) {
 	}
 }
 
-// A document still holding a published pointer is refused (unpublish first),
+// A document carried by the app's current release is refused (unpublish first),
 // before any DELETE.
-func TestDocuments_Delete_RefusesPublished(t *testing.T) {
+func TestDocuments_Delete_RefusesInCurrentRelease(t *testing.T) {
 	st, capture, cfg := newQueryTestCfg(t)
-	cfg.PushRowData(docRow("v-9")) // Get: published_version_id set
+	cfg.PushRowData(docRow(testApp))             // Get: a placed document
+	cfg.PushRowData(appRowWithRelease("r-1"))    // its app has a current release
+	cfg.PushRowData(countRow(1))                 // ...which carries the document
 
 	if err := st.Documents.Delete(tenantCtx(), "d-1"); !errors.Is(err, ErrDocumentPublished) {
-		t.Fatalf("delete of a published doc = %v, want ErrDocumentPublished", err)
+		t.Fatalf("delete of a live doc = %v, want ErrDocumentPublished", err)
 	}
 	for _, q := range capture.Queries {
 		notSQL(t, q, `DELETE FROM "documents"`)
@@ -224,7 +206,7 @@ func TestDocuments_Delete_RefusesPublished(t *testing.T) {
 // lookup — the doc plus its latest version in one method.
 func TestDocuments_GetWithHead_Query(t *testing.T) {
 	st, capture, cfg := newQueryTestCfg(t)
-	cfg.PushRowData(docRow("v-1")) // Documents.Get succeeds (published doc)
+	cfg.PushRowData(docRow(nil))  // Documents.Get succeeds
 	cfg.PushRowData(versionRow())  // Versions.Head returns the head
 	_, _ = st.Documents.GetWithHead(tenantCtx(), "d-1")
 

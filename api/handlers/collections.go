@@ -54,7 +54,11 @@ var ListAppRootContents = rocco.GET("/apps/{app_id}/contents",
 		if err != nil {
 			return wire.CollectionContentsResponse{}, transformers.ErrorToResponse(err)
 		}
-		return transformers.CollectionContentsToResponse(contents), nil
+		statuses, serr := sum.MustUse[contracts.Documents](req.Context).Statuses(ctx, contents.Documents)
+		if serr != nil {
+			return wire.CollectionContentsResponse{}, transformers.ErrorToResponse(serr)
+		}
+		return transformers.CollectionContentsToResponse(contents, statuses), nil
 	}).WithPathParams("app_id").
 	WithSummary("List the app root contents").
 	WithTags("Collections").
@@ -72,7 +76,11 @@ var ListCollectionContents = rocco.GET("/apps/{app_id}/collections/{id}/contents
 		if err != nil {
 			return wire.CollectionContentsResponse{}, transformers.ErrorToResponse(err)
 		}
-		return transformers.CollectionContentsToResponse(contents), nil
+		statuses, serr := sum.MustUse[contracts.Documents](req.Context).Statuses(ctx, contents.Documents)
+		if serr != nil {
+			return wire.CollectionContentsResponse{}, transformers.ErrorToResponse(serr)
+		}
+		return transformers.CollectionContentsToResponse(contents, statuses), nil
 	}).WithPathParams("app_id", "id").
 	WithSummary("List a collection's contents").
 	WithTags("Collections").

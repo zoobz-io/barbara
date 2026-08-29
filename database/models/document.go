@@ -9,9 +9,8 @@ import (
 // Document is the logical document: identity and system metadata, no content
 // and no versioning. key is the materialized full path — derived from the
 // tree (collection ancestry + name), rewritten in-transaction when an
-// ancestor moves or renames — and stays the unique lookup handle.
-// published_version_id points at the one published version; it drops once
-// release-based publishing replaces it as the record of what is live.
+// ancestor moves or renames — and stays the unique lookup handle. What is live
+// is recorded by the app's current release, not on this row.
 //
 // app_id, collection_id, and name are the tree placement. collection_id nil
 // means the app root and stays nullable forever; app_id and name are pointers
@@ -23,7 +22,6 @@ type Document struct {
 	CreatedAt          time.Time      `json:"created_at" db:"created_at" default:"now()"`
 	UpdatedAt          time.Time      `json:"updated_at" db:"updated_at" default:"now()"`
 	DeletedAt          *time.Time     `json:"deleted_at,omitempty" db:"deleted_at"`
-	PublishedVersionID *string        `json:"published_version_id,omitempty" db:"published_version_id"`
 	AppID              *string        `json:"app_id,omitempty" db:"app_id"`
 	CollectionID       *string        `json:"collection_id,omitempty" db:"collection_id"`
 	Name               *string        `json:"name,omitempty" db:"name"`
@@ -42,10 +40,6 @@ func (d Document) Clone() Document {
 	if d.DeletedAt != nil {
 		v := *d.DeletedAt
 		c.DeletedAt = &v
-	}
-	if d.PublishedVersionID != nil {
-		v := *d.PublishedVersionID
-		c.PublishedVersionID = &v
 	}
 	if d.AppID != nil {
 		v := *d.AppID

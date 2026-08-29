@@ -10,48 +10,44 @@ import (
 )
 
 func TestDocumentToResponse(t *testing.T) {
-	pv := "v1"
 	now := time.Now()
 	d := &models.Document{
-		ID:                 "d1",
-		TenantID:           "t1",
-		Key:                "a.md",
-		PublishedVersionID: &pv,
-		Tags:               pq.StringArray{"docs"},
-		CreatedAt:          now,
-		UpdatedAt:          now,
+		ID:        "d1",
+		TenantID:  "t1",
+		Key:       "a.md",
+		Tags:      pq.StringArray{"docs"},
+		CreatedAt: now,
+		UpdatedAt: now,
 	}
-	r := DocumentToResponse(d)
+	r := DocumentToResponse(d, models.StatusPublished)
 	if r.ID != "d1" || r.Key != "a.md" || r.TenantID != "t1" {
 		t.Errorf("unexpected response: %+v", r)
 	}
-	if r.PublishedVersionID == nil || *r.PublishedVersionID != "v1" {
-		t.Error("published version not mapped")
+	if r.Status != "published" {
+		t.Errorf("status = %q, want published", r.Status)
 	}
 	if len(r.Tags) != 1 || r.Tags[0] != "docs" {
 		t.Errorf("tags not mapped: %v", r.Tags)
 	}
 }
 
-// Status is derived from the published pointer alone: draft when unset,
-// published when set.
+// Status is passed through from the store; the transformer no longer derives it.
 func TestDocumentToResponse_Status(t *testing.T) {
-	pv := "v1"
-	if got := DocumentToResponse(&models.Document{ID: "d"}).Status; got != "draft" {
-		t.Errorf("no-pointer status = %q, want draft", got)
+	if got := DocumentToResponse(&models.Document{ID: "d"}, models.StatusDraft).Status; got != "draft" {
+		t.Errorf("status = %q, want draft", got)
 	}
-	if got := DocumentToResponse(&models.Document{ID: "d", PublishedVersionID: &pv}).Status; got != "published" {
-		t.Errorf("pointer status = %q, want published", got)
+	if got := DocumentToResponse(&models.Document{ID: "d"}, models.StatusPublishedWithNewerDraft).Status; got != "published-with-newer-draft" {
+		t.Errorf("status = %q, want published-with-newer-draft", got)
 	}
 }
 
 func TestDocumentsToListResponse(t *testing.T) {
-	pv := "v1"
 	docs := []*models.Document{
-		{ID: "d1", Key: "a.md", PublishedVersionID: &pv},
+		{ID: "d1", Key: "a.md"},
 		{ID: "d2", Key: "b.md"},
 	}
-	r := DocumentsToListResponse(docs, 10, 5)
+	statuses := map[string]string{"d1": models.StatusPublished, "d2": models.StatusDraft}
+	r := DocumentsToListResponse(docs, statuses, 10, 5)
 	if r.Total != 2 || r.Limit != 10 || r.Offset != 5 {
 		t.Errorf("unexpected list meta: %+v", r)
 	}
@@ -70,8 +66,8 @@ func TestDocumentContentToResponse(t *testing.T) {
 		Document: &models.Document{ID: "d1", Key: "a.md"},
 		Head:     &models.Version{ID: "v3", VersionNumber: 3, Content: "# head", CreatedAt: now},
 	}
-	r := DocumentContentToResponse(withHead)
-	if r.Document.ID != "d1" {
+	r := DocumentContentToResponse(withHead, models.StatusPublished)
+	if r.Document.ID != "d1" || r.Document.Status != "published" {
 		t.Errorf("document not mapped: %+v", r.Document)
 	}
 	if r.Content == nil {
@@ -83,7 +79,7 @@ func TestDocumentContentToResponse(t *testing.T) {
 
 	// Empty document (no versions): null content block, not a 404.
 	empty := &models.DocumentHead{Document: &models.Document{ID: "d2", Key: "empty.md"}, Head: nil}
-	if got := DocumentContentToResponse(empty); got.Content != nil {
+	if got := DocumentContentToResponse(empty, models.StatusDraft); got.Content != nil {
 		t.Errorf("empty document content = %+v, want nil", got.Content)
 	}
 }
