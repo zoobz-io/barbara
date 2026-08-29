@@ -24,6 +24,11 @@ func All() []rocco.Endpoint {
 		RenameCollection,
 		MoveCollection,
 		DeleteCollection,
+		// Releases.
+		CutRelease,
+		ListReleases,
+		GetRelease,
+		RollbackRelease,
 		// Documents authoring.
 		CreateDocument,
 		GetDocument,

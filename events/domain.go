@@ -211,6 +211,39 @@ var Collection = struct {
 	Deleted: sum.NewInfoEvent[CollectionDeletedEvent](collectionDeletedSignal),
 }
 
+// --- Release ---
+
+// ReleaseCutEvent is emitted when a release is cut (the app's pointer moved).
+type ReleaseCutEvent struct {
+	ReleaseID string
+	AppID     string
+	TenantID  string
+	Number    int
+}
+
+// ReleaseRolledBackEvent is emitted when a rollback cuts a new release copying an
+// older one's entries forward.
+type ReleaseRolledBackEvent struct {
+	ReleaseID string
+	AppID     string
+	TenantID  string
+	Number    int
+}
+
+var (
+	releaseCutSignal        = capitan.NewSignal("barbara.release.cut", "Release cut")
+	releaseRolledBackSignal = capitan.NewSignal("barbara.release.rolledback", "Release rolled back")
+)
+
+// Release groups the release lifecycle events.
+var Release = struct {
+	Cut        sum.Event[ReleaseCutEvent]
+	RolledBack sum.Event[ReleaseRolledBackEvent]
+}{
+	Cut:        sum.NewInfoEvent[ReleaseCutEvent](releaseCutSignal),
+	RolledBack: sum.NewInfoEvent[ReleaseRolledBackEvent](releaseRolledBackSignal),
+}
+
 // --- Version ---
 
 // VersionSavedEvent is emitted when a new version of a document is saved.
