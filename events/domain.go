@@ -165,10 +165,10 @@ type CollectionRenamedEvent struct {
 // CollectionMovedEvent is emitted when a collection moves to a new parent.
 // ParentID is the new parent (nil = app root).
 type CollectionMovedEvent struct {
+	ParentID     *string
 	CollectionID string
 	TenantID     string
 	AppID        string
-	ParentID     *string
 }
 
 // CollectionDeletedEvent is emitted when a collection is deleted.

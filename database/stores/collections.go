@@ -56,16 +56,16 @@ func NewCollections(db *sqlx.DB, renderer astql.Renderer, documents *Documents, 
 // ErrCollectionNameTaken. Validates that the parent (or, at the root, the app)
 // belongs to the tenant.
 func (s *Collections) Create(ctx context.Context, appID string, parentID *string, name string) (*models.Collection, error) {
-	tenantID, err := auth.RequireTenant(ctx)
-	if err != nil {
-		return nil, err
+	tenantID, terr := auth.RequireTenant(ctx)
+	if terr != nil {
+		return nil, terr
 	}
-	if err := s.requireParentScope(ctx, appID, tenantID, parentID); err != nil {
-		return nil, err
+	if serr := s.requireParentScope(ctx, appID, tenantID, parentID); serr != nil {
+		return nil, serr
 	}
 
 	var created *models.Collection
-	err = s.inTx(ctx, func(tx *sqlx.Tx) error {
+	err := s.inTx(ctx, func(tx *sqlx.Tx) error {
 		// The unique index guards collection-vs-collection; this guards the
 		// cross-table half (a document sibling with the same name).
 		taken, err := s.siblingDocumentExists(ctx, tx, appID, tenantID, parentID, name)
@@ -114,7 +114,7 @@ func (s *Collections) ListContents(ctx context.Context, appID string, collection
 	if err != nil {
 		return nil, err
 	}
-	if err := s.requireParentScope(ctx, appID, tenantID, collectionID); err != nil {
+	if err = s.requireParentScope(ctx, appID, tenantID, collectionID); err != nil {
 		return nil, err
 	}
 
@@ -132,14 +132,14 @@ func (s *Collections) ListContents(ctx context.Context, appID string, collection
 // Rename changes a collection's name and rewrites every descendant document key
 // in the same transaction. The new name must be unique among siblings.
 func (s *Collections) Rename(ctx context.Context, appID, id, newName string) (*models.Collection, error) {
-	tenantID, err := auth.RequireTenant(ctx)
-	if err != nil {
-		return nil, err
+	tenantID, terr := auth.RequireTenant(ctx)
+	if terr != nil {
+		return nil, terr
 	}
 
 	var updated *models.Collection
 	renamed := false
-	err = s.inTx(ctx, func(tx *sqlx.Tx) error {
+	err := s.inTx(ctx, func(tx *sqlx.Tx) error {
 		current, err := s.lock(ctx, tx, appID, tenantID, id)
 		if err != nil {
 			return err
@@ -197,14 +197,14 @@ func (s *Collections) Rename(ctx context.Context, appID, id, newName string) (*m
 // collection itself or a descendant (ErrCollectionCycle); the new name must be
 // unique among siblings at the destination.
 func (s *Collections) Move(ctx context.Context, appID, id string, newParentID *string) (*models.Collection, error) {
-	tenantID, err := auth.RequireTenant(ctx)
-	if err != nil {
-		return nil, err
+	tenantID, terr := auth.RequireTenant(ctx)
+	if terr != nil {
+		return nil, terr
 	}
 
 	var updated *models.Collection
 	moved := false
-	err = s.inTx(ctx, func(tx *sqlx.Tx) error {
+	err := s.inTx(ctx, func(tx *sqlx.Tx) error {
 		current, err := s.lock(ctx, tx, appID, tenantID, id)
 		if err != nil {
 			return err
@@ -213,7 +213,7 @@ func (s *Collections) Move(ctx context.Context, appID, id string, newParentID *s
 			updated = current // already there
 			return nil
 		}
-		if err := s.checkMoveTarget(ctx, tx, appID, tenantID, id, newParentID); err != nil {
+		if err = s.checkMoveTarget(ctx, tx, appID, tenantID, id, newParentID); err != nil {
 			return err
 		}
 		taken, err := s.siblingDocumentExists(ctx, tx, appID, tenantID, newParentID, current.Name)
