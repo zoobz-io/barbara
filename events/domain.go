@@ -104,6 +104,45 @@ var Document = struct {
 	TagRemoved:  sum.NewInfoEvent[DocumentTagRemovedEvent](documentTagRemovedSignal),
 }
 
+// --- App ---
+
+// AppCreatedEvent is emitted when an app is created.
+type AppCreatedEvent struct {
+	AppID    string
+	TenantID string
+	Name     string
+}
+
+// AppRenamedEvent is emitted when an app's name changes. Name is the new name.
+type AppRenamedEvent struct {
+	AppID    string
+	TenantID string
+	Name     string
+}
+
+// AppDeletedEvent is emitted when an app is deleted.
+type AppDeletedEvent struct {
+	AppID    string
+	TenantID string
+}
+
+var (
+	appCreatedSignal = capitan.NewSignal("barbara.app.created", "App created")
+	appRenamedSignal = capitan.NewSignal("barbara.app.renamed", "App name changed")
+	appDeletedSignal = capitan.NewSignal("barbara.app.deleted", "App deleted")
+)
+
+// App groups the app lifecycle events.
+var App = struct {
+	Created sum.Event[AppCreatedEvent]
+	Renamed sum.Event[AppRenamedEvent]
+	Deleted sum.Event[AppDeletedEvent]
+}{
+	Created: sum.NewInfoEvent[AppCreatedEvent](appCreatedSignal),
+	Renamed: sum.NewInfoEvent[AppRenamedEvent](appRenamedSignal),
+	Deleted: sum.NewInfoEvent[AppDeletedEvent](appDeletedSignal),
+}
+
 // --- Version ---
 
 // VersionSavedEvent is emitted when a new version of a document is saved.

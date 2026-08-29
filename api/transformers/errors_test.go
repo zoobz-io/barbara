@@ -19,6 +19,8 @@ func TestErrorToResponse(t *testing.T) {
 	}{
 		{"not found", stores.ErrNotFound, rocco.ErrNotFound},
 		{"published", stores.ErrDocumentPublished, rocco.ErrConflict},
+		{"app name taken", stores.ErrAppNameTaken, rocco.ErrConflict},
+		{"app has releases", stores.ErrAppHasReleases, rocco.ErrConflict},
 		{"version mismatch", stores.ErrVersionMismatch, rocco.ErrBadRequest},
 		{"no tenant", auth.ErrNoTenant, rocco.ErrUnauthorized},
 		{"no user", auth.ErrNoUser, rocco.ErrUnauthorized},

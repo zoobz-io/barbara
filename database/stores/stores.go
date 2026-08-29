@@ -13,6 +13,7 @@ import (
 type Stores struct {
 	Documents *Documents
 	Versions  *Versions
+	Apps      *Apps
 	Jobs      *Jobs
 	Search    *Search
 	Assets    *Assets
@@ -33,6 +34,7 @@ func New(db *sqlx.DB, renderer astql.Renderer, search grub.SearchProvider, bucke
 	return &Stores{
 		Documents: documents,
 		Versions:  versions,
+		Apps:      NewApps(db, renderer),
 		Jobs:      NewJobs(db, renderer),
 		Search:    NewSearch(search),
 		Assets:    NewAssets(bucket),
