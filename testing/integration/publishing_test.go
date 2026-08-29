@@ -32,7 +32,7 @@ func publishFixture(t *testing.T) (*stores.Stores, string, string) {
 	if err != nil {
 		t.Fatalf("create document: %v", err)
 	}
-	v, err := st.Versions.Save(ctx, doc.ID, "# content")
+	v, err := st.Versions.Save(ctx, doc.ID, "# content", 0)
 	if err != nil {
 		t.Fatalf("save version: %v", err)
 	}
@@ -104,7 +104,7 @@ func TestRollback_RepublishesOlderVersion(t *testing.T) {
 	st, docID, v1 := publishFixture(t)
 	ctx := tenantCtx(testTenant)
 
-	v2, err := st.Versions.Save(ctx, docID, "# newer")
+	v2, err := st.Versions.Save(ctx, docID, "# newer", 1)
 	if err != nil {
 		t.Fatalf("save v2: %v", err)
 	}
@@ -131,7 +131,7 @@ func TestPublish_RejectsForeignVersion(t *testing.T) {
 	if err != nil {
 		t.Fatalf("create other doc: %v", err)
 	}
-	foreign, err := st.Versions.Save(ctx, other.ID, "x")
+	foreign, err := st.Versions.Save(ctx, other.ID, "x", 0)
 	if err != nil {
 		t.Fatalf("save foreign version: %v", err)
 	}

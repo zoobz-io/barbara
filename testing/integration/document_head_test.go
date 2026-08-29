@@ -45,10 +45,10 @@ func TestDocumentHead_Integration(t *testing.T) {
 
 	// Two versions: the head is the latest, and its content comes back in the
 	// single read.
-	if _, err := st.Versions.Save(ctx, doc.ID, "# v1"); err != nil {
+	if _, err := st.Versions.Save(ctx, doc.ID, "# v1", 0); err != nil {
 		t.Fatalf("save v1: %v", err)
 	}
-	v2, err := st.Versions.Save(ctx, doc.ID, "# v2")
+	v2, err := st.Versions.Save(ctx, doc.ID, "# v2", 1)
 	if err != nil {
 		t.Fatalf("save v2: %v", err)
 	}

@@ -1,10 +1,29 @@
 package wire
 
-import "time"
+import (
+	"errors"
+	"time"
+)
 
-// SaveVersionRequest is the body for saving a new version.
+// SaveVersionRequest is the body for saving a new version. base_version is the
+// version number the client edited from (0 for the first version); the save is
+// rejected with 409 if it is no longer the document's head.
 type SaveVersionRequest struct {
-	Content string `json:"content" description:"The document's full markdown content"`
+	BaseVersion *int   `json:"base_version" description:"The head version the edit was based on (0 for the first version)"`
+	Content     string `json:"content" description:"The document's full markdown content"`
+}
+
+// Validate requires base_version — a pointer so 0 (the first-version case) is
+// distinguishable from an omitted field. Value receiver so rocco's value-typed
+// Validatable check picks it up.
+func (r SaveVersionRequest) Validate() error {
+	if r.BaseVersion == nil {
+		return errors.New("base_version is required")
+	}
+	if *r.BaseVersion < 0 {
+		return errors.New("base_version must be >= 0")
+	}
+	return nil
 }
 
 // VersionResponse is the authoring API representation of a version.

@@ -50,7 +50,7 @@ func authorAndPublish(t *testing.T, st *stores.Stores, tenant, key, content stri
 	if err != nil {
 		t.Fatalf("create %s: %v", key, err)
 	}
-	v, err := st.Versions.Save(ctx, doc.ID, content)
+	v, err := st.Versions.Save(ctx, doc.ID, content, 0)
 	if err != nil {
 		t.Fatalf("save %s: %v", key, err)
 	}
@@ -82,7 +82,7 @@ func TestScenario_EditAndRepublish_UpdatesServedProjection(t *testing.T) {
 	}
 
 	// Author edits and republishes.
-	v2, err := st.Versions.Save(ctx, docID, "the widget points downward")
+	v2, err := st.Versions.Save(ctx, docID, "the widget points downward", 1)
 	if err != nil {
 		t.Fatalf("save v2: %v", err)
 	}
@@ -122,7 +122,7 @@ func TestScenario_Rollback_RevertsServedContent(t *testing.T) {
 	ctx := tenantCtx(testTenant)
 
 	docID, v1 := authorAndPublish(t, st, testTenant, "post.md", "alpha draft")
-	v2, err := st.Versions.Save(ctx, docID, "beta rewrite")
+	v2, err := st.Versions.Save(ctx, docID, "beta rewrite", 1)
 	if err != nil {
 		t.Fatalf("save v2: %v", err)
 	}
@@ -210,7 +210,7 @@ func TestScenario_DraftIsNeverServed(t *testing.T) {
 	if err != nil {
 		t.Fatalf("create: %v", err)
 	}
-	if _, err := st.Versions.Save(ctx, doc.ID, "unpublished words"); err != nil {
+	if _, err := st.Versions.Save(ctx, doc.ID, "unpublished words", 0); err != nil {
 		t.Fatalf("save: %v", err)
 	}
 

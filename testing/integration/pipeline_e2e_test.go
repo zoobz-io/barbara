@@ -85,7 +85,7 @@ func TestEndToEnd_PublishThroughPipelineIsSearchable(t *testing.T) {
 	if err != nil {
 		t.Fatalf("create document: %v", err)
 	}
-	v, err := st.Versions.Save(ctx, doc.ID, "how to install the widget")
+	v, err := st.Versions.Save(ctx, doc.ID, "how to install the widget", 0)
 	if err != nil {
 		t.Fatalf("save version: %v", err)
 	}
@@ -139,7 +139,7 @@ func TestEndToEnd_UnpublishRemovesFromSearch(t *testing.T) {
 	if err != nil {
 		t.Fatalf("create document: %v", err)
 	}
-	v, err := st.Versions.Save(ctx, doc.ID, "configure the widget")
+	v, err := st.Versions.Save(ctx, doc.ID, "configure the widget", 0)
 	if err != nil {
 		t.Fatalf("save version: %v", err)
 	}
@@ -204,7 +204,7 @@ func TestEndToEnd_TransientOSFailureRetriesAndLands(t *testing.T) {
 	if err != nil {
 		t.Fatalf("create document: %v", err)
 	}
-	v, err := st.Versions.Save(ctx, doc.ID, "retry lands eventually")
+	v, err := st.Versions.Save(ctx, doc.ID, "retry lands eventually", 0)
 	if err != nil {
 		t.Fatalf("save version: %v", err)
 	}

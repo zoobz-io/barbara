@@ -49,7 +49,7 @@ func TestVersions_List_Query(t *testing.T) {
 // concurrent saves for the same document serialize on that row.
 func TestVersions_Save_LocksParentForUpdate(t *testing.T) {
 	st, capture := newQueryTest(t)
-	_, _ = st.Versions.Save(tenantCtx(), "d-1", "hello")
+	_, _ = st.Versions.Save(tenantCtx(), "d-1", "hello", 0)
 
 	// The parent-lock select is the first (and, since the mock returns no row,
 	// the only) query the method issues.
@@ -70,10 +70,11 @@ func TestVersions_Save_LocksParentForUpdate(t *testing.T) {
 // it count+1 and stamping the acting user.
 func TestVersions_Save_CountsThenInsertsNextNumber(t *testing.T) {
 	st, capture, cfg := newQueryTestCfg(t)
-	cfg.PushRowData(docRow(nil))   // parent lock select
-	cfg.PushRowData(countRow(2))   // existing version count
-	cfg.PushRowData(versionRow())  // INSERT ... RETURNING
-	_, _ = st.Versions.Save(tenantCtx(), "d-1", "hello")
+	cfg.PushRowData(docRow(nil))  // parent lock select
+	cfg.PushRowData(countRow(2))  // existing version count (head)
+	cfg.PushRowData(versionRow()) // INSERT ... RETURNING
+	// base_version must equal the head (2) so the save proceeds to the insert.
+	_, _ = st.Versions.Save(tenantCtx(), "d-1", "hello", 2)
 
 	// Query 1: count the document's versions, tenant-scoped.
 	count := queryAt(t, capture, 1)

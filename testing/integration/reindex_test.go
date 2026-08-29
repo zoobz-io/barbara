@@ -44,7 +44,7 @@ func reindexFixture(t *testing.T) *stores.Stores {
 	if err != nil {
 		t.Fatalf("create a: %v", err)
 	}
-	av, err := st.Versions.Save(t1, a.ID, "# alpha")
+	av, err := st.Versions.Save(t1, a.ID, "# alpha", 0)
 	if err != nil {
 		t.Fatalf("save a version: %v", err)
 	}
@@ -57,7 +57,7 @@ func reindexFixture(t *testing.T) *stores.Stores {
 	if err != nil {
 		t.Fatalf("create draft: %v", err)
 	}
-	if _, err := st.Versions.Save(t1, d.ID, "# unpublished"); err != nil {
+	if _, err := st.Versions.Save(t1, d.ID, "# unpublished", 0); err != nil {
 		t.Fatalf("save draft version: %v", err)
 	}
 
@@ -67,7 +67,7 @@ func reindexFixture(t *testing.T) *stores.Stores {
 	if err != nil {
 		t.Fatalf("create b: %v", err)
 	}
-	bv, err := st.Versions.Save(t2, b.ID, "# beta")
+	bv, err := st.Versions.Save(t2, b.ID, "# beta", 0)
 	if err != nil {
 		t.Fatalf("save b version: %v", err)
 	}

@@ -16,7 +16,7 @@ var SaveVersion = rocco.POST("/documents/{document_id}/versions",
 	func(req *rocco.Request[wire.SaveVersionRequest]) (wire.VersionResponse, error) {
 		versions := sum.MustUse[contracts.Versions](req.Context)
 		ctx := auth.WithPrincipal(req.Context, req.Identity)
-		v, err := versions.Save(ctx, req.Params.Path["document_id"], req.Body.Content)
+		v, err := versions.Save(ctx, req.Params.Path["document_id"], req.Body.Content, *req.Body.BaseVersion)
 		if err != nil {
 			return wire.VersionResponse{}, transformers.ErrorToResponse(err)
 		}
@@ -26,7 +26,7 @@ var SaveVersion = rocco.POST("/documents/{document_id}/versions",
 	WithTags("Versions").
 	WithSuccessStatus(201).
 	WithScopes(auth.ScopeDocumentsWrite).
-	WithErrors(rocco.ErrNotFound, rocco.ErrForbidden, rocco.ErrUnauthorized).
+	WithErrors(rocco.ErrBadRequest, rocco.ErrNotFound, rocco.ErrConflict, rocco.ErrForbidden, rocco.ErrUnauthorized).
 	WithAuthentication()
 
 // ListVersions returns a document's versions, newest first.
