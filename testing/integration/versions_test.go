@@ -36,7 +36,7 @@ func TestVersions_SaveListGet(t *testing.T) {
 	versions, docID := versionsFixture(t)
 	ctx := tenantCtx(testTenant)
 
-	v1, err := versions.Save(ctx, docID, "first")
+	v1, err := versions.Save(ctx, docID, "first", 0)
 	if err != nil {
 		t.Fatalf("save v1: %v", err)
 	}
@@ -47,7 +47,7 @@ func TestVersions_SaveListGet(t *testing.T) {
 		t.Errorf("created_by = %q, want %q", v1.CreatedBy, testUser)
 	}
 
-	v2, err := versions.Save(ctx, docID, "second")
+	v2, err := versions.Save(ctx, docID, "second", 1)
 	if err != nil {
 		t.Fatalf("save v2: %v", err)
 	}
@@ -82,54 +82,71 @@ func TestVersions_Save_RequiresUser(t *testing.T) {
 
 	// A tenant but no acting user — every version records who created it.
 	ctx := auth.WithPrincipal(context.Background(), auth.NewPrincipal("", testTenant, "", nil, nil))
-	if _, err := versions.Save(ctx, docID, "x"); !errors.Is(err, auth.ErrNoUser) {
+	if _, err := versions.Save(ctx, docID, "x", 0); !errors.Is(err, auth.ErrNoUser) {
 		t.Errorf("save without user = %v, want ErrNoUser", err)
 	}
 
 	// No tenant at all is also refused.
-	if _, err := versions.Save(context.Background(), docID, "x"); !errors.Is(err, auth.ErrNoTenant) {
+	if _, err := versions.Save(context.Background(), docID, "x", 0); !errors.Is(err, auth.ErrNoTenant) {
 		t.Errorf("save without tenant = %v, want ErrNoTenant", err)
 	}
 }
 
-// The race the plan calls out: concurrent saves for the same document must all
-// persist, each with a distinct monotonic version_number.
-func TestVersions_ConcurrentSaves_AllPersistDistinct(t *testing.T) {
+// Optimistic concurrency (#50): N concurrent saves from the same base race for
+// the head. Exactly one wins; the rest conflict, reporting the current head — so
+// two editors never silently clobber each other. Only the winner's version
+// persists.
+func TestVersions_ConcurrentSaves_OneWinnerRestConflict(t *testing.T) {
 	versions, docID := versionsFixture(t)
 	ctx := tenantCtx(testTenant)
 
 	const n = 12
 	var wg sync.WaitGroup
 	var mu sync.Mutex
-	nums := map[int]bool{}
-	errs := 0
+	var winners, conflicts, wrongHead, otherErr int
 
 	for i := 0; i < n; i++ {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			v, err := versions.Save(ctx, docID, "concurrent")
+			_, err := versions.Save(ctx, docID, "concurrent", 0) // all edit from the empty doc
+			var vce *stores.VersionConflictError
 			mu.Lock()
 			defer mu.Unlock()
-			if err != nil {
-				errs++
-				return
+			switch {
+			case err == nil:
+				winners++
+			case errors.As(err, &vce):
+				conflicts++
+				if vce.CurrentHead != 1 {
+					wrongHead++ // the winner made head 1; every conflict should report it
+				}
+			default:
+				otherErr++
 			}
-			nums[v.VersionNumber] = true
 		}()
 	}
 	wg.Wait()
 
-	if errs != 0 {
-		t.Fatalf("%d concurrent saves failed", errs)
+	if otherErr != 0 {
+		t.Fatalf("%d concurrent saves failed with unexpected errors", otherErr)
 	}
-	if len(nums) != n {
-		t.Fatalf("got %d distinct version numbers, want %d (collision or loss)", len(nums), n)
+	if winners != 1 {
+		t.Errorf("winners = %d, want exactly 1", winners)
 	}
-	// The numbers must be exactly 1..n with no gaps.
-	for i := 1; i <= n; i++ {
-		if !nums[i] {
-			t.Errorf("missing version_number %d", i)
-		}
+	if conflicts != n-1 {
+		t.Errorf("conflicts = %d, want %d", conflicts, n-1)
+	}
+	if wrongHead != 0 {
+		t.Errorf("%d conflicts reported a head other than 1 (the winner)", wrongHead)
+	}
+
+	// Exactly one version persisted — the winner's, numbered 1.
+	list, err := versions.List(ctx, docID, 50, 0)
+	if err != nil {
+		t.Fatalf("list: %v", err)
+	}
+	if len(list) != 1 || list[0].VersionNumber != 1 {
+		t.Errorf("persisted %d versions, want exactly one (v1): %+v", len(list), list)
 	}
 }

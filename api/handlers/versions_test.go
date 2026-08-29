@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"strings"
 	"testing"
 
 	"github.com/zoobz-io/sum"
@@ -23,10 +24,11 @@ type mockVersions struct {
 	err        error
 	gotDoc     string
 	gotContent string
+	gotBase    int
 }
 
-func (m *mockVersions) Save(_ context.Context, documentID, content string) (*models.Version, error) {
-	m.gotDoc, m.gotContent = documentID, content
+func (m *mockVersions) Save(_ context.Context, documentID, content string, baseVersion int) (*models.Version, error) {
+	m.gotDoc, m.gotContent, m.gotBase = documentID, content, baseVersion
 	return m.v, m.err
 }
 func (m *mockVersions) List(context.Context, string, int, int) ([]*models.Version, error) {
@@ -45,13 +47,13 @@ func vdriver(t *testing.T, mock contracts.Versions) *testkit.Driver {
 func TestSaveVersion_OK(t *testing.T) {
 	mock := &mockVersions{v: &models.Version{ID: "v1", DocumentID: "d1", VersionNumber: 3}}
 	w := vdriver(t, mock).Request(t, http.MethodPost, "/documents/d1/versions",
-		map[string]string{"content": "# hello"})
+		map[string]any{"content": "# hello", "base_version": 2})
 
 	if w.Code != http.StatusCreated {
 		t.Fatalf("status = %d, want 201; body=%s", w.Code, w.Body.String())
 	}
-	if mock.gotDoc != "d1" || mock.gotContent != "# hello" {
-		t.Errorf("store got doc=%q content=%q", mock.gotDoc, mock.gotContent)
+	if mock.gotDoc != "d1" || mock.gotContent != "# hello" || mock.gotBase != 2 {
+		t.Errorf("store got doc=%q content=%q base=%d", mock.gotDoc, mock.gotContent, mock.gotBase)
 	}
 	var resp struct {
 		ID            string `json:"id"`
@@ -63,9 +65,35 @@ func TestSaveVersion_OK(t *testing.T) {
 	}
 }
 
+// base_version is required — an omitted one is a 400 before the store is touched.
+func TestSaveVersion_MissingBaseVersion(t *testing.T) {
+	mock := &mockVersions{}
+	w := vdriver(t, mock).Request(t, http.MethodPost, "/documents/d1/versions",
+		map[string]any{"content": "# hello"})
+	if w.Code != http.StatusUnprocessableEntity {
+		t.Fatalf("status = %d, want 422; body=%s", w.Code, w.Body.String())
+	}
+	if mock.gotContent != "" {
+		t.Error("store was called despite a missing base_version")
+	}
+}
+
+// A stale base_version is a 409 carrying the current head.
+func TestSaveVersion_Conflict(t *testing.T) {
+	mock := &mockVersions{err: &stores.VersionConflictError{CurrentHead: 6}}
+	w := vdriver(t, mock).Request(t, http.MethodPost, "/documents/d1/versions",
+		map[string]any{"content": "# hello", "base_version": 3})
+	if w.Code != http.StatusConflict {
+		t.Fatalf("status = %d, want 409; body=%s", w.Code, w.Body.String())
+	}
+	if !strings.Contains(w.Body.String(), "6") {
+		t.Errorf("409 body should report the current head (6): %s", w.Body.String())
+	}
+}
+
 func TestSaveVersion_DocumentNotFound(t *testing.T) {
 	w := vdriver(t, &mockVersions{err: stores.ErrNotFound}).Request(t, http.MethodPost,
-		"/documents/missing/versions", map[string]string{"content": "x"})
+		"/documents/missing/versions", map[string]any{"content": "x", "base_version": 0})
 	if w.Code != http.StatusNotFound {
 		t.Fatalf("status = %d, want 404; body=%s", w.Code, w.Body.String())
 	}

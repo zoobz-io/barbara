@@ -85,7 +85,7 @@ func TestTags_AddOnPublished_ReprojectsWithoutMovingPointer(t *testing.T) {
 	st, docID := tagsFixture(t)
 	ctx := tenantCtx(testTenant)
 
-	v, err := st.Versions.Save(ctx, docID, "# content")
+	v, err := st.Versions.Save(ctx, docID, "# content", 0)
 	if err != nil {
 		t.Fatalf("save version: %v", err)
 	}
@@ -138,7 +138,7 @@ func TestTags_NoOpOnPublished_EnqueuesNothing(t *testing.T) {
 	if _, err := st.AddTag(ctx, docID, "guide"); err != nil {
 		t.Fatalf("seed tag: %v", err)
 	}
-	v, err := st.Versions.Save(ctx, docID, "# content")
+	v, err := st.Versions.Save(ctx, docID, "# content", 0)
 	if err != nil {
 		t.Fatalf("save version: %v", err)
 	}

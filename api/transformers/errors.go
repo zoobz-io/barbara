@@ -14,6 +14,14 @@ import (
 // returns — the domain -> wire half for the error path. An unrecognized error
 // is passed through unchanged (rocco renders it as a 500).
 func ErrorToResponse(err error) error {
+	// A stale-base_version save conflict carries the current head so the client
+	// can refetch and rebase.
+	var conflict *stores.VersionConflictError
+	if errors.As(err, &conflict) {
+		return rocco.ErrConflict.
+			WithMessage("base_version is stale").
+			WithDetails(rocco.ConflictDetails{Reason: conflict.Error()})
+	}
 	switch {
 	case errors.Is(err, stores.ErrNotFound):
 		return rocco.ErrNotFound.WithMessage("resource not found")

@@ -31,16 +31,31 @@ func NewVersions(db *sqlx.DB, renderer astql.Renderer, documents *Documents) *Ve
 	}
 }
 
+// VersionConflictError is returned by Save when the caller's baseVersion is no
+// longer the document's head — a concurrent save moved it. CurrentHead is the
+// head the client should refetch and rebase onto before retrying.
+type VersionConflictError struct {
+	CurrentHead int
+}
+
+func (e *VersionConflictError) Error() string {
+	return fmt.Sprintf("stale base_version; current head is %d", e.CurrentHead)
+}
+
 // Save appends a new version of a document's content, allocating the next
-// version_number for that document.
+// version_number — but only if baseVersion is still the document's head
+// (optimistic concurrency). baseVersion is the version number the caller edited
+// from; 0 for the first version of an empty document.
 //
 // It runs in a transaction that first locks the parent document row
-// (FOR UPDATE), so concurrent saves for the same document serialize: each sees
-// a stable count and inserts count+1, and both persist with distinct monotonic
-// numbers — the race the domain guarantees against. Saves for different
-// documents don't contend (row-level lock). Returns ErrNotFound if the document
-// does not exist for the tenant.
-func (s *Versions) Save(ctx context.Context, documentID, content string) (*models.Version, error) {
+// (FOR UPDATE), so concurrent saves for the same document serialize. Inside the
+// lock it compares baseVersion against the current head (the version count): if
+// they differ, a concurrent save has moved the head, and it returns a
+// *VersionConflictError carrying that head — the compare and the insert are one
+// atomic step, so of two racing saves from the same base exactly one wins and
+// the other conflicts. Saves for different documents don't contend (row-level
+// lock). Returns ErrNotFound if the document does not exist for the tenant.
+func (s *Versions) Save(ctx context.Context, documentID, content string, baseVersion int) (*models.Version, error) {
 	tenantID, err := auth.RequireTenant(ctx)
 	if err != nil {
 		return nil, err
@@ -74,6 +89,12 @@ func (s *Versions) Save(ctx context.Context, documentID, content string) (*model
 		ExecTx(ctx, tx, scope)
 	if err != nil {
 		return nil, fmt.Errorf("counting versions: %w", err)
+	}
+
+	// Optimistic concurrency: the head is the current version count (versions are
+	// numbered 1..count with no gaps). Reject unless the caller edited from it.
+	if baseVersion != int(count) {
+		return nil, &VersionConflictError{CurrentHead: int(count)}
 	}
 
 	v := &models.Version{
