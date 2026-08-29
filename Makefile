@@ -1,4 +1,4 @@
-.PHONY: build run test test-unit test-integration test-bench lint lint-fix coverage clean help check ci setup install-tools install-hooks dev dev-down dev-logs dev-reset
+.PHONY: build run run-admin test test-unit test-integration test-bench lint lint-fix coverage clean help check ci setup install-tools install-hooks dev dev-api dev-admin dev-observability dev-down dev-logs dev-reset
 
 .DEFAULT_GOAL := help
 
@@ -18,33 +18,51 @@ build: ## Build the application binary
 	@mkdir -p $(BIN_DIR)
 	@go build -o $(BIN_DIR)/$(APP_NAME) ./cmd/api
 
-run: ## Run the application locally
+run: ## Run the public API locally (go run)
 	@go run ./cmd/api
+
+run-admin: ## Run the admin API locally (go run)
+	@go run ./cmd/admin
 
 # =============================================================================
 # Docker Development Environment
 # =============================================================================
+# Services are profiled, so bring up only the surface you're working on. Each app
+# profile pulls in the shared infra (Postgres, Redis, MinIO, OpenSearch,
+# migrations); observability is a separate opt-in profile.
 
-dev: ## Start development environment (docker compose)
-	@docker compose up -d
+dev: ## Start both surfaces + shared dependencies
+	@docker compose --profile api --profile admin up -d
 	@echo ""
-	@echo "Services started:"
-	@echo "  App:        http://localhost:8080"
+	@echo "  API:    http://localhost:8080"
+	@echo "  Admin:  http://localhost:8081"
+	@echo "  MinIO:  http://localhost:9001"
+	@echo ""
+	@echo "Run 'make dev-logs' to tail logs, 'make dev-observability' for telemetry."
+
+dev-api: ## Start the public API + its dependencies
+	@docker compose --profile api up -d
+	@echo "API: http://localhost:8080  (make dev-logs to tail)"
+
+dev-admin: ## Start the admin API + its dependencies
+	@docker compose --profile admin up -d
+	@echo "Admin: http://localhost:8081  (make dev-logs to tail)"
+
+dev-observability: ## Start the optional telemetry stack (Grafana, Jaeger, Prometheus, Loki)
+	@docker compose --profile observability up -d
+	@echo ""
 	@echo "  Grafana:    http://localhost:3000"
 	@echo "  Jaeger:     http://localhost:16686"
 	@echo "  Prometheus: http://localhost:9090"
-	@echo "  MinIO:      http://localhost:9001"
-	@echo ""
-	@echo "Run 'make dev-logs' to tail application logs"
 
-dev-down: ## Stop development environment
-	@docker compose down
+dev-down: ## Stop the development environment (all profiles)
+	@docker compose --profile api --profile admin --profile observability down
 
-dev-logs: ## Tail application logs
-	@docker compose logs -f app
+dev-logs: ## Tail running container logs
+	@docker compose logs -f
 
 dev-reset: ## Reset development environment (removes volumes)
-	@docker compose down -v
+	@docker compose --profile api --profile admin --profile observability down -v
 	@echo "All volumes removed. Run 'make dev' to start fresh."
 
 # =============================================================================

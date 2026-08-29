@@ -1,9 +1,54 @@
+# Local development stack. Services are grouped by profile so you start only the
+# surface you're working on:
+#   make dev-api            # public API + its dependencies
+#   make dev-admin          # admin API + its dependencies
+#   make dev                # both surfaces + shared dependencies
+#   make dev-observability  # optional telemetry stack (Grafana/Jaeger/…)
+# The shared build/env/deps below are reused by the api and admin containers.
+
+x-app-build: &app-build
+  context: .
+  dockerfile: tools/dev/Dockerfile.dev
+
+# Shared environment for the app containers. Per-surface ports and service names
+# are set on each service.
+x-app-env: &app-env
+  APP_DB_HOST: postgres
+  APP_DB_PORT: "5432"
+  APP_DB_NAME: Barbara
+  APP_DB_USER: Barbara
+  APP_DB_PASSWORD: Barbara
+  APP_DB_SSLMODE: disable
+  APP_REDIS_ADDR: redis:6379
+  APP_STORAGE_ENDPOINT: minio:9000
+  APP_STORAGE_ACCESS_KEY: Barbara
+  APP_STORAGE_SECRET_KEY: Barbaradev
+  APP_STORAGE_BUCKET: Barbara
+  APP_STORAGE_USE_SSL: "false"
+  APP_OPENSEARCH_ADDR: http://opensearch:9200
+  APP_ENCRYPTION_KEY: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+  OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
+
+# Shared dependency set for the app containers: infra up and migrations/bucket ready.
+x-app-deps: &app-deps
+  postgres:
+    condition: service_healthy
+  migrate:
+    condition: service_completed_successfully
+  redis:
+    condition: service_healthy
+  minio-init:
+    condition: service_completed_successfully
+  opensearch:
+    condition: service_healthy
+
 services:
   # =============================================================================
-  # Core Infrastructure
+  # Core Infrastructure (started by any app profile, not by observability alone)
   # =============================================================================
 
   postgres:
+    profiles: ["api", "admin"]
     image: postgres:16-alpine
     environment:
       POSTGRES_DB: Barbara
@@ -20,6 +65,7 @@ services:
       retries: 5
 
   migrate:
+    profiles: ["api", "admin"]
     image: ghcr.io/kukymbr/goose-docker:latest
     depends_on:
       postgres:
@@ -32,6 +78,7 @@ services:
       GOOSE_MIGRATION_DIR: /migrations
 
   redis:
+    profiles: ["api", "admin"]
     image: redis:7-alpine
     ports:
       - "6379:6379"
@@ -44,6 +91,7 @@ services:
       retries: 5
 
   minio:
+    profiles: ["api", "admin"]
     image: minio/minio:latest
     command: server /data --console-address ":9001"
     environment:
@@ -60,7 +108,22 @@ services:
       timeout: 5s
       retries: 5
 
+  # One-shot: create the assets bucket so the app can write on first boot
+  # (boot.Bucket builds the client but does not create the bucket).
+  minio-init:
+    profiles: ["api", "admin"]
+    image: minio/mc
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >-
+      /bin/sh -c "
+      mc alias set local http://minio:9000 Barbara Barbaradev &&
+      mc mb --ignore-existing local/Barbara
+      "
+
   opensearch:
+    profiles: ["api", "admin"]
     image: opensearchproject/opensearch:2.19.1
     environment:
       discovery.type: single-node
@@ -78,19 +141,51 @@ services:
       retries: 10
 
   # =============================================================================
-  # Observability Stack
+  # Applications (one profile each — start only what you need)
   # =============================================================================
 
-  # Traces - Jaeger
+  api:
+    profiles: ["api"]
+    build: *app-build
+    command: ["air", "-c", "tools/dev/air.api.toml"]
+    depends_on: *app-deps
+    environment:
+      <<: *app-env
+      APP_PORT: "8080"
+      OTEL_SERVICE_NAME: barbara-api
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/app
+
+  admin:
+    profiles: ["admin"]
+    build: *app-build
+    command: ["air", "-c", "tools/dev/air.admin.toml"]
+    depends_on: *app-deps
+    environment:
+      <<: *app-env
+      APP_ADMIN_PORT: "8081"
+      OTEL_SERVICE_NAME: barbara-admin
+    ports:
+      - "8081:8081"
+    volumes:
+      - .:/app
+
+  # =============================================================================
+  # Observability Stack (optional — `--profile observability`)
+  # =============================================================================
+
   jaeger:
+    profiles: ["observability"]
     image: jaegertracing/all-in-one:latest
     environment:
       COLLECTOR_OTLP_ENABLED: "true"
     ports:
-      - "16686:16686"  # UI
+      - "16686:16686" # UI
 
-  # Logs - Loki
   loki:
+    profiles: ["observability"]
     image: grafana/loki:latest
     command: -config.file=/etc/loki/local-config.yaml
     ports:
@@ -98,8 +193,8 @@ services:
     volumes:
       - lokidata:/loki
 
-  # Metrics - Prometheus
   prometheus:
+    profiles: ["observability"]
     image: prom/prometheus:latest
     volumes:
       - ./tools/dev/prometheus.yaml:/etc/prometheus/prometheus.yml:ro
@@ -107,20 +202,20 @@ services:
     ports:
       - "9090:9090"
 
-  # OTEL Collector - Central hub
   otel-collector:
+    profiles: ["observability"]
     image: otel/opentelemetry-collector-contrib:latest
     volumes:
       - ./tools/dev/otel-collector.yaml:/etc/otelcol-contrib/config.yaml:ro
     ports:
-      - "4318:4318"    # OTLP HTTP
+      - "4318:4318" # OTLP HTTP
     depends_on:
       - jaeger
       - loki
       - prometheus
 
-  # Grafana - Unified dashboard (optional but useful)
   grafana:
+    profiles: ["observability"]
     image: grafana/grafana:latest
     environment:
       GF_AUTH_ANONYMOUS_ENABLED: "true"
@@ -135,48 +230,6 @@ services:
       - prometheus
       - loki
       - jaeger
-
-  # =============================================================================
-  # Application
-  # =============================================================================
-
-  app:
-    build:
-      context: .
-      dockerfile: tools/dev/Dockerfile.dev
-    depends_on:
-      postgres:
-        condition: service_healthy
-      migrate:
-        condition: service_completed_successfully
-      redis:
-        condition: service_healthy
-      minio:
-        condition: service_healthy
-      opensearch:
-        condition: service_healthy
-    environment:
-      APP_PORT: "8080"
-      APP_DB_HOST: postgres
-      APP_DB_PORT: "5432"
-      APP_DB_NAME: Barbara
-      APP_DB_USER: Barbara
-      APP_DB_PASSWORD: Barbara
-      APP_DB_SSLMODE: disable
-      APP_REDIS_ADDR: redis:6379
-      APP_STORAGE_ENDPOINT: minio:9000
-      APP_STORAGE_ACCESS_KEY: Barbara
-      APP_STORAGE_SECRET_KEY: Barbaradev
-      APP_STORAGE_BUCKET: Barbara
-      APP_STORAGE_USE_SSL: "false"
-      APP_OPENSEARCH_ADDR: http://opensearch:9200
-      APP_ENCRYPTION_KEY: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
-      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
-      OTEL_SERVICE_NAME: Barbara
-    ports:
-      - "8080:8080"
-    volumes:
-      - .:/app
 
 volumes:
   pgdata:
