@@ -169,6 +169,28 @@ collections mechanically (split on slash, create the tree, attach documents);
 each tenant's flat corpus becomes one app. A one-shot migration, part of this
 plan's first ticket.
 
+## Assets (amended 2026-08-29)
+
+Assets stay what 001 made them: opaque blobs in the bucket, no Postgres row,
+no versioning, same-key overwrite. Two changes and three explicit
+non-decisions-made-decisions:
+
+- **App-scoped namespace.** The stored object key becomes
+  `<tenant>/<app>/<key>`; the user key is unique per app, and listings filter
+  by the app prefix. The one-off backfill moves existing objects from
+  `<tenant>/<key>` into the tenant's seeded app.
+- **Site-facing asset read.** The live site needs bytes for the images its
+  markdown references. The mesh surface gains a get-asset-by-key read, served
+  straight from the bucket — assets are not in OpenSearch and not in releases,
+  so "current" is the only version there is.
+- **A folder is a key prefix, not a collection.** Assets do not join the tree:
+  no tree entry, no name collision with documents or collections, and a
+  collection rename does not move assets sharing the prefix. Markdown
+  references may go stale when assets move or change; accepted deliberately.
+- **Releases do not cover assets.** A rollback restores last week's markdown
+  with today's images. Accepted deliberately — the version game is not played
+  with binaries.
+
 ## Non-goals
 
 - **No branching, no merging, no three-way anything.** Linear release history
