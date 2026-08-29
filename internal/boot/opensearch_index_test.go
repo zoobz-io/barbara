@@ -38,9 +38,9 @@ func TestEnsureIndices_CreatesWhenMissing(t *testing.T) {
 	}
 }
 
-func TestEnsureIndices_SkipsExisting(t *testing.T) {
+func TestEnsureIndices_ReconcilesExisting(t *testing.T) {
 	var mu sync.Mutex
-	puts := 0
+	var putPaths []string
 
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
@@ -48,9 +48,10 @@ func TestEnsureIndices_SkipsExisting(t *testing.T) {
 			w.WriteHeader(http.StatusOK) // everything already exists
 		case http.MethodPut:
 			mu.Lock()
-			puts++
+			putPaths = append(putPaths, r.URL.Path)
 			mu.Unlock()
 			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte(`{"acknowledged":true}`))
 		default:
 			w.WriteHeader(http.StatusMethodNotAllowed)
 		}
@@ -63,8 +64,41 @@ func TestEnsureIndices_SkipsExisting(t *testing.T) {
 
 	mu.Lock()
 	defer mu.Unlock()
-	if puts != 0 {
-		t.Errorf("expected no index creation when all exist, got %d PUTs", puts)
+	// An existing index is reconciled via PUT /{index}/_mapping (additive), never
+	// recreated via a bare PUT /{index}.
+	for _, p := range putPaths {
+		if p == "/documents" {
+			t.Errorf("existing index was recreated via %q, want a _mapping reconcile", p)
+		}
+	}
+	want := "/documents/_mapping"
+	found := false
+	for _, p := range putPaths {
+		if p == want {
+			found = true
+		}
+	}
+	if !found {
+		t.Errorf("expected a PUT to %q, got paths %v", want, putPaths)
+	}
+}
+
+func TestEnsureIndices_PropagatesReconcileFailure(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodHead:
+			w.WriteHeader(http.StatusOK) // exists → reconcile path
+		case http.MethodPut:
+			w.WriteHeader(http.StatusBadRequest) // e.g. a conflicting field type
+			_, _ = w.Write([]byte(`{"error":"mapper_parsing_exception"}`))
+		default:
+			w.WriteHeader(http.StatusMethodNotAllowed)
+		}
+	}))
+	defer srv.Close()
+
+	if err := EnsureIndices(context.Background(), srv.URL); err == nil {
+		t.Error("expected EnsureIndices to return an error on reconcile failure")
 	}
 }
 

@@ -35,6 +35,8 @@ func TestDocumentsMappingLoads(t *testing.T) {
 		"tenant_id":      "keyword",
 		"version_id":     "keyword",
 		"key":            "keyword",
+		"app_id":         "keyword",
+		"parent_path":    "keyword",
 		"tags":           "keyword",
 		"version_number": "integer",
 		"content":        "text",
