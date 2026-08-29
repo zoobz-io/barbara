@@ -45,13 +45,20 @@ func DriverFor(handler http.Handler) *Driver {
 //	}, handlers.All()...)
 //	w := d.Request(t, http.MethodPost, "/documents", body)
 func Handlers(t *testing.T, register func(k sum.Key), endpoints ...rocco.Endpoint) *Driver {
+	return HandlersAs(t, auth.DefaultStub(), register, endpoints...)
+}
+
+// HandlersAs is Handlers with a caller-supplied authenticator, so tests can
+// drive endpoints as an identity that lacks a required scope or role and assert
+// the 403 gate — the default stub grants everything.
+func HandlersAs(t *testing.T, authenticator auth.Authenticator, register func(k sum.Key), endpoints ...rocco.Endpoint) *Driver {
 	t.Helper()
 	sum.Reset()
 	sum.New()
 	k := sum.Start()
 	register(k)
 	engine := rocco.NewEngine()
-	auth.Wire(k, engine, auth.DefaultStub())
+	auth.Wire(k, engine, authenticator)
 	engine.WithHandlers(endpoints...)
 	sum.Freeze(k)
 	return &Driver{handler: engine.Router()}
