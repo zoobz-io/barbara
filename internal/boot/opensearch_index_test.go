@@ -83,6 +83,20 @@ func TestEnsureIndices_ReconcilesExisting(t *testing.T) {
 	}
 }
 
+func TestReconcileMapping_NoMappingsBodyIsNoOp(t *testing.T) {
+	// A mapping file with no "mappings" block has nothing to reconcile: no HTTP
+	// call is made. The unreachable addr proves the request never fires.
+	if err := reconcileMapping(context.Background(), "http://127.0.0.1:0", "documents", []byte(`{"settings":{}}`)); err != nil {
+		t.Errorf("empty-mappings reconcile should be a no-op, got %v", err)
+	}
+}
+
+func TestReconcileMapping_RejectsInvalidJSON(t *testing.T) {
+	if err := reconcileMapping(context.Background(), "http://127.0.0.1:0", "documents", []byte(`not json`)); err == nil {
+		t.Error("expected an error for an unparseable mapping")
+	}
+}
+
 func TestEnsureIndices_PropagatesReconcileFailure(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
