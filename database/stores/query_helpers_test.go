@@ -42,11 +42,61 @@ func newQueryTest(t *testing.T) (*Stores, *mockdb.Capture) {
 	return New(db, astqlpg.New(), testkit.NewSearchProvider()), capture
 }
 
+// newQueryTestCfg is newQueryTest plus the mock Config, for driving the reads a
+// multi-query method makes so it runs to completion and every query it issues is
+// captured — not just the first. Queue rows with cfg.PushRowData in call order.
+func newQueryTestCfg(t *testing.T) (*Stores, *mockdb.Capture, *mockdb.Config) {
+	t.Helper()
+	sum.Reset()
+	sum.New()
+	db, capture, cfg := mockdb.NewWithConfig()
+	return New(db, astqlpg.New(), testkit.NewSearchProvider()), capture, cfg
+}
+
 // tenantCtx returns a context carrying a principal for the test tenant and user,
 // the way a handler bridges req.Identity before calling a tenant-scoped store.
 func tenantCtx() context.Context {
 	return auth.WithPrincipal(context.Background(),
 		auth.NewPrincipal(testUser, testTenant, "", nil, nil))
+}
+
+// Row shapes fed to the mock so a scan succeeds and the method proceeds to its
+// next query. Only the columns a test needs are supplied; unlisted struct fields
+// scan to their zero value. Columns are real db fields, so StructScan maps them.
+
+// docRow is a documents row. publishedVersionID may be nil (a draft) or a string.
+func docRow(publishedVersionID any) *mockdb.RowData {
+	return &mockdb.RowData{
+		Columns: []string{"id", "tenant_id", "key", "published_version_id"},
+		Rows:    [][]any{{"d-1", testTenant, "a.md", publishedVersionID}},
+	}
+}
+
+// versionRow is a versions row belonging to document d-1.
+func versionRow() *mockdb.RowData {
+	return &mockdb.RowData{
+		Columns: []string{"id", "document_id", "tenant_id", "version_number", "content"},
+		Rows:    [][]any{{"v-1", "d-1", testTenant, int64(1), "body"}},
+	}
+}
+
+// countRow is a COUNT(*) scalar result.
+func countRow(n int64) *mockdb.RowData {
+	return &mockdb.RowData{Columns: []string{"count"}, Rows: [][]any{{n}}}
+}
+
+// jobRow is a jobs row — enough for an outbox INSERT ... RETURNING to scan.
+func jobRow() *mockdb.RowData {
+	return &mockdb.RowData{Columns: []string{"id"}, Rows: [][]any{{"j-1"}}}
+}
+
+// queryAt returns the i-th captured query, failing if fewer ran.
+func queryAt(t *testing.T, capture *mockdb.Capture, i int) mockdb.CapturedQuery {
+	t.Helper()
+	if i >= len(capture.Queries) {
+		t.Fatalf("wanted query #%d but only %d were captured: %+v", i, len(capture.Queries), capture.Queries)
+	}
+	return capture.Queries[i]
 }
 
 // lastQuery returns the most recently captured query, failing if none ran.
