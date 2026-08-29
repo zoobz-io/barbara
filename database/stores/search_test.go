@@ -65,7 +65,7 @@ func TestSearch_Enumerate_SortsByCreatedAtThenDocID(t *testing.T) {
 	mp := testkit.NewSearchProvider()
 	s := newTestSearch(mp)
 
-	if _, _, err := s.Enumerate(searchCtx(), "", 10, 0); err != nil {
+	if _, _, err := s.Enumerate(searchCtx(), "app-1", "", 10, 0); err != nil {
 		t.Fatalf("enumerate: %v", err)
 	}
 	got := mp.LastSearch.SortValue()
@@ -82,7 +82,7 @@ func TestSearch_FullText_SortsByScoreThenDocID(t *testing.T) {
 	mp := testkit.NewSearchProvider()
 	s := newTestSearch(mp)
 
-	if _, _, err := s.Search(searchCtx(), "hello", 10, 0); err != nil {
+	if _, _, err := s.Search(searchCtx(), "app-1", "hello", 10, 0); err != nil {
 		t.Fatalf("search: %v", err)
 	}
 	want := []lucene.SortField{
@@ -115,5 +115,24 @@ func TestSearch_Delete(t *testing.T) {
 	}
 	if mp.LastIndex != documentIndex {
 		t.Errorf("deleted from index %q, want %q", mp.LastIndex, documentIndex)
+	}
+}
+
+// A folder listing filters by app and the materialized parent_path in one term
+// query, ordered by key with the document_id tiebreaker — the stable folder
+// view.
+func TestSearch_ListFolder_SortsByKeyThenDocID(t *testing.T) {
+	mp := testkit.NewSearchProvider()
+	s := newTestSearch(mp)
+
+	if _, _, err := s.ListFolder(searchCtx(), "app-1", "guides", 10, 0); err != nil {
+		t.Fatalf("list folder: %v", err)
+	}
+	want := []lucene.SortField{
+		{Field: "key", Order: "asc"},
+		{Field: "document_id", Order: "asc"},
+	}
+	if got := mp.LastSearch.SortValue(); !reflect.DeepEqual(got, want) {
+		t.Errorf("folder sort = %+v, want %+v", got, want)
 	}
 }

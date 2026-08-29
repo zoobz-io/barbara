@@ -50,3 +50,20 @@ func TestProjection_MaterializesAppAndParentPath(t *testing.T) {
 		t.Errorf("root projection = app:%q parent:%q; want empty/empty", root.AppID, root.ParentPath)
 	}
 }
+
+// parentPath derives the folder from the materialized key: everything before
+// the last slash, "" at the root. The empty-string root convention must match
+// what the folder read resolves an absent path parameter to.
+func TestParentPath(t *testing.T) {
+	cases := map[string]string{
+		"readme.md":         "",
+		"guides/install.md": "guides",
+		"a/b/c.md":          "a/b",
+		"/leading.md":       "",
+	}
+	for key, want := range cases {
+		if got := parentPath(key); got != want {
+			t.Errorf("parentPath(%q) = %q, want %q", key, got, want)
+		}
+	}
+}

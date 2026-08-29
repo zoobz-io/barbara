@@ -28,7 +28,7 @@ func tagsFixture(t *testing.T) (*stores.Stores, string) {
 		_ = db.Close()
 	})
 	st := stores.New(db, astqlpg.New(), testkit.NewSearchProvider(), testkit.NewBucketProvider())
-	doc, err := seedDoc(st, tenantCtx(testTenant), "taggable.md")
+	doc, err := seedDoc(st, tenantCtx(testTenant), seedApp(t, st, tenantCtx(testTenant)).ID, "taggable.md")
 	if err != nil {
 		t.Fatalf("create document: %v", err)
 	}
@@ -172,10 +172,10 @@ func TestTags_ListByTag_TenantScoped(t *testing.T) {
 	}
 	// A second doc without the tag (must be excluded), and one under another
 	// tenant with the tag (must not leak across tenants).
-	if _, err := seedDoc(st, ctx, "untagged.md"); err != nil {
+	if _, err := seedDoc(st, ctx, seedApp(t, st, ctx).ID, "untagged.md"); err != nil {
 		t.Fatalf("create untagged: %v", err)
 	}
-	foreign, err := seedDoc(st, tenantCtx(otherTenant), "foreign.md")
+	foreign, err := seedDoc(st, tenantCtx(otherTenant), seedApp(t, st, tenantCtx(otherTenant)).ID, "foreign.md")
 	if err != nil {
 		t.Fatalf("create foreign: %v", err)
 	}

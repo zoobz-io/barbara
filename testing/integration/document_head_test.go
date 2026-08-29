@@ -26,7 +26,7 @@ func TestDocumentHead_Integration(t *testing.T) {
 	st := stores.New(db, astqlpg.New(), testkit.NewSearchProvider(), testkit.NewBucketProvider())
 	ctx := tenantCtx(tenant)
 
-	doc, err := seedDoc(st, ctx, "editor/doc.md")
+	doc, err := seedDoc(st, ctx, seedApp(t, st, ctx).ID, "editor/doc.md")
 	if err != nil {
 		t.Fatalf("create: %v", err)
 	}

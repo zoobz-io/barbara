@@ -26,13 +26,15 @@ const documentIndex = "documents"
 // is not stable across paginated requests.
 var (
 	sortByCreatedAt = lucene.SortField{Field: "created_at", Order: "asc"}
+	sortByKey       = lucene.SortField{Field: "key", Order: "asc"}
 	sortByScore     = lucene.SortField{Field: "_score", Order: "desc"}
 	sortByDocID     = lucene.SortField{Field: "document_id", Order: "asc"}
 )
 
 // Search is the serving-store access layer over the DocumentIndex projection.
 // The jobs pipeline writes through it (Index/Delete) and the site-facing surface
-// reads through it (GetPublishedByKey/Enumerate/Search). The write side takes
+// reads through it (GetPublishedByKey/Enumerate/ListFolder/Search). The write
+// side takes
 // the job's raw JSON payload so the pipeline stays decoupled from the projection
 // type; the read side builds typed lucene queries, tenant-scoped.
 type Search struct {
@@ -71,14 +73,19 @@ func (s *Search) Delete(ctx context.Context, documentID string) error {
 	return nil
 }
 
-// GetPublishedByKey returns the published document with the given key, scoped to
-// the request's tenant. ErrNotFound when no published document has that key.
-func (s *Search) GetPublishedByKey(ctx context.Context, key string) (*models.DocumentIndex, error) {
+// GetPublishedByKey returns the app's published document with the given key,
+// scoped to the request's tenant. ErrNotFound when no published document has
+// that key.
+func (s *Search) GetPublishedByKey(ctx context.Context, appID, key string) (*models.DocumentIndex, error) {
 	tenantID, err := auth.RequireTenant(ctx)
 	if err != nil {
 		return nil, err
 	}
-	q := s.qb.Bool().Filter(s.qb.Term("tenant_id", tenantID), s.qb.Term("key", key))
+	q := s.qb.Bool().Filter(
+		s.qb.Term("tenant_id", tenantID),
+		s.qb.Term("app_id", appID),
+		s.qb.Term("key", key),
+	)
 	res, err := s.index.Execute(ctx, lucene.NewSearch().Query(q).Size(1))
 	if err != nil {
 		return nil, fmt.Errorf("looking up %q: %w", key, err)
@@ -90,29 +97,46 @@ func (s *Search) GetPublishedByKey(ctx context.Context, key string) (*models.Doc
 	return &doc, nil
 }
 
-// Enumerate lists published documents for the request's tenant, optionally
-// filtered by tag. Returns the page and the total match count.
-func (s *Search) Enumerate(ctx context.Context, tag string, limit, offset int) ([]models.DocumentIndex, int64, error) {
+// Enumerate lists the app's published documents for the request's tenant,
+// optionally filtered by tag. Returns the page and the total match count.
+func (s *Search) Enumerate(ctx context.Context, appID, tag string, limit, offset int) ([]models.DocumentIndex, int64, error) {
 	tenantID, err := auth.RequireTenant(ctx)
 	if err != nil {
 		return nil, 0, err
 	}
-	filters := []lucene.Query{s.qb.Term("tenant_id", tenantID)}
+	filters := []lucene.Query{s.qb.Term("tenant_id", tenantID), s.qb.Term("app_id", appID)}
 	if tag != "" {
 		filters = append(filters, s.qb.Term("tags", tag))
 	}
 	return s.run(ctx, s.qb.Bool().Filter(filters...), limit, offset, sortByCreatedAt, sortByDocID)
 }
 
-// Search runs a full-text search over published content for the request's
-// tenant. Returns the page and the total match count.
-func (s *Search) Search(ctx context.Context, query string, limit, offset int) ([]models.DocumentIndex, int64, error) {
+// ListFolder lists the app's published documents directly inside a folder — one
+// term query on the materialized parent_path, never a tree walk. parentPath ""
+// is the app root. Ordered by key, the natural order of a folder view. Returns
+// the page and the total match count.
+func (s *Search) ListFolder(ctx context.Context, appID, parentPath string, limit, offset int) ([]models.DocumentIndex, int64, error) {
+	tenantID, err := auth.RequireTenant(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+	q := s.qb.Bool().Filter(
+		s.qb.Term("tenant_id", tenantID),
+		s.qb.Term("app_id", appID),
+		s.qb.Term("parent_path", parentPath),
+	)
+	return s.run(ctx, q, limit, offset, sortByKey, sortByDocID)
+}
+
+// Search runs a full-text search over the app's published content for the
+// request's tenant. Returns the page and the total match count.
+func (s *Search) Search(ctx context.Context, appID, query string, limit, offset int) ([]models.DocumentIndex, int64, error) {
 	tenantID, err := auth.RequireTenant(ctx)
 	if err != nil {
 		return nil, 0, err
 	}
 	q := s.qb.Bool().
-		Filter(s.qb.Term("tenant_id", tenantID)).
+		Filter(s.qb.Term("tenant_id", tenantID), s.qb.Term("app_id", appID)).
 		Must(s.qb.MultiMatch(query, "content"))
 	return s.run(ctx, q, limit, offset, sortByScore, sortByDocID)
 }

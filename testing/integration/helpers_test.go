@@ -7,9 +7,11 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	"github.com/opensearch-project/opensearch-go/v4"
@@ -23,20 +25,39 @@ import (
 	"github.com/zoobz-io/barbara/internal/auth"
 )
 
-// seedDoc inserts a bare keyed document (no tree placement) for tests that just
-// need a document to exist — publishing, tags, reindex, and the like, which key
-// off the document's key and published pointer, not its tree position. The
-// collection-aware create is exercised by the documents tree tests; this seeds
-// via the store's generic insert, which the authoring create no longer exposes
-// for raw keys. The tenant comes from ctx.
-func seedDoc(st *stores.Stores, ctx context.Context, key string) (*models.Document, error) {
+// seedApp creates an app for the ctx tenant — the serving unit every published
+// read scopes by, and the placement target every seeded document needs. The
+// name is random because the fixed test tenants live in a persistent database:
+// a fixed name would collide on the second run.
+func seedApp(t *testing.T, st *stores.Stores, ctx context.Context) *models.App {
+	t.Helper()
+	app, err := st.Apps.Create(ctx, uuid.NewString())
+	if err != nil {
+		t.Fatalf("seeding app: %v", err)
+	}
+	return app
+}
+
+// seedDoc inserts a keyed document placed at the given app's root (no
+// collection) for tests that just need a document to exist — publishing, tags,
+// reindex, and the like, which key off the document's key and published
+// pointer, not its tree position. The collection-aware create is exercised by
+// the documents tree tests; this seeds via the store's generic insert, which
+// the authoring create no longer exposes for raw keys. The tenant comes from
+// ctx.
+func seedDoc(st *stores.Stores, ctx context.Context, appID, key string) (*models.Document, error) {
 	tenant, err := auth.RequireTenant(ctx)
 	if err != nil {
 		return nil, err
 	}
 	now := time.Now()
+	name := key
+	if i := strings.LastIndex(key, "/"); i >= 0 {
+		name = key[i+1:]
+	}
 	return st.Documents.Insert().Exec(ctx, &models.Document{
-		TenantID: tenant, Key: key, Tags: pq.StringArray{}, CreatedAt: now, UpdatedAt: now,
+		TenantID: tenant, AppID: &appID, Name: &name,
+		Key: key, Tags: pq.StringArray{}, CreatedAt: now, UpdatedAt: now,
 	})
 }
 
