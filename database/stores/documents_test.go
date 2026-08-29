@@ -3,8 +3,13 @@
 package stores
 
 import (
+	"context"
 	"errors"
 	"testing"
+
+	"github.com/lib/pq"
+
+	"github.com/zoobz-io/barbara/internal/auth"
 )
 
 // Create at the app root materializes the key from the name, checks no sibling
@@ -138,6 +143,67 @@ func TestDocuments_Delete_Query(t *testing.T) {
 	notSQL(t, del, "published_version_id")
 	wantArg(t, del, "d-1")
 	wantArg(t, del, testTenant)
+}
+
+// A sibling collection sharing the name blocks a create, before any INSERT.
+func TestDocuments_Create_SiblingCollectionBlocks(t *testing.T) {
+	st, capture, cfg := newQueryTestCfg(t)
+	cfg.PushRowData(appRow())    // scope ok
+	cfg.PushRowData(countRow(1)) // a collection sibling holds the name
+
+	_, err := st.Documents.Create(tenantCtx(), testApp, nil, "guides")
+	if !errors.Is(err, ErrCollectionNameTaken) {
+		t.Fatalf("create colliding with a sibling collection = %v, want ErrCollectionNameTaken", err)
+	}
+	for _, q := range capture.Queries {
+		notSQL(t, q, `INSERT INTO "documents"`)
+	}
+}
+
+// A sibling collection at the destination blocks a move, before the UPDATE.
+func TestDocuments_Move_SiblingCollectionBlocks(t *testing.T) {
+	st, capture, cfg := newQueryTestCfg(t)
+	cfg.PushRowData(appRow())    // requireParentScope
+	cfg.PushRowData(docRow(nil)) // lock
+	cfg.PushRowData(countRow(1)) // sibling collection at the destination
+
+	_, err := st.Documents.Move(tenantCtx(), testApp, "d-1", nil, "guides")
+	if !errors.Is(err, ErrCollectionNameTaken) {
+		t.Fatalf("move colliding with a sibling collection = %v, want ErrCollectionNameTaken", err)
+	}
+	for _, q := range capture.Queries {
+		notSQL(t, q, `UPDATE "documents" SET`)
+	}
+}
+
+// When the hard delete hits the release_entries RESTRICT foreign key, the
+// document is soft-deleted instead: deleted_at is set, the row survives.
+func TestDocuments_Delete_SoftOnForeignKey(t *testing.T) {
+	st, capture, cfg := newQueryTestCfg(t)
+	cfg.PushRowData(docRow(nil))              // Get: a draft, unplaced doc
+	cfg.PushExecErr(&pq.Error{Code: "23503"}) // hard DELETE hits the release FK
+	cfg.PushRowData(docRow(nil))              // soft UPDATE ... RETURNING
+
+	if err := st.Documents.Delete(tenantCtx(), "d-1"); err != nil {
+		t.Fatalf("soft delete: %v", err)
+	}
+	soft := lastQuery(t, capture)
+	wantSQL(t, soft, `UPDATE "documents" SET`, `"deleted_at" = ?`, `"id" = ?`, `"tenant_id" = ?`)
+}
+
+// Every tree mutation requires a tenant in context.
+func TestDocuments_RequiresTenant(t *testing.T) {
+	st, _ := newQueryTest(t)
+	ctx := context.Background()
+	if _, err := st.Documents.Create(ctx, testApp, nil, "x"); !errors.Is(err, auth.ErrNoTenant) {
+		t.Errorf("Create tenantless = %v, want ErrNoTenant", err)
+	}
+	if _, err := st.Documents.Move(ctx, testApp, "d-1", nil, "x"); !errors.Is(err, auth.ErrNoTenant) {
+		t.Errorf("Move tenantless = %v, want ErrNoTenant", err)
+	}
+	if err := st.Documents.Delete(ctx, "d-1"); !errors.Is(err, auth.ErrNoTenant) {
+		t.Errorf("Delete tenantless = %v, want ErrNoTenant", err)
+	}
 }
 
 // A document still holding a published pointer is refused (unpublish first),
