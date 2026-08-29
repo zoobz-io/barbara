@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 
 	"github.com/zoobz-io/barbara/database/models"
@@ -79,7 +78,7 @@ func (s *Stores) publishVersion(ctx context.Context, documentID, versionID strin
 		if err != nil {
 			return err
 		}
-		return s.Jobs.Enqueue(ctx, tx, s.newJob(tenantID, documentID, models.JobIndex, payload))
+		return s.Jobs.Enqueue(ctx, tx, newJob(tenantID, documentID, models.JobIndex, payload))
 	})
 	if err != nil {
 		return nil, err
@@ -101,7 +100,7 @@ func (s *Stores) Unpublish(ctx context.Context, documentID string) (*models.Docu
 		if err != nil {
 			return err
 		}
-		return s.Jobs.Enqueue(ctx, tx, s.newJob(tenantID, documentID, models.JobDelete, nil))
+		return s.Jobs.Enqueue(ctx, tx, newJob(tenantID, documentID, models.JobDelete, nil))
 	})
 	if err != nil {
 		return nil, err
@@ -127,23 +126,6 @@ func (s *Stores) setPublishedVersion(ctx context.Context, tx *sqlx.Tx, documentI
 			"id":                   documentID,
 			"tenant_id":            tenantID,
 		})
-}
-
-// newJob builds an outbox job for an OpenSearch write. Timestamps and status are
-// set here: the insert carries every column, so leaving them zero would break
-// the pending/ordering the pipeline relies on.
-func (s *Stores) newJob(tenantID, documentID, operation string, payload []byte) *models.Job {
-	now := time.Now()
-	return &models.Job{
-		ID:         uuid.NewString(),
-		TenantID:   tenantID,
-		DocumentID: documentID,
-		Operation:  operation,
-		Status:     models.JobPending,
-		Payload:    models.JobPayload(payload),
-		CreatedAt:  now,
-		UpdatedAt:  now,
-	}
 }
 
 // inTx runs fn in a transaction, committing on success and rolling back on error.

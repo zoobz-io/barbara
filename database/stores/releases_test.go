@@ -9,6 +9,7 @@ import (
 
 	"github.com/zoobz-io/grub/mockdb"
 
+	"github.com/zoobz-io/barbara/database/models"
 	"github.com/zoobz-io/barbara/events"
 	"github.com/zoobz-io/barbara/internal/auth"
 )
@@ -26,6 +27,23 @@ func releaseEntryRow(key, docID, versionID string) *mockdb.RowData {
 	return &mockdb.RowData{
 		Columns: []string{"id", "release_id", "key", "document_id", "version_id"},
 		Rows:    [][]any{{"e-1", "r-old", key, docID, versionID}},
+	}
+}
+
+// appRowWithRelease is an apps row already pointing at a current release, so a
+// cut computes its projection diff against that release.
+func appRowWithRelease(releaseID string) *mockdb.RowData {
+	return &mockdb.RowData{
+		Columns: []string{"id", "tenant_id", "name", "current_release_id"},
+		Rows:    [][]any{{testApp, testTenant, "site", releaseID}},
+	}
+}
+
+// entryRowFor is a release_entries row for a specific document.
+func entryRowFor(key, docID, versionID string) *mockdb.RowData {
+	return &mockdb.RowData{
+		Columns: []string{"id", "release_id", "key", "document_id", "version_id"},
+		Rows:    [][]any{{"e-x", "r-prev", key, docID, versionID}},
 	}
 }
 
@@ -68,6 +86,11 @@ func TestReleases_Cut_SnapshotsHeadVersions(t *testing.T) {
 	cfg.PushRowData(releaseRow("r-1", 1))                  // INSERT release
 	cfg.PushRowData(releaseEntryRow("a.md", "d-1", "v-1")) // INSERT entry
 	cfg.PushRowData(appRow())                              // pointer UPDATE
+	// projection (prev release nil → the one entry is an add): load doc, load
+	// version, enqueue one index job.
+	cfg.PushRowData(docRow(nil))
+	cfg.PushRowData(versionRow())
+	cfg.PushRowData(jobRow())
 
 	if _, err := st.Releases.Cut(tenantCtx(), testApp); err != nil {
 		t.Fatalf("cut: %v", err)
@@ -81,6 +104,39 @@ func TestReleases_Cut_SnapshotsHeadVersions(t *testing.T) {
 	wantArg(t, entry, "a.md")
 	wantArg(t, entry, "d-1")
 	wantArg(t, entry, "v-1")
+}
+
+// A cut against a previous release projects the diff: an index job for the
+// added/changed path and a delete job for the removed one.
+func TestReleases_Cut_ProjectsDiff(t *testing.T) {
+	st, capture, cfg := newQueryTestCfg(t)
+	cfg.PushRowData(docRow(nil))                           // snapshotHeads: live doc d-1 (a.md)
+	cfg.PushRowData(versionRow())                          // its head v-1
+	cfg.PushRowData(appRowWithRelease("r-prev"))           // app lock — has a current release
+	cfg.PushRowData(countRow(1))                           // → number 2
+	cfg.PushRowData(releaseRow("r-new", 2))                // release insert
+	cfg.PushRowData(releaseEntryRow("a.md", "d-1", "v-1")) // entry insert
+	cfg.PushRowData(appRow())                              // pointer update
+	cfg.PushRowData(entryRowFor("old.md", "d-2", "v-9"))   // prev entries: only d-2 (now gone)
+	cfg.PushRowData(docRow(nil))                           // upsert d-1: doc load
+	cfg.PushRowData(versionRow())                          // upsert d-1: version load
+	cfg.PushRowData(jobRow())                              // index job for d-1
+	cfg.PushRowData(jobRow())                              // delete job for d-2
+
+	if _, err := st.Releases.Cut(tenantCtx(), testApp); err != nil {
+		t.Fatalf("cut: %v", err)
+	}
+
+	// The added/changed path d-1 gets an index job; the removed d-2 a delete job.
+	idx := queryAt(t, capture, 10)
+	wantSQL(t, idx, `INSERT INTO "jobs"`, `"operation"`, `"document_id"`)
+	wantArg(t, idx, models.JobIndex)
+	wantArg(t, idx, "d-1")
+
+	del := queryAt(t, capture, 11)
+	wantSQL(t, del, `INSERT INTO "jobs"`)
+	wantArg(t, del, models.JobDelete)
+	wantArg(t, del, "d-2")
 }
 
 // List is app- and tenant-scoped, newest number first, paginated.
@@ -120,6 +176,10 @@ func TestReleases_Rollback_CopiesEntriesForward(t *testing.T) {
 	cfg.PushRowData(releaseRow("r-new", 3))                // new release insert
 	cfg.PushRowData(releaseEntryRow("a.md", "d-1", "v-1")) // copied entry insert
 	cfg.PushRowData(appRow())                              // pointer update
+	// projection (prev release nil in the mock → the copied entry is an add).
+	cfg.PushRowData(docRow(nil))
+	cfg.PushRowData(versionRow())
+	cfg.PushRowData(jobRow())
 
 	if _, err := st.Releases.Rollback(tenantCtx(), testApp, "r-old"); err != nil {
 		t.Fatalf("rollback: %v", err)

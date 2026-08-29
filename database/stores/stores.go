@@ -41,7 +41,8 @@ func New(db *sqlx.DB, renderer astql.Renderer, search grub.SearchProvider, bucke
 	// construction cycle: collections already depends on documents.
 	documents.collections = collections
 	documents.apps = apps
-	releases := NewReleases(db, renderer, apps, documents, versions)
+	jobs := NewJobs(db, renderer)
+	releases := NewReleases(db, renderer, apps, documents, versions, jobs)
 	// Documents consults the current release for its delete rules; releases owns
 	// the release_entries table. Apps counts releases for its delete guard;
 	// releases owns the releases table. Wired here to break the construction
@@ -54,7 +55,7 @@ func New(db *sqlx.DB, renderer astql.Renderer, search grub.SearchProvider, bucke
 		Apps:        apps,
 		Collections: collections,
 		Releases:    releases,
-		Jobs:        NewJobs(db, renderer),
+		Jobs:        jobs,
 		Search:      NewSearch(search),
 		Assets:      NewAssets(bucket, apps),
 		db:          db,
