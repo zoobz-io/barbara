@@ -34,6 +34,12 @@
       "key": {
         "type": "keyword"
       },
+      "app_id": {
+        "type": "keyword"
+      },
+      "parent_path": {
+        "type": "keyword"
+      },
       "tags": {
         "type": "keyword"
       },
