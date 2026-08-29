@@ -48,7 +48,7 @@ func TestRemoveTag_LocksDocumentForUpdate(t *testing.T) {
 // because the document is unpublished — enqueues no reprojection.
 func TestAddTag_Draft_WritesTagsNoReproject(t *testing.T) {
 	st, capture, cfg := newQueryTestCfg(t)
-	cfg.PushRowData(docRow(nil)) // lock select — draft (no published_version_id)
+	cfg.PushRowData(docRow(nil)) // lock select — an unplaced draft
 	cfg.PushRowData(docRow(nil)) // setTags RETURNING
 	_, _ = st.AddTag(tenantCtx(), "d-1", "guide")
 
