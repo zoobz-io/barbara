@@ -11,15 +11,34 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
-	_ "github.com/lib/pq"
+	"github.com/lib/pq"
 	"github.com/opensearch-project/opensearch-go/v4"
 	"github.com/zoobz-io/grub"
 	grubopensearch "github.com/zoobz-io/grub/opensearch"
 	osrenderer "github.com/zoobz-io/lucene/opensearch"
 	"github.com/zoobz-io/sum"
 
+	"github.com/zoobz-io/barbara/database/models"
+	"github.com/zoobz-io/barbara/database/stores"
 	"github.com/zoobz-io/barbara/internal/auth"
 )
+
+// seedDoc inserts a bare keyed document (no tree placement) for tests that just
+// need a document to exist — publishing, tags, reindex, and the like, which key
+// off the document's key and published pointer, not its tree position. The
+// collection-aware create is exercised by the documents tree tests; this seeds
+// via the store's generic insert, which the authoring create no longer exposes
+// for raw keys. The tenant comes from ctx.
+func seedDoc(st *stores.Stores, ctx context.Context, key string) (*models.Document, error) {
+	tenant, err := auth.RequireTenant(ctx)
+	if err != nil {
+		return nil, err
+	}
+	now := time.Now()
+	return st.Documents.Insert().Exec(ctx, &models.Document{
+		TenantID: tenant, Key: key, Tags: pq.StringArray{}, CreatedAt: now, UpdatedAt: now,
+	})
+}
 
 func env(key, def string) string {
 	if v := os.Getenv(key); v != "" {

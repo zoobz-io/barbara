@@ -81,7 +81,7 @@ func TestEndToEnd_PublishThroughPipelineIsSearchable(t *testing.T) {
 	st, provider := e2eFixture(t)
 	ctx := tenantCtx(testTenant)
 
-	doc, err := st.Documents.Create(ctx, "guides/install.md")
+	doc, err := seedDoc(st, ctx, "guides/install.md")
 	if err != nil {
 		t.Fatalf("create document: %v", err)
 	}
@@ -135,7 +135,7 @@ func TestEndToEnd_UnpublishRemovesFromSearch(t *testing.T) {
 	ctx := tenantCtx(testTenant)
 	pipeline := jobs.NewPipeline(st.Search, 3, 10*time.Millisecond)
 
-	doc, err := st.Documents.Create(ctx, "guides/config.md")
+	doc, err := seedDoc(st, ctx, "guides/config.md")
 	if err != nil {
 		t.Fatalf("create document: %v", err)
 	}
@@ -200,7 +200,7 @@ func TestEndToEnd_TransientOSFailureRetriesAndLands(t *testing.T) {
 	st, provider := e2eFixture(t)
 	ctx := tenantCtx(testTenant)
 
-	doc, err := st.Documents.Create(ctx, "guides/retry.md")
+	doc, err := seedDoc(st, ctx, "guides/retry.md")
 	if err != nil {
 		t.Fatalf("create document: %v", err)
 	}

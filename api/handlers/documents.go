@@ -12,21 +12,23 @@ import (
 	"github.com/zoobz-io/barbara/internal/auth"
 )
 
-// CreateDocument creates a document for the request's tenant.
-var CreateDocument = rocco.POST("/documents",
+// CreateDocument places a document in the tree — under a collection (or the app
+// root) in the app.
+var CreateDocument = rocco.POST("/apps/{app_id}/documents",
 	func(req *rocco.Request[wire.CreateDocumentRequest]) (wire.DocumentResponse, error) {
 		docs := sum.MustUse[contracts.Documents](req.Context)
 		ctx := auth.WithPrincipal(req.Context, req.Identity)
-		doc, err := docs.Create(ctx, req.Body.Key)
+		doc, err := docs.Create(ctx, req.Params.Path["app_id"], req.Body.CollectionID, req.Body.Name)
 		if err != nil {
 			return wire.DocumentResponse{}, transformers.ErrorToResponse(err)
 		}
 		return transformers.DocumentToResponse(doc), nil
-	}).WithSummary("Create a document").
+	}).WithPathParams("app_id").
+	WithSummary("Create a document").
 	WithTags("Documents").
 	WithSuccessStatus(201).
 	WithScopes(auth.ScopeDocumentsWrite).
-	WithErrors(rocco.ErrConflict, rocco.ErrForbidden, rocco.ErrUnauthorized).
+	WithErrors(rocco.ErrNotFound, rocco.ErrConflict, rocco.ErrForbidden, rocco.ErrUnauthorized).
 	WithAuthentication()
 
 // GetDocument returns a document by ID, carrying its draft/published status.
@@ -93,18 +95,18 @@ var ListDocuments = rocco.GET("/documents",
 	WithErrors(rocco.ErrForbidden, rocco.ErrUnauthorized).
 	WithAuthentication()
 
-// RenameDocument changes a document's key.
-var RenameDocument = rocco.PATCH("/documents/{id}",
-	func(req *rocco.Request[wire.RenameDocumentRequest]) (wire.DocumentResponse, error) {
+// MoveDocument reparents and/or renames a document, rewriting its key.
+var MoveDocument = rocco.POST("/apps/{app_id}/documents/{id}/move",
+	func(req *rocco.Request[wire.MoveDocumentRequest]) (wire.DocumentResponse, error) {
 		docs := sum.MustUse[contracts.Documents](req.Context)
 		ctx := auth.WithPrincipal(req.Context, req.Identity)
-		doc, err := docs.Rename(ctx, req.Params.Path["id"], req.Body.Key)
+		doc, err := docs.Move(ctx, req.Params.Path["app_id"], req.Params.Path["id"], req.Body.CollectionID, req.Body.Name)
 		if err != nil {
 			return wire.DocumentResponse{}, transformers.ErrorToResponse(err)
 		}
 		return transformers.DocumentToResponse(doc), nil
-	}).WithPathParams("id").
-	WithSummary("Rename a document").
+	}).WithPathParams("app_id", "id").
+	WithSummary("Move a document to a new collection or name").
 	WithTags("Documents").
 	WithScopes(auth.ScopeDocumentsWrite).
 	WithErrors(rocco.ErrNotFound, rocco.ErrConflict, rocco.ErrForbidden, rocco.ErrUnauthorized).

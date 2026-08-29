@@ -46,7 +46,7 @@ func settle(t *testing.T, st *stores.Stores, provider grub.SearchProvider, pipel
 func authorAndPublish(t *testing.T, st *stores.Stores, tenant, key, content string) (docID, versionID string) {
 	t.Helper()
 	ctx := tenantCtx(tenant)
-	doc, err := st.Documents.Create(ctx, key)
+	doc, err := seedDoc(st, ctx, key)
 	if err != nil {
 		t.Fatalf("create %s: %v", key, err)
 	}
@@ -206,7 +206,7 @@ func TestScenario_DraftIsNeverServed(t *testing.T) {
 	pipeline := newPipeline(st)
 	ctx := tenantCtx(testTenant)
 
-	doc, err := st.Documents.Create(ctx, "draft.md")
+	doc, err := seedDoc(st, ctx, "draft.md")
 	if err != nil {
 		t.Fatalf("create: %v", err)
 	}

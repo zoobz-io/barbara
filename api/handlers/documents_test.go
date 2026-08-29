@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/lib/pq"
 	"github.com/zoobz-io/sum"
 
 	"github.com/zoobz-io/barbara/api/contracts"
@@ -23,13 +22,16 @@ type mockDocuments struct {
 	head    *models.DocumentHead
 	list    []*models.Document
 	err     error
-	gotKey  string
+	gotApp  string
+	gotName string
+	gotColl *string
+	gotID   string
 	gotTag  string
 	deleted bool
 }
 
-func (m *mockDocuments) Create(_ context.Context, key string) (*models.Document, error) {
-	m.gotKey = key
+func (m *mockDocuments) Create(_ context.Context, appID string, collectionID *string, name string) (*models.Document, error) {
+	m.gotApp, m.gotColl, m.gotName = appID, collectionID, name
 	return m.doc, m.err
 }
 func (m *mockDocuments) Get(context.Context, string) (*models.Document, error) {
@@ -45,8 +47,8 @@ func (m *mockDocuments) ListByTag(_ context.Context, tag string, _, _ int) ([]*m
 	m.gotTag = tag
 	return m.list, m.err
 }
-func (m *mockDocuments) Rename(_ context.Context, _, key string) (*models.Document, error) {
-	m.gotKey = key
+func (m *mockDocuments) Move(_ context.Context, appID, id string, collectionID *string, name string) (*models.Document, error) {
+	m.gotApp, m.gotID, m.gotColl, m.gotName = appID, id, collectionID, name
 	return m.doc, m.err
 }
 func (m *mockDocuments) Delete(context.Context, string) error {
@@ -63,13 +65,14 @@ func docDriver(t *testing.T, mock contracts.Documents) *testkit.Driver {
 
 func TestCreateDocument_OK(t *testing.T) {
 	mock := &mockDocuments{doc: &models.Document{ID: "d1", Key: "guides/a.md", TenantID: "tenant-1"}}
-	w := docDriver(t, mock).Request(t, http.MethodPost, "/documents", map[string]string{"key": "guides/a.md"})
+	w := docDriver(t, mock).Request(t, http.MethodPost, "/apps/app-1/documents",
+		map[string]any{"name": "a.md", "collection_id": "c-1"})
 
 	if w.Code != http.StatusCreated {
 		t.Fatalf("status = %d, want 201; body=%s", w.Code, w.Body.String())
 	}
-	if mock.gotKey != "guides/a.md" {
-		t.Errorf("store got key %q", mock.gotKey)
+	if mock.gotApp != "app-1" || mock.gotName != "a.md" || mock.gotColl == nil || *mock.gotColl != "c-1" {
+		t.Errorf("store got app=%q name=%q coll=%v", mock.gotApp, mock.gotName, mock.gotColl)
 	}
 	var resp struct {
 		Key, ID, Status string
@@ -77,6 +80,31 @@ func TestCreateDocument_OK(t *testing.T) {
 	_ = json.Unmarshal(w.Body.Bytes(), &resp)
 	if resp.ID != "d1" || resp.Key != "guides/a.md" || resp.Status != "draft" {
 		t.Errorf("unexpected response: %s", w.Body.String())
+	}
+}
+
+// An empty name is a 422 before the store is touched.
+func TestCreateDocument_MissingName(t *testing.T) {
+	mock := &mockDocuments{}
+	w := docDriver(t, mock).Request(t, http.MethodPost, "/apps/app-1/documents", map[string]any{})
+	if w.Code != http.StatusUnprocessableEntity {
+		t.Fatalf("status = %d, want 422; body=%s", w.Code, w.Body.String())
+	}
+	if mock.gotName != "" {
+		t.Error("store was called despite a missing name")
+	}
+}
+
+// MoveDocument reparents/renames a document at the app root.
+func TestMoveDocument_OK(t *testing.T) {
+	mock := &mockDocuments{doc: &models.Document{ID: "d1", Key: "b.md"}}
+	w := docDriver(t, mock).Request(t, http.MethodPost, "/apps/app-1/documents/d1/move",
+		map[string]any{"name": "b.md", "collection_id": nil})
+	if w.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200; body=%s", w.Code, w.Body.String())
+	}
+	if mock.gotApp != "app-1" || mock.gotID != "d1" || mock.gotName != "b.md" || mock.gotColl != nil {
+		t.Errorf("store got app=%q id=%q name=%q coll=%v", mock.gotApp, mock.gotID, mock.gotName, mock.gotColl)
 	}
 }
 
@@ -156,8 +184,9 @@ func TestDeleteDocument_PublishedConflict(t *testing.T) {
 }
 
 func TestCreateDocument_DuplicateConflict(t *testing.T) {
-	mock := &mockDocuments{err: &pq.Error{Code: "23505"}}
-	w := docDriver(t, mock).Request(t, http.MethodPost, "/documents", map[string]string{"key": "dup.md"})
+	mock := &mockDocuments{err: stores.ErrCollectionNameTaken}
+	w := docDriver(t, mock).Request(t, http.MethodPost, "/apps/app-1/documents",
+		map[string]any{"name": "dup.md"})
 	if w.Code != http.StatusConflict {
 		t.Fatalf("status = %d, want 409; body=%s", w.Code, w.Body.String())
 	}

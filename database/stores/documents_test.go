@@ -2,18 +2,32 @@
 
 package stores
 
-import "testing"
+import (
+	"errors"
+	"testing"
+)
 
-// Create inserts every non-PK column for the request's tenant and returns the
-// generated row; the id is DB-generated, so it is omitted from the column list.
+// Create at the app root materializes the key from the name, checks no sibling
+// collection holds the name, and inserts with the tree columns set.
 func TestDocuments_Create_Query(t *testing.T) {
-	st, capture := newQueryTest(t)
-	_, _ = st.Documents.Create(tenantCtx(), "a.md")
+	st, capture, cfg := newQueryTestCfg(t)
+	cfg.PushRowData(appRow())    // requireParentScope: apps.Get
+	cfg.PushRowData(countRow(0)) // siblingCollectionExists: no collection sibling
+	cfg.PushRowData(docRow(nil)) // INSERT ... RETURNING
 
-	q := lastQuery(t, capture)
-	wantSQL(t, q, `INSERT INTO "documents"`, `"tenant_id"`, `"key"`, `"tags"`, `RETURNING`)
-	wantArg(t, q, testTenant)
-	wantArg(t, q, "a.md")
+	_, err := st.Documents.Create(tenantCtx(), testApp, nil, "a.md")
+	if err != nil {
+		t.Fatalf("create: %v", err)
+	}
+
+	sib := queryAt(t, capture, 1)
+	wantSQL(t, sib, `SELECT COUNT(*) FROM "collections"`, `"app_id" = ?`, `"name" = ?`, `"parent_id" IS NULL`)
+	wantArg(t, sib, "a.md")
+
+	ins := queryAt(t, capture, 2)
+	wantSQL(t, ins, `INSERT INTO "documents"`, `"app_id"`, `"collection_id"`, `"name"`, `"key"`, `"tags"`, `RETURNING`)
+	wantArg(t, ins, testTenant)
+	wantArg(t, ins, "a.md") // both name and key (root key == name)
 }
 
 // Get is scoped to the request's tenant: id AND tenant_id.
@@ -79,40 +93,65 @@ func TestDocuments_ListPublishedAfter_Query(t *testing.T) {
 	wantArg(t, q, zeroUUID)
 }
 
-// Rename updates key + updated_at, scoped to the tenant, and returns the row.
-func TestDocuments_Rename_Query(t *testing.T) {
-	st, capture := newQueryTest(t)
-	_, _ = st.Documents.Rename(tenantCtx(), "d-1", "b.md")
+// Move locks the document, then updates collection_id, name, and the rewritten
+// key, tenant-scoped, returning the row.
+func TestDocuments_Move_Query(t *testing.T) {
+	st, capture, cfg := newQueryTestCfg(t)
+	cfg.PushRowData(appRow())    // requireParentScope: apps.Get (new parent = root)
+	cfg.PushRowData(docRow(nil)) // lock (FOR UPDATE)
+	cfg.PushRowData(countRow(0)) // siblingCollectionExists
+	cfg.PushRowData(docRow(nil)) // UPDATE ... RETURNING
 
-	q := lastQuery(t, capture)
-	wantSQL(t, q,
+	_, err := st.Documents.Move(tenantCtx(), testApp, "d-1", nil, "b.md")
+	if err != nil {
+		t.Fatalf("move: %v", err)
+	}
+
+	lock := queryAt(t, capture, 1)
+	wantSQL(t, lock, `FROM "documents"`, `"id" = ?`, `"app_id" = ?`, `FOR UPDATE`)
+
+	upd := queryAt(t, capture, 3)
+	wantSQL(t, upd,
 		`UPDATE "documents" SET`,
+		`"collection_id" = ?`,
+		`"name" = ?`,
 		`"key" = ?`,
-		`"updated_at" = ?`,
 		`"id" = ?`,
 		`"tenant_id" = ?`,
 		`RETURNING`,
 	)
-	wantArg(t, q, "b.md")
-	wantArg(t, q, testTenant)
+	wantArg(t, upd, "b.md")
+	wantArg(t, upd, testTenant)
 }
 
-// Delete refuses a published document at the query level: the WHERE carries
-// published_version_id IS NULL alongside the tenant scope, so a published row
-// never matches.
+// Delete loads the document, and — for an unpublished, unplaced one — hard-deletes
+// it, tenant-scoped. The published-pointer guard now happens in Go against the
+// loaded row, not in the DELETE's WHERE.
 func TestDocuments_Delete_Query(t *testing.T) {
-	st, capture := newQueryTest(t)
+	st, capture, cfg := newQueryTestCfg(t)
+	cfg.PushRowData(docRow(nil)) // Get: a draft, unplaced document (app_id nil)
+
 	_ = st.Documents.Delete(tenantCtx(), "d-1")
 
-	q := lastQuery(t, capture)
-	wantSQL(t, q,
-		`DELETE FROM "documents"`,
-		`"id" = ?`,
-		`"tenant_id" = ?`,
-		`"published_version_id" IS NULL`,
-	)
-	wantArg(t, q, "d-1")
-	wantArg(t, q, testTenant)
+	del := lastQuery(t, capture)
+	wantSQL(t, del, `DELETE FROM "documents"`, `"id" = ?`, `"tenant_id" = ?`)
+	notSQL(t, del, "published_version_id")
+	wantArg(t, del, "d-1")
+	wantArg(t, del, testTenant)
+}
+
+// A document still holding a published pointer is refused (unpublish first),
+// before any DELETE.
+func TestDocuments_Delete_RefusesPublished(t *testing.T) {
+	st, capture, cfg := newQueryTestCfg(t)
+	cfg.PushRowData(docRow("v-9")) // Get: published_version_id set
+
+	if err := st.Documents.Delete(tenantCtx(), "d-1"); !errors.Is(err, ErrDocumentPublished) {
+		t.Fatalf("delete of a published doc = %v, want ErrDocumentPublished", err)
+	}
+	for _, q := range capture.Queries {
+		notSQL(t, q, `DELETE FROM "documents"`)
+	}
 }
 
 // GetWithHead issues the tenant-scoped document read, then the head-version

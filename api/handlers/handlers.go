@@ -29,7 +29,7 @@ func All() []rocco.Endpoint {
 		GetDocument,
 		GetDocumentContent,
 		ListDocuments,
-		RenameDocument,
+		MoveDocument,
 		DeleteDocument,
 		// Tags.
 		AddDocumentTag,

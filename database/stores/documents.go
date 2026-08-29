@@ -25,38 +25,81 @@ var ErrNotFound = soy.ErrNotFound
 var ErrDocumentPublished = errors.New("document is published; unpublish before deleting")
 
 // Documents is the data-access layer for the logical document. Every method is
-// scoped to the tenant carried in the request context.
+// scoped to the tenant carried in the request context; the tree operations are
+// additionally scoped to an app. It holds the connection (to run tree mutations
+// in a transaction), the versions store (head enrichment), the collections
+// store (materialized-key resolution and the cross-table sibling check), and
+// read handles onto apps and release_entries (the delete rules).
 type Documents struct {
 	*sum.Database[models.Document]
-	versions *Versions // for head-version enrichment (GetWithHead/ListWithHead); wired in New
+	db             *sqlx.DB
+	versions       *Versions    // head-version enrichment; wired in New
+	collections    *Collections // tree path + sibling namespace; wired in New (breaks the cycle)
+	apps           *Apps        // current-release lookup; wired in New
+	releaseEntries *sum.Database[models.ReleaseEntry]
 }
 
-// NewDocuments creates a documents store.
+// NewDocuments creates a documents store. It is the sole registrant of the
+// release_entries table (read-only, for the delete rules) until the releases
+// store takes ownership.
 func NewDocuments(db *sqlx.DB, renderer astql.Renderer) *Documents {
-	return &Documents{Database: sum.NewDatabase[models.Document](db, "documents", renderer)}
+	return &Documents{
+		Database:       sum.NewDatabase[models.Document](db, "documents", renderer),
+		db:             db,
+		releaseEntries: sum.NewDatabase[models.ReleaseEntry](db, "release_entries", renderer),
+	}
 }
 
-// Create inserts a new document with the given key for the request's tenant.
-// The key must be unique per tenant; a duplicate returns an error.
-func (s *Documents) Create(ctx context.Context, key string) (*models.Document, error) {
+// Create inserts a new document placed in the tree: under collectionID (nil =
+// app root) in the app, with the given name. The key is materialized from the
+// collection's path and the name. The name must be unique among sibling
+// collections and documents; a collision returns ErrCollectionNameTaken.
+// Validates that the collection (or, at the root, the app) belongs to the tenant.
+func (s *Documents) Create(ctx context.Context, appID string, collectionID *string, name string) (*models.Document, error) {
 	tenantID, err := auth.RequireTenant(ctx)
 	if err != nil {
 		return nil, err
 	}
-	// Timestamps are set here rather than left to the column default: the insert
-	// carries every non-primary-key field, so a zero time.Time would otherwise
-	// override the DB default. The id is DB-generated (primary key, omitted).
-	now := time.Now()
-	doc := &models.Document{
-		TenantID:  tenantID,
-		Key:       key,
-		Tags:      pq.StringArray{},
-		CreatedAt: now,
-		UpdatedAt: now,
+	if serr := s.collections.requireParentScope(ctx, appID, tenantID, collectionID); serr != nil {
+		return nil, serr
 	}
-	created, err := s.Insert().Exec(ctx, doc)
+
+	var created *models.Document
+	err = s.inTx(ctx, func(tx *sqlx.Tx) error {
+		path, perr := s.collections.pathOf(ctx, tx, appID, tenantID, collectionID)
+		if perr != nil {
+			return perr
+		}
+		// The key unique index guards document-vs-document; this guards the
+		// cross-table half (a collection sibling with the same name).
+		taken, cerr := s.siblingCollectionExists(ctx, tx, appID, tenantID, collectionID, name)
+		if cerr != nil {
+			return cerr
+		}
+		if taken {
+			return ErrCollectionNameTaken
+		}
+		now := time.Now()
+		created, err = s.Insert().ExecTx(ctx, tx, &models.Document{
+			TenantID:     tenantID,
+			AppID:        &appID,
+			CollectionID: collectionID,
+			Name:         &name,
+			Key:          joinPath(path, name),
+			Tags:         pq.StringArray{},
+			CreatedAt:    now,
+			UpdatedAt:    now,
+		})
+		if err != nil {
+			if isUniqueViolation(err) {
+				return ErrCollectionNameTaken
+			}
+			return fmt.Errorf("creating document: %w", err)
+		}
+		return nil
+	})
 	if err != nil {
-		return nil, fmt.Errorf("creating document: %w", err)
+		return nil, err
 	}
 	events.Document.Created.Emit(ctx, events.DocumentCreatedEvent{
 		DocumentID: created.ID, TenantID: tenantID, Key: created.Key,
@@ -154,58 +197,194 @@ func (s *Documents) ListPublishedAfter(ctx context.Context, afterID string, limi
 	return docs, nil
 }
 
-// Rename changes a document's key, freeing the old one (the old key 404s
-// afterward). The new key must be unique per tenant. Returns ErrNotFound if the
+// Move reparents a document under newCollectionID (nil = app root) and/or renames
+// it, rewriting the materialized key in the same transaction. A same-collection
+// move with a new name is the rename path. The name must be unique among sibling
+// collections and documents at the destination. Returns ErrNotFound if the
 // document does not exist for the tenant.
-func (s *Documents) Rename(ctx context.Context, id, newKey string) (*models.Document, error) {
+func (s *Documents) Move(ctx context.Context, appID, id string, newCollectionID *string, newName string) (*models.Document, error) {
 	tenantID, err := auth.RequireTenant(ctx)
 	if err != nil {
 		return nil, err
 	}
-	doc, err := s.Modify().
-		Set("key", "key").
-		Set("updated_at", "updated_at").
-		Where("id", "=", "id").
-		Where("tenant_id", "=", "tenant_id").
-		Exec(ctx, map[string]any{
-			"key":        newKey,
-			"updated_at": time.Now(),
-			"id":         id,
-			"tenant_id":  tenantID,
-		})
-	if err != nil {
-		return nil, fmt.Errorf("renaming document: %w", err)
+	if serr := s.collections.requireParentScope(ctx, appID, tenantID, newCollectionID); serr != nil {
+		return nil, serr
 	}
-	events.Document.Renamed.Emit(ctx, events.DocumentRenamedEvent{
-		DocumentID: doc.ID, TenantID: tenantID, Key: doc.Key,
+
+	var moved *models.Document
+	err = s.inTx(ctx, func(tx *sqlx.Tx) error {
+		// Lock the document row, serializing concurrent moves of it (and
+		// confirming it exists for the tenant in the app).
+		if _, lerr := s.Select().
+			Where("id", "=", "id").
+			Where("app_id", "=", "app_id").
+			Where("tenant_id", "=", "tenant_id").
+			ForUpdate().
+			ExecTx(ctx, tx, map[string]any{"id": id, "app_id": appID, "tenant_id": tenantID}); lerr != nil {
+			return lerr
+		}
+		path, perr := s.collections.pathOf(ctx, tx, appID, tenantID, newCollectionID)
+		if perr != nil {
+			return perr
+		}
+		taken, cerr := s.siblingCollectionExists(ctx, tx, appID, tenantID, newCollectionID, newName)
+		if cerr != nil {
+			return cerr
+		}
+		if taken {
+			return ErrCollectionNameTaken
+		}
+		moved, err = s.Modify().
+			Set("collection_id", "collection_id").
+			Set("name", "name").
+			Set("key", "key").
+			Set("updated_at", "updated_at").
+			Where("id", "=", "id").
+			Where("tenant_id", "=", "tenant_id").
+			ExecTx(ctx, tx, map[string]any{
+				"collection_id": newCollectionID,
+				"name":          newName,
+				"key":           joinPath(path, newName),
+				"updated_at":    time.Now(),
+				"id":            id,
+				"tenant_id":     tenantID,
+			})
+		if err != nil {
+			if isUniqueViolation(err) {
+				return ErrCollectionNameTaken
+			}
+			return fmt.Errorf("moving document: %w", err)
+		}
+		return nil
 	})
-	return doc, nil
+	if err != nil {
+		return nil, err
+	}
+	events.Document.Moved.Emit(ctx, events.DocumentMovedEvent{
+		DocumentID: id, TenantID: tenantID, CollectionID: newCollectionID, Key: moved.Key,
+	})
+	return moved, nil
 }
 
-// Delete removes an unpublished document (and cascades to its versions). A
-// published document is refused with ErrDocumentPublished; a missing one with
-// ErrNotFound.
+// Delete removes a document that is absent from the app's current release. A
+// document carried by the current release (or still holding a published pointer,
+// during the pre-release-publishing transition) is refused with
+// ErrDocumentPublished. Otherwise the document is hard-deleted (versions cascade)
+// unless a historical release references it — the release_entries RESTRICT
+// foreign key surfaces that as a violation, and the document is soft-deleted
+// instead: deleted_at set, key freed (the partial unique index), versions kept.
 func (s *Documents) Delete(ctx context.Context, id string) error {
 	tenantID, err := auth.RequireTenant(ctx)
 	if err != nil {
 		return err
 	}
+	doc, err := s.Get(ctx, id)
+	if err != nil {
+		return err // ErrNotFound when absent for the tenant
+	}
+	if doc.PublishedVersionID != nil {
+		return ErrDocumentPublished
+	}
+	live, err := s.inCurrentRelease(ctx, doc)
+	if err != nil {
+		return err
+	}
+	if live {
+		return ErrDocumentPublished
+	}
+
 	n, err := s.Remove().
 		Where("id", "=", "id").
 		Where("tenant_id", "=", "tenant_id").
-		WhereNull("published_version_id").
 		Exec(ctx, map[string]any{"id": id, "tenant_id": tenantID})
 	if err != nil {
+		if isForeignKeyViolation(err) {
+			// A historical release references it: keep the row and its versions,
+			// free the key. deleted_at drops it out of the partial key index.
+			if _, serr := s.Modify().
+				Set("deleted_at", "deleted_at").
+				Set("updated_at", "updated_at").
+				Where("id", "=", "id").
+				Where("tenant_id", "=", "tenant_id").
+				Exec(ctx, map[string]any{
+					"deleted_at": time.Now(), "updated_at": time.Now(),
+					"id": id, "tenant_id": tenantID,
+				}); serr != nil {
+				return fmt.Errorf("soft-deleting document: %w", serr)
+			}
+			events.Document.Deleted.Emit(ctx, events.DocumentDeletedEvent{DocumentID: id, TenantID: tenantID})
+			return nil
+		}
 		return fmt.Errorf("deleting document: %w", err)
 	}
 	if n == 0 {
-		// Nothing deleted: either it doesn't exist, or it's published.
-		if _, getErr := s.Get(ctx, id); errors.Is(getErr, ErrNotFound) {
-			return ErrNotFound
-		}
-		return ErrDocumentPublished
+		return ErrNotFound
 	}
 	events.Document.Deleted.Emit(ctx, events.DocumentDeletedEvent{DocumentID: id, TenantID: tenantID})
 	return nil
 }
 
+// inCurrentRelease reports whether the document is carried by its app's current
+// release. An unplaced document (no app) or an app with no current release is
+// not in any release.
+func (s *Documents) inCurrentRelease(ctx context.Context, doc *models.Document) (bool, error) {
+	if doc.AppID == nil {
+		return false, nil
+	}
+	app, err := s.apps.Get(ctx, *doc.AppID)
+	if err != nil {
+		if errors.Is(err, ErrNotFound) {
+			return false, nil
+		}
+		return false, fmt.Errorf("loading app: %w", err)
+	}
+	if app.CurrentReleaseID == nil {
+		return false, nil
+	}
+	n, err := s.releaseEntries.Count().
+		Where("release_id", "=", "release_id").
+		Where("document_id", "=", "document_id").
+		Exec(ctx, map[string]any{"release_id": *app.CurrentReleaseID, "document_id": doc.ID})
+	if err != nil {
+		return false, fmt.Errorf("checking current release: %w", err)
+	}
+	return n > 0, nil
+}
+
+// siblingCollectionExists reports whether a collection already occupies
+// (app, parent, name) — the cross-table half of the sibling namespace, checked
+// when placing or moving a document.
+func (s *Documents) siblingCollectionExists(ctx context.Context, tx *sqlx.Tx, appID, tenantID string, parentID *string, name string) (bool, error) {
+	q := s.collections.Count().
+		Where("app_id", "=", "app_id").
+		Where("tenant_id", "=", "tenant_id").
+		Where("name", "=", "name")
+	args := map[string]any{"app_id": appID, "tenant_id": tenantID, "name": name}
+	if parentID != nil {
+		q = q.Where("parent_id", "=", "parent_id")
+		args["parent_id"] = *parentID
+	} else {
+		q = q.WhereNull("parent_id")
+	}
+	n, err := q.ExecTx(ctx, tx, args)
+	if err != nil {
+		return false, fmt.Errorf("checking sibling collections: %w", err)
+	}
+	return n > 0, nil
+}
+
+// inTx runs fn in a transaction, committing on success and rolling back on error.
+func (s *Documents) inTx(ctx context.Context, fn func(tx *sqlx.Tx) error) error {
+	tx, err := s.db.BeginTxx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("beginning tx: %w", err)
+	}
+	if err := fn(tx); err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("committing tx: %w", err)
+	}
+	return nil
+}

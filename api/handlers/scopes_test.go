@@ -20,7 +20,7 @@ func TestScopeGate_WriteRequired(t *testing.T) {
 		sum.Register[contracts.Documents](k, &mockDocuments{})
 	}, All()...)
 
-	w := d.Request(t, http.MethodPost, "/documents", map[string]string{"key": "a.md"})
+	w := d.Request(t, http.MethodPost, "/apps/app-1/documents", map[string]string{"name": "a.md"})
 	if w.Code != http.StatusForbidden {
 		t.Fatalf("create with read-only scope = %d, want 403; body=%s", w.Code, w.Body.String())
 	}
