@@ -31,6 +31,12 @@ func ErrorToResponse(err error) error {
 		return rocco.ErrConflict.WithMessage("an app with that name already exists")
 	case errors.Is(err, stores.ErrAppHasReleases):
 		return rocco.ErrConflict.WithMessage("app has releases; releases are never deleted")
+	case errors.Is(err, stores.ErrCollectionNotEmpty):
+		return rocco.ErrConflict.WithMessage("collection is not empty")
+	case errors.Is(err, stores.ErrCollectionNameTaken):
+		return rocco.ErrConflict.WithMessage("a collection or document with that name already exists in the parent")
+	case errors.Is(err, stores.ErrCollectionCycle):
+		return rocco.ErrConflict.WithMessage("cannot move a collection into itself or a descendant")
 	case errors.Is(err, stores.ErrVersionMismatch):
 		return rocco.ErrBadRequest.WithMessage("version does not belong to the document")
 	case errors.Is(err, auth.ErrNoTenant):

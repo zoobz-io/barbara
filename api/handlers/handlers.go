@@ -16,6 +16,14 @@ func All() []rocco.Endpoint {
 		ListApps,
 		RenameApp,
 		DeleteApp,
+		// Collections.
+		CreateCollection,
+		GetCollection,
+		ListAppRootContents,
+		ListCollectionContents,
+		RenameCollection,
+		MoveCollection,
+		DeleteCollection,
 		// Documents authoring.
 		CreateDocument,
 		GetDocument,

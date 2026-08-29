@@ -11,12 +11,13 @@ import (
 // live as transactional methods here, never composed from individual store
 // calls at call sites.
 type Stores struct {
-	Documents *Documents
-	Versions  *Versions
-	Apps      *Apps
-	Jobs      *Jobs
-	Search    *Search
-	Assets    *Assets
+	Documents   *Documents
+	Versions    *Versions
+	Apps        *Apps
+	Collections *Collections
+	Jobs        *Jobs
+	Search      *Search
+	Assets      *Assets
 
 	db *sqlx.DB // for transactional aggregate methods (publishing)
 }
@@ -31,13 +32,15 @@ func New(db *sqlx.DB, renderer astql.Renderer, search grub.SearchProvider, bucke
 	// so it needs the versions store. Wired here to break the construction cycle:
 	// versions already depends on documents for the parent-row lock.
 	documents.versions = versions
+	apps := NewApps(db, renderer)
 	return &Stores{
-		Documents: documents,
-		Versions:  versions,
-		Apps:      NewApps(db, renderer),
-		Jobs:      NewJobs(db, renderer),
-		Search:    NewSearch(search),
-		Assets:    NewAssets(bucket),
-		db:        db,
+		Documents:   documents,
+		Versions:    versions,
+		Apps:        apps,
+		Collections: NewCollections(db, renderer, documents, apps),
+		Jobs:        NewJobs(db, renderer),
+		Search:      NewSearch(search),
+		Assets:      NewAssets(bucket),
+		db:          db,
 	}
 }
