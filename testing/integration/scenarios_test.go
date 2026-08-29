@@ -339,7 +339,16 @@ func TestScenario_TerminalOSFailure_ReindexReconciles(t *testing.T) {
 	ctx := tenantCtx(testTenant)
 
 	app := seedApp(t, st, ctx)
-	authorAndPublish(t, st, testTenant, app.ID, "durable.md", "must survive a bad write")
+	doc, err := seedDoc(st, ctx, app.ID, "durable.md")
+	if err != nil {
+		t.Fatalf("create: %v", err)
+	}
+	if _, err := st.Versions.Save(ctx, doc.ID, "must survive a bad write", 0); err != nil {
+		t.Fatalf("save: %v", err)
+	}
+	if _, err := st.Releases.Cut(ctx, app.ID); err != nil {
+		t.Fatalf("cut: %v", err)
+	}
 
 	// Every attempt fails: the pipeline exhausts its retries and the job goes
 	// terminal-failed. The publish is committed in Postgres, but nothing lands

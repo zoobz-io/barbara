@@ -293,7 +293,7 @@ func (s *Releases) projectionPayload(ctx context.Context, tx *sqlx.Tx, tenantID 
 	if err != nil {
 		return nil, fmt.Errorf("loading version %s: %w", spec.VersionID, err)
 	}
-	payload, err := json.Marshal(transformers.Projection(doc, version))
+	payload, err := json.Marshal(transformers.Projection(doc, version, spec.Key))
 	if err != nil {
 		return nil, fmt.Errorf("building projection: %w", err)
 	}

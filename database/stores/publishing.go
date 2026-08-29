@@ -67,7 +67,7 @@ func (s *Stores) publishVersion(ctx context.Context, documentID, versionID strin
 	if err != nil {
 		return nil, err
 	}
-	payload, err := json.Marshal(transformers.Projection(doc, version))
+	payload, err := json.Marshal(transformers.Projection(doc, version, doc.Key))
 	if err != nil {
 		return nil, fmt.Errorf("building projection: %w", err)
 	}
