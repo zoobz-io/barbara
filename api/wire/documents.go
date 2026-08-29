@@ -1,5 +1,3 @@
-// Package wire defines the request and response types at the admin API
-// boundary. Admin exposes full data — no masking — including audit fields.
 package wire
 
 import "time"
@@ -22,7 +20,7 @@ type AddTagRequest struct {
 // Clone returns a deep copy.
 func (r AddTagRequest) Clone() AddTagRequest { return r }
 
-// DocumentResponse is the admin API representation of a document.
+// DocumentResponse is the authoring API representation of a document.
 type DocumentResponse struct {
 	CreatedAt          time.Time `json:"created_at" description:"Creation timestamp"`
 	UpdatedAt          time.Time `json:"updated_at" description:"Last update timestamp"`
@@ -47,7 +45,7 @@ func (r DocumentResponse) Clone() DocumentResponse {
 	return c
 }
 
-// DocumentListResponse is the admin API response for listing documents.
+// DocumentListResponse is the authoring API response for listing documents.
 type DocumentListResponse struct {
 	Documents []DocumentResponse `json:"documents" description:"The tenant's documents"`
 	Total     int                `json:"total" description:"Number of documents returned"`

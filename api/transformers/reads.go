@@ -1,7 +1,7 @@
-// Package transformers maps the OpenSearch projection to site-facing wire
-// types. Pure functions, no side effects. The mapping is where internal fields
-// (tenant_id, version_id) are dropped — the wire type simply has no field for
-// them.
+// Package transformers maps domain models to public-API wire types. Pure
+// functions, no side effects. Published reads drop internal fields (tenant_id,
+// version_id) — the wire type simply has no field for them; authoring responses
+// expose full data, audit fields included.
 package transformers
 
 import (

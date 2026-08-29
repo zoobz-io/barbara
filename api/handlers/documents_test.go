@@ -11,7 +11,7 @@ import (
 	"github.com/lib/pq"
 	"github.com/zoobz-io/sum"
 
-	"github.com/zoobz-io/barbara/admin/contracts"
+	"github.com/zoobz-io/barbara/api/contracts"
 	"github.com/zoobz-io/barbara/database/models"
 	"github.com/zoobz-io/barbara/database/stores"
 	"github.com/zoobz-io/barbara/testing/testkit"
@@ -50,8 +50,8 @@ func (m *mockDocuments) Delete(context.Context, string) error {
 	return m.err
 }
 
-// driver wires the admin document handlers over the mock contract.
-func driver(t *testing.T, mock contracts.Documents) *testkit.Driver {
+// driver wires the document handlers over the mock contract.
+func docDriver(t *testing.T, mock contracts.Documents) *testkit.Driver {
 	return testkit.Handlers(t, func(k sum.Key) {
 		sum.Register[contracts.Documents](k, mock)
 	}, All()...)
@@ -59,7 +59,7 @@ func driver(t *testing.T, mock contracts.Documents) *testkit.Driver {
 
 func TestCreateDocument_OK(t *testing.T) {
 	mock := &mockDocuments{doc: &models.Document{ID: "d1", Key: "guides/a.md", TenantID: "tenant-1"}}
-	w := driver(t, mock).Request(t, http.MethodPost, "/documents", map[string]string{"key": "guides/a.md"})
+	w := docDriver(t, mock).Request(t, http.MethodPost, "/documents", map[string]string{"key": "guides/a.md"})
 
 	if w.Code != http.StatusCreated {
 		t.Fatalf("status = %d, want 201; body=%s", w.Code, w.Body.String())
@@ -75,14 +75,14 @@ func TestCreateDocument_OK(t *testing.T) {
 }
 
 func TestGetDocument_NotFound(t *testing.T) {
-	w := driver(t, &mockDocuments{err: stores.ErrNotFound}).Request(t, http.MethodGet, "/documents/x", nil)
+	w := docDriver(t, &mockDocuments{err: stores.ErrNotFound}).Request(t, http.MethodGet, "/documents/x", nil)
 	if w.Code != http.StatusNotFound {
 		t.Fatalf("status = %d, want 404; body=%s", w.Code, w.Body.String())
 	}
 }
 
 func TestDeleteDocument_PublishedConflict(t *testing.T) {
-	w := driver(t, &mockDocuments{err: stores.ErrDocumentPublished}).Request(t, http.MethodDelete, "/documents/x", nil)
+	w := docDriver(t, &mockDocuments{err: stores.ErrDocumentPublished}).Request(t, http.MethodDelete, "/documents/x", nil)
 	if w.Code != http.StatusConflict {
 		t.Fatalf("status = %d, want 409; body=%s", w.Code, w.Body.String())
 	}
@@ -90,7 +90,7 @@ func TestDeleteDocument_PublishedConflict(t *testing.T) {
 
 func TestCreateDocument_DuplicateConflict(t *testing.T) {
 	mock := &mockDocuments{err: &pq.Error{Code: "23505"}}
-	w := driver(t, mock).Request(t, http.MethodPost, "/documents", map[string]string{"key": "dup.md"})
+	w := docDriver(t, mock).Request(t, http.MethodPost, "/documents", map[string]string{"key": "dup.md"})
 	if w.Code != http.StatusConflict {
 		t.Fatalf("status = %d, want 409; body=%s", w.Code, w.Body.String())
 	}
@@ -100,7 +100,7 @@ func TestListDocuments_OK(t *testing.T) {
 	mock := &mockDocuments{list: []*models.Document{
 		{ID: "d1", Key: "a.md"}, {ID: "d2", Key: "b.md"},
 	}}
-	w := driver(t, mock).Request(t, http.MethodGet, "/documents?limit=10&offset=0", nil)
+	w := docDriver(t, mock).Request(t, http.MethodGet, "/documents?limit=10&offset=0", nil)
 	if w.Code != http.StatusOK {
 		t.Fatalf("status = %d, want 200; body=%s", w.Code, w.Body.String())
 	}
@@ -115,7 +115,7 @@ func TestListDocuments_OK(t *testing.T) {
 
 func TestListDocuments_ByTag(t *testing.T) {
 	mock := &mockDocuments{list: []*models.Document{{ID: "d1", Key: "a.md"}}}
-	w := driver(t, mock).Request(t, http.MethodGet, "/documents?tag=guide", nil)
+	w := docDriver(t, mock).Request(t, http.MethodGet, "/documents?tag=guide", nil)
 	if w.Code != http.StatusOK {
 		t.Fatalf("status = %d, want 200; body=%s", w.Code, w.Body.String())
 	}
@@ -126,7 +126,7 @@ func TestListDocuments_ByTag(t *testing.T) {
 
 func TestDeleteDocument_OK(t *testing.T) {
 	mock := &mockDocuments{}
-	w := driver(t, mock).Request(t, http.MethodDelete, "/documents/d1", nil)
+	w := docDriver(t, mock).Request(t, http.MethodDelete, "/documents/d1", nil)
 	if w.Code != http.StatusNoContent {
 		t.Fatalf("status = %d, want 204; body=%s", w.Code, w.Body.String())
 	}

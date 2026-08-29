@@ -63,9 +63,17 @@ func setup(ctx context.Context) (*sum.Service, int, func(), error) {
 	// janus/aegis lands — swap DefaultStub() for the mesh resolver here.
 	auth.Wire(rt.K, rt.Svc.Engine(), auth.DefaultStub())
 
-	// Site-facing contract — a narrow read interface over the shared search
+	// Site-facing published reads — a narrow interface over the shared search
 	// store, tenant-scoped and served from OpenSearch exclusively.
 	sum.Register[contracts.Reads](rt.K, rt.Stores.Search)
+
+	// Authoring contracts — the tenant-scoped write/lifecycle surface, folded
+	// onto the public API (#46). Narrow interfaces over the shared stores.
+	sum.Register[contracts.Documents](rt.K, rt.Stores.Documents)
+	sum.Register[contracts.Versions](rt.K, rt.Stores.Versions)
+	sum.Register[contracts.Publishing](rt.K, rt.Stores)
+	sum.Register[contracts.Tagging](rt.K, rt.Stores)
+	sum.Register[contracts.Assets](rt.K, rt.Stores.Assets)
 
 	sum.Freeze(rt.K)
 	capitan.Emit(ctx, events.StartupServicesReady)

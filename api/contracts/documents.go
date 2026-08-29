@@ -1,6 +1,3 @@
-// Package contracts defines the interfaces the admin (authoring) surface
-// depends on. Each contract exposes only what authoring needs; the shared
-// stores implement them.
 package contracts
 
 import (

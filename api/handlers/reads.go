@@ -1,6 +1,8 @@
-// Package handlers defines the site-facing (api) HTTP endpoints, served to mesh
-// services from OpenSearch exclusively. Handlers are thin: resolve the
-// contract, bridge the request identity into the context so the search store is
+// Package handlers defines the public-API HTTP endpoints: the site-facing
+// published reads (served from OpenSearch under /published/*) and the
+// tenant-scoped authoring surface — documents, versions, tags, publishing,
+// assets — folded onto the public API in #46. Handlers are thin: resolve the
+// contract, bridge the request identity into the context so the store is
 // tenant-scoped, call the contract, and transform the result.
 package handlers
 
@@ -18,7 +20,7 @@ import (
 // GetPublishedDocument returns a published document by key. The key is
 // path-like (it carries slashes), so it is passed as a query parameter rather
 // than a path segment.
-var GetPublishedDocument = rocco.GET("/documents/lookup",
+var GetPublishedDocument = rocco.GET("/published/lookup",
 	func(req *rocco.Request[rocco.NoBody]) (wire.PublishedDocumentResponse, error) {
 		key := req.Params.Query["key"]
 		if key == "" {
@@ -39,7 +41,7 @@ var GetPublishedDocument = rocco.GET("/documents/lookup",
 
 // EnumerateDocuments lists published documents for the tenant, optionally
 // filtered by tag. Enumeration is required because new files create new pages.
-var EnumerateDocuments = rocco.GET("/documents",
+var EnumerateDocuments = rocco.GET("/published/documents",
 	func(req *rocco.Request[rocco.NoBody]) (wire.PublishedDocumentListResponse, error) {
 		reads := sum.MustUse[contracts.Reads](req.Context)
 		ctx := auth.WithPrincipal(req.Context, req.Identity)
@@ -57,7 +59,7 @@ var EnumerateDocuments = rocco.GET("/documents",
 
 // SearchDocuments runs a full-text search over published content for the
 // tenant.
-var SearchDocuments = rocco.GET("/search",
+var SearchDocuments = rocco.GET("/published/search",
 	func(req *rocco.Request[rocco.NoBody]) (wire.PublishedDocumentListResponse, error) {
 		query := req.Params.Query["q"]
 		if query == "" {

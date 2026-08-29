@@ -1,7 +1,7 @@
-// Package wire defines the request and response types at the site-facing (api)
-// boundary. The read surface serves published content to mesh services: it
-// exposes the document body and its public metadata, and omits internal fields
-// (tenant_id — implicit from auth; version_id — the internal postgres key).
+// Package wire defines the request and response types at the public-API
+// boundary. Published reads expose the document body and public metadata and
+// omit internal fields (tenant_id — implicit from auth; version_id — the
+// internal postgres key); authoring exposes full data, audit fields included.
 package wire
 
 import "time"
