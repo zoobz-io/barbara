@@ -236,6 +236,50 @@ func TestReleases_Rollback_CopiesEntriesForward(t *testing.T) {
 	wantArg(t, entry, "v-1")
 }
 
+// CurrentEntries loads the app's current release entries; an app with no current
+// release returns none without touching the entries table.
+func TestReleases_CurrentEntries_Query(t *testing.T) {
+	st, capture, cfg := newQueryTestCfg(t)
+	cfg.PushRowData(appRowWithRelease("r-1"))          // apps.Get: has a current release
+	cfg.PushRowData(releaseRow("r-1", 1))              // getTx: release select
+	cfg.PushRowData(entryRowFor("a.md", "d-1", "v-1")) // getTx: entries
+
+	entries, err := st.Releases.CurrentEntries(tenantCtx(), testApp)
+	if err != nil || len(entries) != 1 || entries[0].DocumentID != "d-1" {
+		t.Fatalf("current entries = %+v, %v; want the one live entry", entries, err)
+	}
+	q := lastQuery(t, capture)
+	wantSQL(t, q, `FROM "release_entries"`, `"release_id" = ?`)
+}
+
+// No current release → no entries, and the entries table is never queried.
+func TestReleases_CurrentEntries_NoRelease(t *testing.T) {
+	st, capture, cfg := newQueryTestCfg(t)
+	cfg.PushRowData(appRow()) // apps.Get: current_release_id nil
+
+	entries, err := st.Releases.CurrentEntries(tenantCtx(), testApp)
+	if err != nil || entries != nil {
+		t.Fatalf("current entries = %+v, %v; want none", entries, err)
+	}
+	for _, q := range capture.Queries {
+		notSQL(t, q, `FROM "release_entries"`)
+	}
+}
+
+// CurrentEntryFor returns a document's entry in the current release.
+func TestReleases_CurrentEntryFor_Query(t *testing.T) {
+	st, capture, cfg := newQueryTestCfg(t)
+	cfg.PushRowData(appRowWithRelease("r-1"))
+	cfg.PushRowData(entryRowFor("a.md", "d-1", "v-1"))
+
+	entry, err := st.Releases.CurrentEntryFor(tenantCtx(), testApp, "d-1")
+	if err != nil || entry == nil || entry.VersionID != "v-1" {
+		t.Fatalf("current entry = %+v, %v; want d-1 at v-1", entry, err)
+	}
+	q := lastQuery(t, capture)
+	wantSQL(t, q, `FROM "release_entries"`, `"release_id" = ?`, `"document_id" = ?`)
+}
+
 // Contains counts a document's entries in a release.
 func TestReleases_Contains_Query(t *testing.T) {
 	st, capture, cfg := newQueryTestCfg(t)

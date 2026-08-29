@@ -68,8 +68,8 @@ func TestEvents_TagAdded_SilentOnNoOp(t *testing.T) {
 	// draft), so AddTag("guide") is a no-op: it writes nothing and, having not
 	// changed, emits nothing.
 	cfg.PushRowData(&mockdb.RowData{
-		Columns: []string{"id", "tenant_id", "key", "published_version_id", "tags"},
-		Rows:    [][]any{{"d-1", testTenant, "a.md", nil, "{guide}"}},
+		Columns: []string{"id", "tenant_id", "key", "tags"},
+		Rows:    [][]any{{"d-1", testTenant, "a.md", "{guide}"}},
 	})
 
 	fired := false

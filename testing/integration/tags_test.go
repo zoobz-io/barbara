@@ -22,9 +22,13 @@ func tagsFixture(t *testing.T) (*stores.Stores, string) {
 	t.Helper()
 	db := pgDB(t)
 	t.Cleanup(func() {
+		_, _ = db.Exec("UPDATE apps SET current_release_id = NULL")
+		_, _ = db.Exec("DELETE FROM release_entries")
+		_, _ = db.Exec("DELETE FROM releases")
 		_, _ = db.Exec("DELETE FROM jobs")
-		_, _ = db.Exec("DELETE FROM versions")
 		_, _ = db.Exec("DELETE FROM documents")
+		_, _ = db.Exec("DELETE FROM collections")
+		_, _ = db.Exec("DELETE FROM apps")
 		_ = db.Close()
 	})
 	st := stores.New(db, astqlpg.New(), testkit.NewSearchProvider(), testkit.NewBucketProvider())
@@ -46,8 +50,8 @@ func TestTags_AddRemoveOnDraft_PostgresOnly(t *testing.T) {
 	if len(doc.Tags) != 1 || doc.Tags[0] != "guide" {
 		t.Errorf("tags = %v, want [guide]", doc.Tags)
 	}
-	if doc.PublishedVersionID != nil {
-		t.Errorf("draft gained a published pointer: %v", doc.PublishedVersionID)
+	if status, _ := st.Documents.Status(ctx, doc); status != models.StatusDraft {
+		t.Errorf("tagging a draft changed its status to %q, want draft", status)
 	}
 
 	// Adding the same tag again is a no-op.
@@ -101,9 +105,9 @@ func TestTags_AddOnPublished_ReprojectsWithoutMovingPointer(t *testing.T) {
 		t.Fatalf("add tag: %v", err)
 	}
 
-	// The published pointer is untouched — a tag change is metadata, not a publish.
-	if doc.PublishedVersionID == nil || *doc.PublishedVersionID != v.ID {
-		t.Errorf("published_version_id = %v, want %s (unchanged)", doc.PublishedVersionID, v.ID)
+	// The document stays live — a tag change is metadata, not a new release.
+	if status, _ := st.Documents.Status(ctx, doc); status != models.StatusPublished {
+		t.Errorf("status after tagging a live document = %q, want published", status)
 	}
 
 	// A reprojection was enqueued carrying the new tag and the still-published

@@ -19,8 +19,9 @@ func CollectionToResponse(c *models.Collection) wire.CollectionResponse {
 }
 
 // CollectionContentsToResponse maps a collection's contents to the one-round-trip
-// listing: subcollections by name, documents by key each with derived status.
-func CollectionContentsToResponse(cc *models.CollectionContents) wire.CollectionContentsResponse {
+// listing: subcollections by name, documents by key each with derived status
+// (keyed by document id in statuses).
+func CollectionContentsToResponse(cc *models.CollectionContents, statuses map[string]string) wire.CollectionContentsResponse {
 	out := wire.CollectionContentsResponse{
 		Subcollections: make([]wire.CollectionResponse, len(cc.Subcollections)),
 		Documents:      make([]wire.DocumentResponse, len(cc.Documents)),
@@ -29,7 +30,7 @@ func CollectionContentsToResponse(cc *models.CollectionContents) wire.Collection
 		out.Subcollections[i] = CollectionToResponse(c)
 	}
 	for i, d := range cc.Documents {
-		out.Documents[i] = DocumentToResponse(d)
+		out.Documents[i] = DocumentToResponse(d, statuses[d.ID])
 	}
 	return out
 }

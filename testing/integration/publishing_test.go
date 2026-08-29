@@ -21,9 +21,13 @@ func publishFixture(t *testing.T) (*stores.Stores, string, string) {
 	t.Helper()
 	db := pgDB(t)
 	t.Cleanup(func() {
+		_, _ = db.Exec("UPDATE apps SET current_release_id = NULL")
+		_, _ = db.Exec("DELETE FROM release_entries")
+		_, _ = db.Exec("DELETE FROM releases")
 		_, _ = db.Exec("DELETE FROM jobs")
-		_, _ = db.Exec("DELETE FROM versions")
 		_, _ = db.Exec("DELETE FROM documents")
+		_, _ = db.Exec("DELETE FROM collections")
+		_, _ = db.Exec("DELETE FROM apps")
 		_ = db.Close()
 	})
 	st := stores.New(db, astqlpg.New(), testkit.NewSearchProvider(), testkit.NewBucketProvider())
@@ -39,7 +43,7 @@ func publishFixture(t *testing.T) (*stores.Stores, string, string) {
 	return st, doc.ID, v.ID
 }
 
-func TestPublish_MovesPointerAndEnqueuesProjection(t *testing.T) {
+func TestPublish_CutsReleaseAndEnqueuesProjection(t *testing.T) {
 	st, docID, versionID := publishFixture(t)
 	ctx := tenantCtx(testTenant)
 
@@ -47,8 +51,8 @@ func TestPublish_MovesPointerAndEnqueuesProjection(t *testing.T) {
 	if err != nil {
 		t.Fatalf("publish: %v", err)
 	}
-	if updated.PublishedVersionID == nil || *updated.PublishedVersionID != versionID {
-		t.Fatalf("published_version_id = %v, want %s", updated.PublishedVersionID, versionID)
+	if status, _ := st.Documents.Status(ctx, updated); status != models.StatusPublished {
+		t.Fatalf("status after publish = %q, want published", status)
 	}
 
 	// An index job was enqueued, pending, carrying the merged projection.
@@ -87,8 +91,8 @@ func TestUnpublish_ClearsPointerAndEnqueuesDelete(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unpublish: %v", err)
 	}
-	if updated.PublishedVersionID != nil {
-		t.Errorf("published_version_id = %v, want nil", *updated.PublishedVersionID)
+	if status, _ := st.Documents.Status(ctx, updated); status != models.StatusDraft {
+		t.Errorf("status after unpublish = %q, want draft", status)
 	}
 
 	claimed, err := st.Jobs.ClaimPending(ctx, 10)
@@ -112,13 +116,20 @@ func TestRollback_RepublishesOlderVersion(t *testing.T) {
 		t.Fatalf("publish v2: %v", err)
 	}
 
-	// Roll back to v1.
+	// Roll back to v1: the current release now serves v1, though the head is v2.
 	updated, err := st.Rollback(ctx, docID, v1)
 	if err != nil {
 		t.Fatalf("rollback: %v", err)
 	}
-	if updated.PublishedVersionID == nil || *updated.PublishedVersionID != v1 {
-		t.Errorf("published_version_id = %v, want %s (v1)", updated.PublishedVersionID, v1)
+	entry, err := st.Releases.CurrentEntryFor(ctx, *updated.AppID, docID)
+	if err != nil || entry == nil {
+		t.Fatalf("current entry after rollback: entry=%v err=%v", entry, err)
+	}
+	if entry.VersionID != v1 {
+		t.Errorf("current release serves version %s, want %s (v1)", entry.VersionID, v1)
+	}
+	if status, _ := st.Documents.Status(ctx, updated); status != models.StatusPublishedWithNewerDraft {
+		t.Errorf("status after rollback = %q, want published-with-newer-draft (head is v2)", status)
 	}
 }
 

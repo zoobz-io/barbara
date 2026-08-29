@@ -46,23 +46,18 @@ func (r AddTagRequest) Clone() AddTagRequest { return r }
 
 // DocumentResponse is the authoring API representation of a document.
 type DocumentResponse struct {
-	CreatedAt          time.Time `json:"created_at" description:"Creation timestamp"`
-	UpdatedAt          time.Time `json:"updated_at" description:"Last update timestamp"`
-	PublishedVersionID *string   `json:"published_version_id,omitempty" description:"The published version, if any"`
-	ID                 string    `json:"id" description:"Document ID" example:"b1e1..."`
-	TenantID           string    `json:"tenant_id" description:"Owning tenant"`
-	Key                string    `json:"key" description:"Document key" example:"guides/install.md"`
-	Status             string    `json:"status" description:"Lifecycle status: draft or published" example:"published"`
-	Tags               []string  `json:"tags" description:"Organizational tags"`
+	CreatedAt time.Time `json:"created_at" description:"Creation timestamp"`
+	UpdatedAt time.Time `json:"updated_at" description:"Last update timestamp"`
+	ID        string    `json:"id" description:"Document ID" example:"b1e1..."`
+	TenantID  string    `json:"tenant_id" description:"Owning tenant"`
+	Key       string    `json:"key" description:"Document key" example:"guides/install.md"`
+	Status    string    `json:"status" description:"Lifecycle status: draft, published, or published-with-newer-draft" example:"published"`
+	Tags      []string  `json:"tags" description:"Organizational tags"`
 }
 
 // Clone returns a deep copy.
 func (r DocumentResponse) Clone() DocumentResponse {
 	c := r
-	if r.PublishedVersionID != nil {
-		v := *r.PublishedVersionID
-		c.PublishedVersionID = &v
-	}
 	if r.Tags != nil {
 		c.Tags = make([]string, len(r.Tags))
 		copy(c.Tags, r.Tags)

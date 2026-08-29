@@ -2,130 +2,109 @@ package stores
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"time"
 
 	"github.com/jmoiron/sqlx"
 
 	"github.com/zoobz-io/barbara/database/models"
-	"github.com/zoobz-io/barbara/database/transformers"
 	"github.com/zoobz-io/barbara/events"
-	"github.com/zoobz-io/barbara/internal/auth"
 )
 
 // ErrVersionMismatch is returned when publishing a version that belongs to a
 // different document.
 var ErrVersionMismatch = errors.New("version does not belong to the document")
 
-// Publish points a document at the given version and projects the merged
-// document into OpenSearch. The pointer move commits to Postgres first; the
-// OpenSearch write follows via the jobs pipeline and retries until it lands, so
-// serving lags authoring by seconds. Returns the updated document.
+// ErrDocumentNotPlaced is returned when publishing a document that has no app —
+// publish state lives in an app's release, so a document must be in the tree.
+var ErrDocumentNotPlaced = errors.New("document is not placed in an app")
+
+// Publish makes a version the document's live version by cutting a release of
+// the app's current tree with this document's entry set to it. Publish state
+// lives in releases now, so this is sugar over the release primitive; the
+// #63 projection lands the OpenSearch write. Returns the document.
 func (s *Stores) Publish(ctx context.Context, documentID, versionID string) (*models.Document, error) {
-	updated, err := s.publishVersion(ctx, documentID, versionID)
+	doc, err := s.cutForDocument(ctx, documentID, &versionID)
 	if err != nil {
 		return nil, err
 	}
 	events.Document.Published.Emit(ctx, events.DocumentPublishedEvent{
-		DocumentID: documentID, TenantID: updated.TenantID, VersionID: versionID,
+		DocumentID: documentID, TenantID: doc.TenantID, VersionID: versionID,
 	})
-	return updated, nil
+	return doc, nil
 }
 
-// Rollback republishes an older version: the same pointer-move-and-reindex as
-// Publish, nothing copied. Mechanically identical; named for intent.
+// Rollback republishes an older version — mechanically a publish of that
+// version; named for intent.
 func (s *Stores) Rollback(ctx context.Context, documentID, versionID string) (*models.Document, error) {
-	updated, err := s.publishVersion(ctx, documentID, versionID)
+	doc, err := s.cutForDocument(ctx, documentID, &versionID)
 	if err != nil {
 		return nil, err
 	}
 	events.Document.RolledBack.Emit(ctx, events.DocumentRolledBackEvent{
-		DocumentID: documentID, TenantID: updated.TenantID, VersionID: versionID,
+		DocumentID: documentID, TenantID: doc.TenantID, VersionID: versionID,
 	})
-	return updated, nil
+	return doc, nil
 }
 
-// publishVersion is the shared publish/rollback core: validate the version
-// belongs to the document, build the projection, then atomically move the
-// published pointer and enqueue the index write.
-func (s *Stores) publishVersion(ctx context.Context, documentID, versionID string) (*models.Document, error) {
-	tenantID, err := auth.RequireTenant(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	version, err := s.Versions.Get(ctx, versionID)
-	if err != nil {
-		return nil, err // ErrNotFound when the version is absent for the tenant
-	}
-	if version.DocumentID != documentID {
-		return nil, ErrVersionMismatch
-	}
-	doc, err := s.Documents.Get(ctx, documentID)
-	if err != nil {
-		return nil, err
-	}
-	payload, err := json.Marshal(transformers.Projection(doc, version, doc.Key))
-	if err != nil {
-		return nil, fmt.Errorf("building projection: %w", err)
-	}
-
-	var updated *models.Document
-	err = s.inTx(ctx, func(tx *sqlx.Tx) error {
-		updated, err = s.setPublishedVersion(ctx, tx, documentID, tenantID, versionID)
-		if err != nil {
-			return err
-		}
-		return s.Jobs.Enqueue(ctx, tx, newJob(tenantID, documentID, models.JobIndex, payload))
-	})
-	if err != nil {
-		return nil, err
-	}
-	return updated, nil
-}
-
-// Unpublish clears a document's published pointer and enqueues removal of its
-// OpenSearch entry. Returns the updated document.
+// Unpublish drops a document from the live site by cutting a release of the
+// current tree without its path. Returns the document.
 func (s *Stores) Unpublish(ctx context.Context, documentID string) (*models.Document, error) {
-	tenantID, err := auth.RequireTenant(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	var updated *models.Document
-	err = s.inTx(ctx, func(tx *sqlx.Tx) error {
-		updated, err = s.setPublishedVersion(ctx, tx, documentID, tenantID, nil)
-		if err != nil {
-			return err
-		}
-		return s.Jobs.Enqueue(ctx, tx, newJob(tenantID, documentID, models.JobDelete, nil))
-	})
+	doc, err := s.cutForDocument(ctx, documentID, nil)
 	if err != nil {
 		return nil, err
 	}
 	events.Document.Unpublished.Emit(ctx, events.DocumentUnpublishedEvent{
-		DocumentID: documentID, TenantID: tenantID,
+		DocumentID: documentID, TenantID: doc.TenantID,
 	})
-	return updated, nil
+	return doc, nil
 }
 
-// setPublishedVersion moves (or clears, when versionID is nil) a document's
-// published pointer within tx, returning the updated row. ErrNotFound when the
-// document is absent for the tenant.
-func (s *Stores) setPublishedVersion(ctx context.Context, tx *sqlx.Tx, documentID, tenantID string, versionID any) (*models.Document, error) {
-	return s.Documents.Modify().
-		Set("published_version_id", "published_version_id").
-		Set("updated_at", "updated_at").
-		Where("id", "=", "id").
-		Where("tenant_id", "=", "tenant_id").
-		ExecTx(ctx, tx, map[string]any{
-			"published_version_id": versionID,
-			"updated_at":           time.Now(),
-			"id":                   documentID,
-			"tenant_id":            tenantID,
-		})
+// cutForDocument cuts a release of the app's current entries with this
+// document's entry set to versionID (publish/rollback) or removed (unpublish,
+// versionID nil). The single-document publish sugar the plan calls for: one
+// mechanism underneath, no second publish system. Returns the document.
+func (s *Stores) cutForDocument(ctx context.Context, documentID string, versionID *string) (*models.Document, error) {
+	doc, err := s.Documents.Get(ctx, documentID)
+	if err != nil {
+		return nil, err // ErrNotFound when the document is absent for the tenant
+	}
+	if doc.AppID == nil {
+		return nil, ErrDocumentNotPlaced
+	}
+	appID := *doc.AppID
+
+	if versionID != nil {
+		version, verr := s.Versions.Get(ctx, *versionID)
+		if verr != nil {
+			return nil, verr // ErrNotFound when the version is absent
+		}
+		if version.DocumentID != documentID {
+			return nil, ErrVersionMismatch
+		}
+	}
+
+	current, err := s.Releases.CurrentEntries(ctx, appID)
+	if err != nil {
+		return nil, err
+	}
+	// Carry every current path except this document's, then re-add it at the new
+	// version when publishing (omit it when unpublishing).
+	specs := make([]ReleaseEntrySpec, 0, len(current)+1)
+	for _, e := range current {
+		if e.DocumentID == documentID {
+			continue
+		}
+		specs = append(specs, ReleaseEntrySpec{Key: e.Key, DocumentID: e.DocumentID, VersionID: e.VersionID})
+	}
+	if versionID != nil {
+		specs = append(specs, ReleaseEntrySpec{Key: doc.Key, DocumentID: documentID, VersionID: *versionID})
+	}
+
+	if _, err := s.Releases.CutWith(ctx, appID, specs); err != nil {
+		return nil, err
+	}
+	return doc, nil
 }
 
 // inTx runs fn in a transaction, committing on success and rolling back on error.

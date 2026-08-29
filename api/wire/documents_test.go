@@ -3,14 +3,9 @@ package wire
 import "testing"
 
 func TestDocumentResponse_Clone(t *testing.T) {
-	pv := "v1"
-	orig := DocumentResponse{ID: "d1", PublishedVersionID: &pv, Tags: []string{"docs"}}
+	orig := DocumentResponse{ID: "d1", Status: "published", Tags: []string{"docs"}}
 	c := orig.Clone()
 
-	*c.PublishedVersionID = "v2"
-	if *orig.PublishedVersionID != "v1" {
-		t.Error("Clone shares PublishedVersionID pointer")
-	}
 	c.Tags[0] = "changed"
 	if orig.Tags[0] != "docs" {
 		t.Error("Clone shares Tags slice")

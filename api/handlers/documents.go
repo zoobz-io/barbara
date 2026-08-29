@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"context"
+
 	"github.com/zoobz-io/rocco"
 	"github.com/zoobz-io/sum"
 
@@ -12,6 +14,16 @@ import (
 	"github.com/zoobz-io/barbara/internal/auth"
 )
 
+// documentResponse builds a document response, deriving its release-based status
+// through the store. Shared by every handler that returns a single document.
+func documentResponse(ctx context.Context, docs contracts.Documents, doc *models.Document) (wire.DocumentResponse, error) {
+	status, err := docs.Status(ctx, doc)
+	if err != nil {
+		return wire.DocumentResponse{}, transformers.ErrorToResponse(err)
+	}
+	return transformers.DocumentToResponse(doc, status), nil
+}
+
 // CreateDocument places a document in the tree — under a collection (or the app
 // root) in the app.
 var CreateDocument = rocco.POST("/apps/{app_id}/documents",
@@ -22,7 +34,7 @@ var CreateDocument = rocco.POST("/apps/{app_id}/documents",
 		if err != nil {
 			return wire.DocumentResponse{}, transformers.ErrorToResponse(err)
 		}
-		return transformers.DocumentToResponse(doc), nil
+		return documentResponse(ctx, docs, doc)
 	}).WithPathParams("app_id").
 	WithSummary("Create a document").
 	WithTags("Documents").
@@ -40,7 +52,7 @@ var GetDocument = rocco.GET("/documents/{id}",
 		if err != nil {
 			return wire.DocumentResponse{}, transformers.ErrorToResponse(err)
 		}
-		return transformers.DocumentToResponse(doc), nil
+		return documentResponse(ctx, docs, doc)
 	}).WithPathParams("id").
 	WithSummary("Get a document by ID").
 	WithTags("Documents").
@@ -60,7 +72,11 @@ var GetDocumentContent = rocco.GET("/documents/{id}/content",
 		if err != nil {
 			return wire.DocumentContentResponse{}, transformers.ErrorToResponse(err)
 		}
-		return transformers.DocumentContentToResponse(dh), nil
+		status, serr := docs.Status(ctx, dh.Document)
+		if serr != nil {
+			return wire.DocumentContentResponse{}, transformers.ErrorToResponse(serr)
+		}
+		return transformers.DocumentContentToResponse(dh, status), nil
 	}).WithPathParams("id").
 	WithSummary("Get a document with its head version content").
 	WithTags("Documents").
@@ -87,7 +103,11 @@ var ListDocuments = rocco.GET("/documents",
 		if err != nil {
 			return wire.DocumentListResponse{}, transformers.ErrorToResponse(err)
 		}
-		return transformers.DocumentsToListResponse(list, limit, offset), nil
+		statuses, serr := docs.Statuses(ctx, list)
+		if serr != nil {
+			return wire.DocumentListResponse{}, transformers.ErrorToResponse(serr)
+		}
+		return transformers.DocumentsToListResponse(list, statuses, limit, offset), nil
 	}).WithQueryParams("tag", "limit", "offset").
 	WithSummary("List documents").
 	WithTags("Documents").
@@ -104,7 +124,7 @@ var MoveDocument = rocco.POST("/apps/{app_id}/documents/{id}/move",
 		if err != nil {
 			return wire.DocumentResponse{}, transformers.ErrorToResponse(err)
 		}
-		return transformers.DocumentToResponse(doc), nil
+		return documentResponse(ctx, docs, doc)
 	}).WithPathParams("app_id", "id").
 	WithSummary("Move a document to a new collection or name").
 	WithTags("Documents").

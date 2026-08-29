@@ -9,8 +9,74 @@ import (
 
 	"github.com/lib/pq"
 
+	"github.com/zoobz-io/barbara/database/models"
 	"github.com/zoobz-io/barbara/internal/auth"
 )
+
+// placedDoc is document d-1 placed in the test app.
+func placedDoc() *models.Document {
+	app := testApp
+	return &models.Document{ID: "d-1", TenantID: testTenant, Key: "a.md", AppID: &app}
+}
+
+// Status is draft for an unplaced document — no app means no release can carry it.
+func TestDocuments_Status_UnplacedIsDraft(t *testing.T) {
+	st, _ := newQueryTest(t)
+	if got, err := st.Documents.Status(tenantCtx(), &models.Document{ID: "d-1"}); err != nil || got != models.StatusDraft {
+		t.Fatalf("status = %q, %v; want draft", got, err)
+	}
+}
+
+// Status is draft when the app's current release does not carry the document.
+func TestDocuments_Status_NotInReleaseIsDraft(t *testing.T) {
+	st, _, cfg := newQueryTestCfg(t)
+	cfg.PushRowData(appRow()) // apps.Get: app has no current release (nil pointer)
+
+	if got, err := st.Documents.Status(tenantCtx(), placedDoc()); err != nil || got != models.StatusDraft {
+		t.Fatalf("status = %q, %v; want draft", got, err)
+	}
+}
+
+// Status is published when the current release carries the document's head.
+func TestDocuments_Status_HeadPublished(t *testing.T) {
+	st, _, cfg := newQueryTestCfg(t)
+	cfg.PushRowData(appRowWithRelease("r-1"))          // apps.Get: has a current release
+	cfg.PushRowData(entryRowFor("a.md", "d-1", "v-1")) // the release carries d-1 at v-1
+	cfg.PushRowData(versionRow())                      // head is v-1
+
+	if got, err := st.Documents.Status(tenantCtx(), placedDoc()); err != nil || got != models.StatusPublished {
+		t.Fatalf("status = %q, %v; want published", got, err)
+	}
+}
+
+// Status is published-with-newer-draft when the release carries an older version.
+func TestDocuments_Status_NewerDraft(t *testing.T) {
+	st, _, cfg := newQueryTestCfg(t)
+	cfg.PushRowData(appRowWithRelease("r-1"))            // apps.Get
+	cfg.PushRowData(entryRowFor("a.md", "d-1", "v-old")) // release serves v-old
+	cfg.PushRowData(versionRow())                        // head is v-1 (newer)
+
+	if got, err := st.Documents.Status(tenantCtx(), placedDoc()); err != nil || got != models.StatusPublishedWithNewerDraft {
+		t.Fatalf("status = %q, %v; want published-with-newer-draft", got, err)
+	}
+}
+
+// Statuses batches the current-release entries per app, then compares each head.
+func TestDocuments_Statuses_Batch(t *testing.T) {
+	st, _, cfg := newQueryTestCfg(t)
+	cfg.PushRowData(appRowWithRelease("r-1"))          // CurrentEntries: apps.Get
+	cfg.PushRowData(releaseRow("r-1", 1))              // CurrentEntries: release select
+	cfg.PushRowData(entryRowFor("a.md", "d-1", "v-1")) // CurrentEntries: entries (d-1 live)
+	cfg.PushRowData(versionRow())                      // d-1 head is v-1 → published
+
+	got, err := st.Documents.Statuses(tenantCtx(), []*models.Document{placedDoc(), {ID: "d-2"}})
+	if err != nil {
+		t.Fatalf("statuses: %v", err)
+	}
+	if got["d-1"] != models.StatusPublished || got["d-2"] != models.StatusDraft {
+		t.Errorf("statuses = %v; want d-1 published, d-2 draft", got)
+	}
+}
 
 // Create at the app root materializes the key from the name, checks no sibling
 // collection holds the name, and inserts with the tree columns set.
@@ -79,25 +145,6 @@ func TestDocuments_ListByTag_Query(t *testing.T) {
 	wantArg(t, q, `{"guide"}`)
 }
 
-// ListPublishedAfter is the reindex keyset page: published-only, id > afterID,
-// ordered by id — and deliberately NOT tenant-scoped (it runs cross-tenant,
-// outside any request context).
-func TestDocuments_ListPublishedAfter_Query(t *testing.T) {
-	st, capture := newQueryTest(t)
-	_, _ = st.Documents.ListPublishedAfter(tenantCtx(), zeroUUID, 100)
-
-	q := lastQuery(t, capture)
-	wantSQL(t, q,
-		`FROM "documents"`,
-		`"published_version_id" IS NOT NULL`,
-		`"id" > ?`,
-		`ORDER BY "id" ASC`,
-		`LIMIT 100`,
-	)
-	notSQL(t, q, "tenant_id")
-	wantArg(t, q, zeroUUID)
-}
-
 // Move locks the document, then updates collection_id, name, and the rewritten
 // key, tenant-scoped, returning the row.
 func TestDocuments_Move_Query(t *testing.T) {
@@ -129,9 +176,8 @@ func TestDocuments_Move_Query(t *testing.T) {
 	wantArg(t, upd, testTenant)
 }
 
-// Delete loads the document, and — for an unpublished, unplaced one — hard-deletes
-// it, tenant-scoped. The published-pointer guard now happens in Go against the
-// loaded row, not in the DELETE's WHERE.
+// Delete loads the document, and — for an unplaced one not in any release —
+// hard-deletes it, tenant-scoped.
 func TestDocuments_Delete_Query(t *testing.T) {
 	st, capture, cfg := newQueryTestCfg(t)
 	cfg.PushRowData(docRow(nil)) // Get: a draft, unplaced document (app_id nil)
@@ -206,14 +252,16 @@ func TestDocuments_RequiresTenant(t *testing.T) {
 	}
 }
 
-// A document still holding a published pointer is refused (unpublish first),
+// A document carried by the app's current release is refused (unpublish first),
 // before any DELETE.
-func TestDocuments_Delete_RefusesPublished(t *testing.T) {
+func TestDocuments_Delete_RefusesInCurrentRelease(t *testing.T) {
 	st, capture, cfg := newQueryTestCfg(t)
-	cfg.PushRowData(docRow("v-9")) // Get: published_version_id set
+	cfg.PushRowData(docRow(testApp))          // Get: a placed document
+	cfg.PushRowData(appRowWithRelease("r-1")) // its app has a current release
+	cfg.PushRowData(countRow(1))              // ...which carries the document
 
 	if err := st.Documents.Delete(tenantCtx(), "d-1"); !errors.Is(err, ErrDocumentPublished) {
-		t.Fatalf("delete of a published doc = %v, want ErrDocumentPublished", err)
+		t.Fatalf("delete of a live doc = %v, want ErrDocumentPublished", err)
 	}
 	for _, q := range capture.Queries {
 		notSQL(t, q, `DELETE FROM "documents"`)
@@ -224,8 +272,8 @@ func TestDocuments_Delete_RefusesPublished(t *testing.T) {
 // lookup — the doc plus its latest version in one method.
 func TestDocuments_GetWithHead_Query(t *testing.T) {
 	st, capture, cfg := newQueryTestCfg(t)
-	cfg.PushRowData(docRow("v-1")) // Documents.Get succeeds (published doc)
-	cfg.PushRowData(versionRow())  // Versions.Head returns the head
+	cfg.PushRowData(docRow(nil))  // Documents.Get succeeds
+	cfg.PushRowData(versionRow()) // Versions.Head returns the head
 	_, _ = st.Documents.GetWithHead(tenantCtx(), "d-1")
 
 	get := queryAt(t, capture, 0)

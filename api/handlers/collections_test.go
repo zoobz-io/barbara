@@ -58,6 +58,7 @@ func (m *mockCollections) Delete(_ context.Context, appID, id string) error {
 func cdriver(t *testing.T, mock contracts.Collections) *testkit.Driver {
 	return testkit.Handlers(t, func(k sum.Key) {
 		sum.Register[contracts.Collections](k, mock)
+		sum.Register[contracts.Documents](k, &mockDocuments{})
 	}, All()...)
 }
 

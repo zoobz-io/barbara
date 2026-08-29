@@ -18,16 +18,18 @@ import (
 
 // mockDocuments is a contracts.Documents whose behavior each test sets.
 type mockDocuments struct {
-	doc     *models.Document
-	head    *models.DocumentHead
-	list    []*models.Document
-	err     error
-	gotApp  string
-	gotName string
-	gotColl *string
-	gotID   string
-	gotTag  string
-	deleted bool
+	doc      *models.Document
+	head     *models.DocumentHead
+	list     []*models.Document
+	status   string
+	statuses map[string]string
+	err      error
+	gotApp   string
+	gotName  string
+	gotColl  *string
+	gotID    string
+	gotTag   string
+	deleted  bool
 }
 
 func (m *mockDocuments) Create(_ context.Context, appID string, collectionID *string, name string) (*models.Document, error) {
@@ -55,6 +57,12 @@ func (m *mockDocuments) Delete(context.Context, string) error {
 	m.deleted = m.err == nil
 	return m.err
 }
+func (m *mockDocuments) Status(context.Context, *models.Document) (string, error) {
+	return m.status, nil
+}
+func (m *mockDocuments) Statuses(_ context.Context, docs []*models.Document) (map[string]string, error) {
+	return m.statuses, nil
+}
 
 // docDriver wires the document handlers over the mock contract.
 func docDriver(t *testing.T, mock contracts.Documents) *testkit.Driver {
@@ -64,7 +72,7 @@ func docDriver(t *testing.T, mock contracts.Documents) *testkit.Driver {
 }
 
 func TestCreateDocument_OK(t *testing.T) {
-	mock := &mockDocuments{doc: &models.Document{ID: "d1", Key: "guides/a.md", TenantID: "tenant-1"}}
+	mock := &mockDocuments{doc: &models.Document{ID: "d1", Key: "guides/a.md", TenantID: "tenant-1"}, status: "draft"}
 	w := docDriver(t, mock).Request(t, http.MethodPost, "/apps/app-1/documents",
 		map[string]any{"name": "a.md", "collection_id": "c-1"})
 
@@ -108,10 +116,9 @@ func TestMoveDocument_OK(t *testing.T) {
 	}
 }
 
-// GetDocument carries lifecycle status, derived from the published pointer.
+// GetDocument carries lifecycle status, derived by the store from the release.
 func TestGetDocument_OK_WithStatus(t *testing.T) {
-	pv := "v2"
-	mock := &mockDocuments{doc: &models.Document{ID: "d1", Key: "a.md", PublishedVersionID: &pv}}
+	mock := &mockDocuments{doc: &models.Document{ID: "d1", Key: "a.md"}, status: "published"}
 	w := docDriver(t, mock).Request(t, http.MethodGet, "/documents/d1", nil)
 	if w.Code != http.StatusOK {
 		t.Fatalf("status = %d, want 200; body=%s", w.Code, w.Body.String())
@@ -193,11 +200,13 @@ func TestCreateDocument_DuplicateConflict(t *testing.T) {
 }
 
 func TestListDocuments_OK(t *testing.T) {
-	pv := "v2"
-	mock := &mockDocuments{list: []*models.Document{
-		{ID: "d1", Key: "a.md", PublishedVersionID: &pv},
-		{ID: "d2", Key: "b.md"},
-	}}
+	mock := &mockDocuments{
+		list: []*models.Document{
+			{ID: "d1", Key: "a.md"},
+			{ID: "d2", Key: "b.md"},
+		},
+		statuses: map[string]string{"d1": "published", "d2": "draft"},
+	}
 	w := docDriver(t, mock).Request(t, http.MethodGet, "/documents?limit=10&offset=0", nil)
 	if w.Code != http.StatusOK {
 		t.Fatalf("status = %d, want 200; body=%s", w.Code, w.Body.String())

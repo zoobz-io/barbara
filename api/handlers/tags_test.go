@@ -37,6 +37,7 @@ func (m *mockTagging) RemoveTag(_ context.Context, id, tag string) (*models.Docu
 func tagDriver(t *testing.T, mock contracts.Tagging) *testkit.Driver {
 	return testkit.Handlers(t, func(k sum.Key) {
 		sum.Register[contracts.Tagging](k, mock)
+		sum.Register[contracts.Documents](k, &mockDocuments{status: "published"})
 	}, All()...)
 }
 

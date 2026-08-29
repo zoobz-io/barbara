@@ -217,16 +217,6 @@ func TestDocuments_DeleteRules(t *testing.T) {
 		t.Errorf("versions not cascaded: %d remain", n)
 	}
 
-	// Refuse: a published document.
-	pub, _ := st.Documents.Create(ctx, app.ID, nil, "live.md")
-	vid := insertVersion(t, db, pub.ID)
-	if _, err := db.Exec("UPDATE documents SET published_version_id=$1 WHERE id=$2", vid, pub.ID); err != nil {
-		t.Fatalf("set pointer: %v", err)
-	}
-	if err := st.Documents.Delete(ctx, pub.ID); !errors.Is(err, stores.ErrDocumentPublished) {
-		t.Errorf("delete published = %v, want ErrDocumentPublished", err)
-	}
-
 	// Soft delete: a document referenced only by a historical release.
 	soft, _ := st.Documents.Create(ctx, app.ID, nil, "archived.md")
 	svid := insertVersion(t, db, soft.ID)

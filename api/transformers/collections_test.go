@@ -18,19 +18,19 @@ func TestCollectionToResponse(t *testing.T) {
 // Contents maps subcollections and documents together, each document carrying
 // its derived status.
 func TestCollectionContentsToResponse(t *testing.T) {
-	published := "v-1"
 	cc := &models.CollectionContents{
 		Subcollections: []*models.Collection{{ID: "c-2", Name: "sub"}},
 		Documents: []*models.Document{
-			{ID: "d-1", Key: "a.md"},                              // draft
-			{ID: "d-2", Key: "b.md", PublishedVersionID: &published}, // published
+			{ID: "d-1", Key: "a.md"},
+			{ID: "d-2", Key: "b.md"},
 		},
 	}
-	r := CollectionContentsToResponse(cc)
+	statuses := map[string]string{"d-1": models.StatusDraft, "d-2": models.StatusPublished}
+	r := CollectionContentsToResponse(cc, statuses)
 	if len(r.Subcollections) != 1 || len(r.Documents) != 2 {
 		t.Fatalf("unexpected shape: %+v", r)
 	}
-	if r.Documents[0].Status != statusDraft || r.Documents[1].Status != statusPublished {
+	if r.Documents[0].Status != models.StatusDraft || r.Documents[1].Status != models.StatusPublished {
 		t.Errorf("document statuses = %q, %q", r.Documents[0].Status, r.Documents[1].Status)
 	}
 }

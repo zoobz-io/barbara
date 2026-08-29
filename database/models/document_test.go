@@ -13,11 +13,10 @@ func TestDocument_GetID(t *testing.T) {
 }
 
 func TestDocument_Clone(t *testing.T) {
-	pv, app, coll, name := "v1", "a1", "c1", "install.md"
+	app, coll, name := "a1", "c1", "install.md"
 	orig := Document{
 		ID:                 "d1",
 		Key:                "a.md",
-		PublishedVersionID: &pv,
 		AppID:              &app,
 		CollectionID:       &coll,
 		Name:               &name,
@@ -26,10 +25,6 @@ func TestDocument_Clone(t *testing.T) {
 	c := orig.Clone()
 
 	// Deep copies: mutating the clone must not touch the original.
-	*c.PublishedVersionID = "v2"
-	if *orig.PublishedVersionID != "v1" {
-		t.Error("Clone shares PublishedVersionID pointer")
-	}
 	*c.AppID = "a2"
 	if *orig.AppID != "a1" {
 		t.Error("Clone shares AppID pointer")
@@ -50,7 +45,7 @@ func TestDocument_Clone(t *testing.T) {
 
 func TestDocument_Clone_NilFields(t *testing.T) {
 	c := Document{ID: "d2"}.Clone()
-	if c.PublishedVersionID != nil || c.Tags != nil || c.AppID != nil ||
+	if c.Tags != nil || c.AppID != nil ||
 		c.CollectionID != nil || c.Name != nil || c.DeletedAt != nil {
 		t.Error("Clone should leave nil fields nil")
 	}
