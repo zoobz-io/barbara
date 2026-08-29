@@ -325,7 +325,7 @@ func TestScenario_Enumerate_PaginatesStably(t *testing.T) {
 // TestScenario_TerminalOSFailure_ReindexReconciles is the safety net in action:
 // when an OpenSearch write fails permanently (retries exhausted), the reader is
 // left stale — Postgres has the publish, OpenSearch does not. A full reindex
-// (#20) rebuilds the index from Postgres and the reader converges again. This is
+// rebuilds the index from Postgres and the reader converges again. This is
 // the recovery path the eventual-consistency model rests on.
 func TestScenario_TerminalOSFailure_ReindexReconciles(t *testing.T) {
 	st, provider := e2eFixture(t)

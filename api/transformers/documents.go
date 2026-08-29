@@ -5,7 +5,7 @@ import (
 	"github.com/zoobz-io/barbara/database/models"
 )
 
-// Document lifecycle statuses, surfaced on document responses (#49). Derived from
+// Document lifecycle statuses, surfaced on document responses. Derived from
 // the published pointer alone — no version lookup needed.
 const (
 	statusDraft     = "draft"
@@ -52,7 +52,7 @@ func DocumentsToListResponse(docs []*models.Document, limit, offset int) wire.Do
 }
 
 // DocumentContentToResponse maps a document and its head version to the editing
-// read (#48): the document plus a content block, or a null content block when the
+// read: the document plus a content block, or a null content block when the
 // document has no versions yet.
 func DocumentContentToResponse(dh *models.DocumentHead) wire.DocumentContentResponse {
 	resp := wire.DocumentContentResponse{Document: DocumentToResponse(dh.Document)}

@@ -3,8 +3,7 @@ package handlers
 import "github.com/zoobz-io/rocco"
 
 // All returns every public-API handler for registration in cmd/api: the
-// site-facing published reads plus the tenant-scoped authoring surface folded on
-// in #46.
+// site-facing published reads plus the tenant-scoped authoring surface.
 func All() []rocco.Endpoint {
 	return []rocco.Endpoint{
 		// Published reads (OpenSearch, under /published/*).

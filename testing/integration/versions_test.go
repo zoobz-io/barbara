@@ -92,7 +92,7 @@ func TestVersions_Save_RequiresUser(t *testing.T) {
 	}
 }
 
-// Optimistic concurrency (#50): N concurrent saves from the same base race for
+// Optimistic concurrency: N concurrent saves from the same base race for
 // the head. Exactly one wins; the rest conflict, reporting the current head — so
 // two editors never silently clobber each other. Only the winner's version
 // persists.

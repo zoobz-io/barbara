@@ -5,8 +5,7 @@
 -- to OpenSearch, retrying until it lands. Serving can lag authoring by seconds.
 --
 -- No FK on document_id on purpose: an OS-delete job must survive deletion of the
--- document row so the projection is actually removed. Shape is provisional and
--- will be confirmed against the jobs pipeline (issue #10).
+-- document row so the projection is actually removed.
 CREATE TABLE jobs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id UUID NOT NULL,

@@ -116,7 +116,7 @@ func TestDocuments_Delete_Query(t *testing.T) {
 }
 
 // GetWithHead issues the tenant-scoped document read, then the head-version
-// lookup — the doc plus its latest version in one method (#48/#49).
+// lookup — the doc plus its latest version in one method.
 func TestDocuments_GetWithHead_Query(t *testing.T) {
 	st, capture, cfg := newQueryTestCfg(t)
 	cfg.PushRowData(docRow("v-1")) // Documents.Get succeeds (published doc)
