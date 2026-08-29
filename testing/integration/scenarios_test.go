@@ -268,18 +268,13 @@ func TestScenario_TenantIsolation_SameKeyThroughPipeline(t *testing.T) {
 	}
 }
 
-// TestScenario_Enumerate_LimitsPageAndCountsTotal publishes several documents
-// and exercises the site-facing listing: a page is capped at the requested
-// limit while the reported total reflects the full published set, and a
-// wide-enough page returns every document.
-//
-// NOTE: it deliberately does not assert page-by-page uniqueness across offsets.
-// Search.run issues the query with Size/From but no explicit sort, so in pure
-// filter context (equal scores) the ordering across paginated requests is not
-// guaranteed stable — deep offset paging can duplicate or skip. That missing
-// stable tiebreaker is a real serving-layer gap, tracked separately; asserting
-// cross-page uniqueness here would be testing undefined behaviour.
-func TestScenario_Enumerate_LimitsPageAndCountsTotal(t *testing.T) {
+// TestScenario_Enumerate_PaginatesStably publishes several documents and walks
+// the site-facing listing in pages: a page is capped at the limit, the total
+// reflects the full set, and paging by offset visits every document exactly once
+// — no skips, no duplicates. That last property depends on the deterministic
+// sort (created_at, then the unique document_id tiebreaker); without it, offset
+// paging in filter context is unstable across requests.
+func TestScenario_Enumerate_PaginatesStably(t *testing.T) {
 	st, provider := e2eFixture(t)
 	pipeline := newPipeline(st)
 	ctx := tenantCtx(testTenant)
@@ -302,20 +297,28 @@ func TestScenario_Enumerate_LimitsPageAndCountsTotal(t *testing.T) {
 		t.Errorf("page size = %d, want 2 (capped at the limit)", len(page))
 	}
 
-	// A page wide enough for the whole set returns every published document.
-	all, total, err := st.Search.Enumerate(ctx, "", 50, 0)
-	if err != nil {
-		t.Fatalf("enumerate all: %v", err)
-	}
-	if total != int64(len(keys)) || len(all) != len(keys) {
-		t.Errorf("enumerate all = %d (total %d), want %d", len(all), total, len(keys))
-	}
+	// Walk every page; each document appears exactly once, and the listing is
+	// ordered oldest-first by created_at (the stable sort makes this reliable).
 	seen := map[string]bool{}
-	for _, d := range all {
-		seen[d.DocumentID] = true
+	var lastCreated time.Time
+	for offset := 0; offset < len(keys); offset += 2 {
+		p, _, err := st.Search.Enumerate(ctx, "", 2, offset)
+		if err != nil {
+			t.Fatalf("enumerate page @%d: %v", offset, err)
+		}
+		for _, d := range p {
+			if seen[d.DocumentID] {
+				t.Errorf("document %s appeared on more than one page (unstable paging)", d.DocumentID)
+			}
+			seen[d.DocumentID] = true
+			if d.CreatedAt.Before(lastCreated) {
+				t.Errorf("listing out of order: %s created %v precedes previous %v", d.DocumentID, d.CreatedAt, lastCreated)
+			}
+			lastCreated = d.CreatedAt
+		}
 	}
 	if len(seen) != len(keys) {
-		t.Errorf("saw %d distinct docs in the full listing, want %d", len(seen), len(keys))
+		t.Errorf("paged through %d distinct docs, want %d (paging skipped some)", len(seen), len(keys))
 	}
 }
 

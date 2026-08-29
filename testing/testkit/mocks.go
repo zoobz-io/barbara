@@ -13,11 +13,12 @@ import (
 // stores without a live cluster. Indexed and Deleted capture the writes; the
 // Err fields inject failures.
 type SearchProvider struct {
-	Indexed   map[string][]byte // id -> document bytes
-	Deleted   []string          // ids deleted
-	LastIndex string            // the index name last written to
-	IndexErr  error
-	DeleteErr error
+	Indexed    map[string][]byte // id -> document bytes
+	LastSearch *lucene.Search    // the last search executed (query, paging, sort)
+	IndexErr   error
+	DeleteErr  error
+	LastIndex  string   // the index name last written to
+	Deleted    []string // ids deleted
 }
 
 // NewSearchProvider returns a ready-to-use recording provider.
@@ -47,8 +48,9 @@ func (*SearchProvider) IndexBatch(context.Context, string, map[string][]byte) er
 func (*SearchProvider) Get(context.Context, string, string) ([]byte, error)         { return nil, nil }
 func (*SearchProvider) DeleteBatch(context.Context, string, []string) error         { return nil }
 func (*SearchProvider) Exists(context.Context, string, string) (bool, error)        { return false, nil }
-func (*SearchProvider) Search(context.Context, string, *lucene.Search) (*grub.SearchResponse, error) {
-	return nil, nil
+func (m *SearchProvider) Search(_ context.Context, _ string, search *lucene.Search) (*grub.SearchResponse, error) {
+	m.LastSearch = search
+	return &grub.SearchResponse{}, nil
 }
 func (*SearchProvider) Count(context.Context, string, lucene.Query) (int64, error) { return 0, nil }
 func (*SearchProvider) Refresh(context.Context, string) error                      { return nil }

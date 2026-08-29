@@ -17,6 +17,19 @@ import (
 // projection — one live entry per published document, keyed by document ID.
 const documentIndex = "documents"
 
+// Deterministic sort orders for the paginated reads. Every listing ends with a
+// unique tiebreaker (document_id, a keyword) so a page is a total order:
+// offset paging never skips or repeats a document, even as the index merges
+// segments. A listing (filter context, no relevance score) reads oldest-first,
+// matching Documents.List; a full-text search reads by relevance first, then the
+// tiebreaker. Without this, ties fall back to internal Lucene doc order, which
+// is not stable across paginated requests.
+var (
+	sortByCreatedAt = lucene.SortField{Field: "created_at", Order: "asc"}
+	sortByScore     = lucene.SortField{Field: "_score", Order: "desc"}
+	sortByDocID     = lucene.SortField{Field: "document_id", Order: "asc"}
+)
+
 // Search is the serving-store access layer over the DocumentIndex projection.
 // The jobs pipeline writes through it (Index/Delete) and the site-facing surface
 // reads through it (GetPublishedByKey/Enumerate/Search). The write side takes
@@ -88,7 +101,7 @@ func (s *Search) Enumerate(ctx context.Context, tag string, limit, offset int) (
 	if tag != "" {
 		filters = append(filters, s.qb.Term("tags", tag))
 	}
-	return s.run(ctx, s.qb.Bool().Filter(filters...), limit, offset)
+	return s.run(ctx, s.qb.Bool().Filter(filters...), limit, offset, sortByCreatedAt, sortByDocID)
 }
 
 // Search runs a full-text search over published content for the request's
@@ -101,19 +114,20 @@ func (s *Search) Search(ctx context.Context, query string, limit, offset int) ([
 	q := s.qb.Bool().
 		Filter(s.qb.Term("tenant_id", tenantID)).
 		Must(s.qb.MultiMatch(query, "content"))
-	return s.run(ctx, q, limit, offset)
+	return s.run(ctx, q, limit, offset, sortByScore, sortByDocID)
 }
 
 // SearchAll runs a full-text search across all tenants — admin use only, not
 // exposed on the site-facing surface.
 func (s *Search) SearchAll(ctx context.Context, query string, limit, offset int) ([]models.DocumentIndex, int64, error) {
 	q := s.qb.Bool().Must(s.qb.MultiMatch(query, "content"))
-	return s.run(ctx, q, limit, offset)
+	return s.run(ctx, q, limit, offset, sortByScore, sortByDocID)
 }
 
-// run executes a query and returns the page of projections plus the total.
-func (s *Search) run(ctx context.Context, q lucene.Query, limit, offset int) ([]models.DocumentIndex, int64, error) {
-	res, err := s.index.Execute(ctx, lucene.NewSearch().Query(q).Size(limit).From(offset))
+// run executes a query and returns the page of projections plus the total. Every
+// caller passes a sort ending in a unique tiebreaker so paging is stable.
+func (s *Search) run(ctx context.Context, q lucene.Query, limit, offset int, sort ...lucene.SortField) ([]models.DocumentIndex, int64, error) {
+	res, err := s.index.Execute(ctx, lucene.NewSearch().Query(q).Size(limit).From(offset).Sort(sort...))
 	if err != nil {
 		return nil, 0, fmt.Errorf("executing search: %w", err)
 	}
