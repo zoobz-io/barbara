@@ -32,21 +32,18 @@ var ErrDocumentPublished = errors.New("document is published; unpublish before d
 // read handles onto apps and release_entries (the delete rules).
 type Documents struct {
 	*sum.Database[models.Document]
-	db             *sqlx.DB
-	versions       *Versions    // head-version enrichment; wired in New
-	collections    *Collections // tree path + sibling namespace; wired in New (breaks the cycle)
-	apps           *Apps        // current-release lookup; wired in New
-	releaseEntries *sum.Database[models.ReleaseEntry]
+	db          *sqlx.DB
+	versions    *Versions    // head-version enrichment; wired in New
+	collections *Collections // tree path + sibling namespace; wired in New (breaks the cycle)
+	apps        *Apps        // current-release pointer; wired in New
+	releases    *Releases    // current-release membership (delete rules); wired in New
 }
 
-// NewDocuments creates a documents store. It is the sole registrant of the
-// release_entries table (read-only, for the delete rules) until the releases
-// store takes ownership.
+// NewDocuments creates a documents store.
 func NewDocuments(db *sqlx.DB, renderer astql.Renderer) *Documents {
 	return &Documents{
-		Database:       sum.NewDatabase[models.Document](db, "documents", renderer),
-		db:             db,
-		releaseEntries: sum.NewDatabase[models.ReleaseEntry](db, "release_entries", renderer),
+		Database: sum.NewDatabase[models.Document](db, "documents", renderer),
+		db:       db,
 	}
 }
 
@@ -341,14 +338,7 @@ func (s *Documents) inCurrentRelease(ctx context.Context, doc *models.Document) 
 	if app.CurrentReleaseID == nil {
 		return false, nil
 	}
-	n, err := s.releaseEntries.Count().
-		Where("release_id", "=", "release_id").
-		Where("document_id", "=", "document_id").
-		Exec(ctx, map[string]any{"release_id": *app.CurrentReleaseID, "document_id": doc.ID})
-	if err != nil {
-		return false, fmt.Errorf("checking current release: %w", err)
-	}
-	return n > 0, nil
+	return s.releases.Contains(ctx, *app.CurrentReleaseID, doc.ID)
 }
 
 // siblingCollectionExists reports whether a collection already occupies

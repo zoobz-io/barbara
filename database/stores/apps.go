@@ -30,14 +30,13 @@ var ErrAppHasReleases = errors.New("app has releases; releases are never deleted
 // store.
 type Apps struct {
 	*sum.Database[models.App]
-	releases *sum.Database[models.Release]
+	releases *Releases // release-count guard on delete; wired in New (releases owns the table)
 }
 
 // NewApps creates an apps store.
 func NewApps(db *sqlx.DB, renderer astql.Renderer) *Apps {
 	return &Apps{
 		Database: sum.NewDatabase[models.App](db, "apps", renderer),
-		releases: sum.NewDatabase[models.Release](db, "releases", renderer),
 	}
 }
 

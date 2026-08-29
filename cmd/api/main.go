@@ -71,6 +71,7 @@ func setup(ctx context.Context) (*sum.Service, int, func(), error) {
 	// interfaces over the shared stores.
 	sum.Register[contracts.Apps](rt.K, rt.Stores.Apps)
 	sum.Register[contracts.Collections](rt.K, rt.Stores.Collections)
+	sum.Register[contracts.Releases](rt.K, rt.Stores.Releases)
 	sum.Register[contracts.Documents](rt.K, rt.Stores.Documents)
 	sum.Register[contracts.Versions](rt.K, rt.Stores.Versions)
 	sum.Register[contracts.Publishing](rt.K, rt.Stores)

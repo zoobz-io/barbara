@@ -28,9 +28,13 @@ func newDocStores(t *testing.T) (*stores.Stores, *sqlx.DB, func()) {
 	db := pgDB(t)
 	st := stores.New(db, astqlpg.New(), testkit.NewSearchProvider(), testkit.NewBucketProvider())
 	cleanup := func() {
+		// FK order: clear the app→release pointer, drop release_entries (RESTRICT
+		// refs to documents/versions), then releases; deleting documents cascades
+		// their versions — deleting versions first would trip the published-pointer
+		// RESTRICT.
+		_, _ = db.Exec("UPDATE apps SET current_release_id = NULL")
 		_, _ = db.Exec("DELETE FROM release_entries")
 		_, _ = db.Exec("DELETE FROM releases")
-		_, _ = db.Exec("DELETE FROM versions")
 		_, _ = db.Exec("DELETE FROM documents")
 		_, _ = db.Exec("DELETE FROM collections")
 		_, _ = db.Exec("DELETE FROM apps")

@@ -1,0 +1,183 @@
+//go:build testing
+
+package stores
+
+import (
+	"context"
+	"errors"
+	"testing"
+
+	"github.com/zoobz-io/grub/mockdb"
+
+	"github.com/zoobz-io/barbara/events"
+	"github.com/zoobz-io/barbara/internal/auth"
+)
+
+// releaseRow is a releases row.
+func releaseRow(id string, number int) *mockdb.RowData {
+	return &mockdb.RowData{
+		Columns: []string{"id", "app_id", "tenant_id", "number", "created_by"},
+		Rows:    [][]any{{id, testApp, testTenant, int64(number), testUser}},
+	}
+}
+
+// releaseEntryRow is a release_entries row.
+func releaseEntryRow(key, docID, versionID string) *mockdb.RowData {
+	return &mockdb.RowData{
+		Columns: []string{"id", "release_id", "key", "document_id", "version_id"},
+		Rows:    [][]any{{"e-1", "r-old", key, docID, versionID}},
+	}
+}
+
+// noRows is an empty result set for a query that should return nothing.
+func noRows() *mockdb.RowData { return &mockdb.RowData{Columns: []string{"id"}} }
+
+// Cut over an empty tree: lock the app, number the release count+1, write it, and
+// move the pointer — no entries.
+func TestReleases_Cut_MovesPointerWithMonotonicNumber(t *testing.T) {
+	st, capture, cfg := newQueryTestCfg(t)
+	cfg.PushRowData(noRows())             // snapshotHeads: no live documents
+	cfg.PushRowData(appRow())             // app lock (FOR UPDATE)
+	cfg.PushRowData(countRow(2))          // existing releases → next number 3
+	cfg.PushRowData(releaseRow("r-1", 3)) // INSERT release RETURNING
+	cfg.PushRowData(appRow())             // app pointer UPDATE RETURNING
+
+	if _, err := st.Releases.Cut(tenantCtx(), testApp); err != nil {
+		t.Fatalf("cut: %v", err)
+	}
+
+	lock := queryAt(t, capture, 1)
+	wantSQL(t, lock, `FROM "apps"`, `"id" = ?`, `"tenant_id" = ?`, `FOR UPDATE`)
+
+	ins := queryAt(t, capture, 3)
+	wantSQL(t, ins, `INSERT INTO "releases"`, `"app_id"`, `"number"`, `"created_by"`, `RETURNING`)
+	wantArg(t, ins, 3) // count(2) + 1
+	wantArg(t, ins, testUser)
+
+	upd := queryAt(t, capture, 4)
+	wantSQL(t, upd, `UPDATE "apps" SET`, `"current_release_id" = ?`, `"id" = ?`)
+}
+
+// A full-tree cut snapshots each live document's head version into an entry.
+func TestReleases_Cut_SnapshotsHeadVersions(t *testing.T) {
+	st, capture, cfg := newQueryTestCfg(t)
+	cfg.PushRowData(docRow(nil))                           // snapshotHeads: one live document (d-1, a.md)
+	cfg.PushRowData(versionRow())                          // its head version (v-1)
+	cfg.PushRowData(appRow())                              // app lock
+	cfg.PushRowData(countRow(0))                           // first release → number 1
+	cfg.PushRowData(releaseRow("r-1", 1))                  // INSERT release
+	cfg.PushRowData(releaseEntryRow("a.md", "d-1", "v-1")) // INSERT entry
+	cfg.PushRowData(appRow())                              // pointer UPDATE
+
+	if _, err := st.Releases.Cut(tenantCtx(), testApp); err != nil {
+		t.Fatalf("cut: %v", err)
+	}
+
+	docs := queryAt(t, capture, 0)
+	wantSQL(t, docs, `FROM "documents"`, `"app_id" = ?`, `"deleted_at" IS NULL`)
+
+	entry := queryAt(t, capture, 5)
+	wantSQL(t, entry, `INSERT INTO "release_entries"`, `"key"`, `"document_id"`, `"version_id"`, `RETURNING`)
+	wantArg(t, entry, "a.md")
+	wantArg(t, entry, "d-1")
+	wantArg(t, entry, "v-1")
+}
+
+// List is app- and tenant-scoped, newest number first, paginated.
+func TestReleases_List_Query(t *testing.T) {
+	st, capture := newQueryTest(t)
+	_, _ = st.Releases.List(tenantCtx(), testApp, 10, 5)
+
+	q := lastQuery(t, capture)
+	wantSQL(t, q, `FROM "releases"`, `"app_id" = ?`, `"tenant_id" = ?`,
+		`ORDER BY "number" DESC`, `LIMIT 10`, `OFFSET 5`)
+}
+
+// Get loads the release scoped to app+tenant, then its entries by key.
+func TestReleases_Get_Query(t *testing.T) {
+	st, capture, cfg := newQueryTestCfg(t)
+	cfg.PushRowData(releaseRow("r-1", 1))                  // release select
+	cfg.PushRowData(releaseEntryRow("a.md", "d-1", "v-1")) // entries query
+
+	if _, _, err := st.Releases.Get(tenantCtx(), testApp, "r-1"); err != nil {
+		t.Fatalf("get: %v", err)
+	}
+
+	rel := queryAt(t, capture, 0)
+	wantSQL(t, rel, `FROM "releases"`, `"id" = ?`, `"app_id" = ?`, `"tenant_id" = ?`)
+	entries := queryAt(t, capture, 1)
+	wantSQL(t, entries, `FROM "release_entries"`, `"release_id" = ?`, `ORDER BY "key" ASC`)
+}
+
+// Rollback loads an old release's entries and cuts a NEW forward release copying
+// them — the number advances, the entry is copied.
+func TestReleases_Rollback_CopiesEntriesForward(t *testing.T) {
+	st, capture, cfg := newQueryTestCfg(t)
+	cfg.PushRowData(releaseRow("r-old", 1))                // old release select
+	cfg.PushRowData(releaseEntryRow("a.md", "d-1", "v-1")) // old entries
+	cfg.PushRowData(appRow())                              // app lock
+	cfg.PushRowData(countRow(2))                           // → new number 3
+	cfg.PushRowData(releaseRow("r-new", 3))                // new release insert
+	cfg.PushRowData(releaseEntryRow("a.md", "d-1", "v-1")) // copied entry insert
+	cfg.PushRowData(appRow())                              // pointer update
+
+	if _, err := st.Releases.Rollback(tenantCtx(), testApp, "r-old"); err != nil {
+		t.Fatalf("rollback: %v", err)
+	}
+
+	ins := queryAt(t, capture, 4)
+	wantSQL(t, ins, `INSERT INTO "releases"`, `RETURNING`)
+	wantArg(t, ins, 3) // a new forward number, never backward
+
+	entry := queryAt(t, capture, 5)
+	wantSQL(t, entry, `INSERT INTO "release_entries"`)
+	wantArg(t, entry, "d-1") // the old entry, copied
+	wantArg(t, entry, "v-1")
+}
+
+// Contains counts a document's entries in a release.
+func TestReleases_Contains_Query(t *testing.T) {
+	st, capture, cfg := newQueryTestCfg(t)
+	cfg.PushRowData(countRow(1))
+	ok, err := st.Releases.Contains(tenantCtx(), "r-1", "d-1")
+	if err != nil || !ok {
+		t.Fatalf("contains = %v, %v; want true, nil", ok, err)
+	}
+	q := lastQuery(t, capture)
+	wantSQL(t, q, `SELECT COUNT(*) FROM "release_entries"`, `"release_id" = ?`, `"document_id" = ?`)
+}
+
+// Cutting requires an acting user — the release records who cut it.
+func TestReleases_Cut_RequiresUser(t *testing.T) {
+	st, _ := newQueryTest(t)
+	// A tenant but no user.
+	ctx := auth.WithPrincipal(context.Background(), auth.NewPrincipal("", testTenant, "", nil, nil))
+	if _, err := st.Releases.Cut(ctx, testApp); !errors.Is(err, auth.ErrNoUser) {
+		t.Errorf("cut without user = %v, want ErrNoUser", err)
+	}
+	if _, err := st.Releases.Cut(context.Background(), testApp); !errors.Is(err, auth.ErrNoTenant) {
+		t.Errorf("cut without tenant = %v, want ErrNoTenant", err)
+	}
+}
+
+// Cut emits Release.Cut carrying the new number.
+func TestReleases_Cut_EmitsCut(t *testing.T) {
+	st, _, cfg := newQueryTestCfg(t)
+	cfg.PushRowData(noRows())
+	cfg.PushRowData(appRow())
+	cfg.PushRowData(countRow(0))
+	cfg.PushRowData(releaseRow("r-1", 1))
+	cfg.PushRowData(appRow())
+
+	var got events.ReleaseCutEvent
+	fired := false
+	l := events.Release.Cut.Listen(func(_ context.Context, e events.ReleaseCutEvent) { got, fired = e, true })
+	defer l.Close()
+
+	if _, err := st.Releases.Cut(tenantCtx(), testApp); err != nil {
+		t.Fatalf("cut: %v", err)
+	}
+	if !fired || got.ReleaseID != "r-1" || got.AppID != testApp || got.Number != 1 {
+		t.Errorf("Cut event = %+v (fired=%v)", got, fired)
+	}
+}
