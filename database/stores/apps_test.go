@@ -12,6 +12,7 @@ import (
 	"github.com/zoobz-io/grub/mockdb"
 
 	"github.com/zoobz-io/barbara/events"
+	"github.com/zoobz-io/barbara/internal/auth"
 )
 
 // Create inserts every non-PK column for the request's tenant and returns the
@@ -100,6 +101,56 @@ func TestApps_Delete_RefusesWithReleases(t *testing.T) {
 	}
 	for _, q := range capture.Queries {
 		notSQL(t, q, `DELETE FROM "apps"`)
+	}
+}
+
+// Every store method requires a tenant in context; a tenantless call is
+// rejected before any query runs.
+func TestApps_RequiresTenant(t *testing.T) {
+	st, capture := newQueryTest(t)
+	ctx := context.Background()
+	if _, err := st.Apps.Create(ctx, "x"); !errors.Is(err, auth.ErrNoTenant) {
+		t.Errorf("Create tenantless = %v, want ErrNoTenant", err)
+	}
+	if _, err := st.Apps.Get(ctx, "app-1"); !errors.Is(err, auth.ErrNoTenant) {
+		t.Errorf("Get tenantless = %v, want ErrNoTenant", err)
+	}
+	if _, err := st.Apps.List(ctx, 10, 0); !errors.Is(err, auth.ErrNoTenant) {
+		t.Errorf("List tenantless = %v, want ErrNoTenant", err)
+	}
+	if _, err := st.Apps.Rename(ctx, "app-1", "y"); !errors.Is(err, auth.ErrNoTenant) {
+		t.Errorf("Rename tenantless = %v, want ErrNoTenant", err)
+	}
+	if err := st.Apps.Delete(ctx, "app-1"); !errors.Is(err, auth.ErrNoTenant) {
+		t.Errorf("Delete tenantless = %v, want ErrNoTenant", err)
+	}
+	if len(capture.Queries) != 0 {
+		t.Errorf("a tenantless call issued %d queries, want 0", len(capture.Queries))
+	}
+}
+
+// A release cut racing the delete surfaces at the DB as a foreign-key violation;
+// the store translates it back to ErrAppHasReleases — the count guard's backstop.
+func TestApps_Delete_ForeignKeyRaceIsHasReleases(t *testing.T) {
+	st, _, cfg := newQueryTestCfg(t)
+	cfg.PushRowData(countRow(0))              // guard passes: no releases at count time
+	cfg.PushExecErr(&pq.Error{Code: "23503"}) // ...but the DELETE hits the FK (a cut raced in)
+
+	if err := st.Apps.Delete(tenantCtx(), "app-1"); !errors.Is(err, ErrAppHasReleases) {
+		t.Fatalf("delete racing a cut = %v, want ErrAppHasReleases", err)
+	}
+}
+
+// A non-FK error from the DELETE is wrapped and returned, never swallowed as the
+// release guard.
+func TestApps_Delete_OtherErrorIsWrapped(t *testing.T) {
+	st, _, cfg := newQueryTestCfg(t)
+	cfg.PushRowData(countRow(0))
+	cfg.PushExecErr(errors.New("delete boom"))
+
+	err := st.Apps.Delete(tenantCtx(), "app-1")
+	if err == nil || errors.Is(err, ErrAppHasReleases) {
+		t.Fatalf("delete with a non-FK error = %v, want a wrapped error (not ErrAppHasReleases)", err)
 	}
 }
 
