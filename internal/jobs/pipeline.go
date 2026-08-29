@@ -12,6 +12,7 @@ import (
 	"github.com/zoobz-io/pipz"
 
 	"github.com/zoobz-io/barbara/database/models"
+	"github.com/zoobz-io/barbara/events"
 )
 
 // IndexWriter is the OpenSearch write side the pipeline drives. It is
@@ -50,8 +51,17 @@ func NewPipeline(w IndexWriter, maxAttempts int, baseDelay time.Duration) *Pipel
 	return &Pipeline{chain: pipz.NewBackoff(pipelineID, write, maxAttempts, baseDelay)}
 }
 
-// Process runs one job through the pipeline.
+// Process runs one job through the pipeline, emitting the OpenSearch-write
+// outcome — this is where the write actually resolves, after any retries.
 func (p *Pipeline) Process(ctx context.Context, j *models.Job) error {
-	_, err := p.chain.Process(ctx, j)
-	return err
+	if _, err := p.chain.Process(ctx, j); err != nil {
+		events.Index.WriteFailed.Emit(ctx, events.IndexWriteFailedEvent{
+			DocumentID: j.DocumentID, Operation: j.Operation, Error: err.Error(),
+		})
+		return err
+	}
+	events.Index.WriteSucceeded.Emit(ctx, events.IndexWriteSucceededEvent{
+		DocumentID: j.DocumentID, Operation: j.Operation,
+	})
+	return nil
 }
