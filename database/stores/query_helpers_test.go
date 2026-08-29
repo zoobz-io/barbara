@@ -39,7 +39,7 @@ func newQueryTest(t *testing.T) (*Stores, *mockdb.Capture) {
 	sum.Reset()
 	sum.New()
 	db, capture := mockdb.New()
-	return New(db, astqlpg.New(), testkit.NewSearchProvider()), capture
+	return New(db, astqlpg.New(), testkit.NewSearchProvider(), testkit.NewBucketProvider()), capture
 }
 
 // newQueryTestCfg is newQueryTest plus the mock Config, for driving the reads a
@@ -50,7 +50,7 @@ func newQueryTestCfg(t *testing.T) (*Stores, *mockdb.Capture, *mockdb.Config) {
 	sum.Reset()
 	sum.New()
 	db, capture, cfg := mockdb.NewWithConfig()
-	return New(db, astqlpg.New(), testkit.NewSearchProvider()), capture, cfg
+	return New(db, astqlpg.New(), testkit.NewSearchProvider(), testkit.NewBucketProvider()), capture, cfg
 }
 
 // tenantCtx returns a context carrying a principal for the test tenant and user,

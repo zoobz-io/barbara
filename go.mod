@@ -18,7 +18,7 @@ require (
 	github.com/zoobz-io/grub/opensearch v0.1.11
 	github.com/zoobz-io/lucene v0.0.4
 	github.com/zoobz-io/pipz v1.0.7
-	github.com/zoobz-io/rocco v0.1.16
+	github.com/zoobz-io/rocco v0.1.23
 	github.com/zoobz-io/soy v1.0.9
 	github.com/zoobz-io/sum v0.0.12
 	go.opentelemetry.io/otel v1.42.0

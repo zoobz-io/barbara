@@ -32,6 +32,16 @@ jobs:
           OPENSEARCH_JAVA_OPTS: "-Xms512m -Xmx512m"
         ports:
           - 9200:9200
+      # Object storage for the assets suite. bitnami/minio starts the server on
+      # its own (no command needed, unlike the upstream image), so it works as a
+      # plain service container. The asset store creates the bucket if absent.
+      minio:
+        image: bitnami/minio:latest
+        env:
+          MINIO_ROOT_USER: minioadmin
+          MINIO_ROOT_PASSWORD: minioadmin
+        ports:
+          - 9000:9000
     env:
       APP_DB_HOST: localhost
       APP_DB_PORT: "5432"
@@ -39,6 +49,10 @@ jobs:
       APP_DB_PASSWORD: barbara
       APP_DB_NAME: barbara
       APP_OPENSEARCH_ADDR: http://localhost:9200
+      APP_STORAGE_ENDPOINT: localhost:9000
+      APP_STORAGE_ACCESS_KEY: minioadmin
+      APP_STORAGE_SECRET_KEY: minioadmin
+      APP_STORAGE_BUCKET: barbara
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
@@ -61,6 +75,12 @@ jobs:
         run: |
           for i in $(seq 1 60); do
             curl -sf http://localhost:9200/_cluster/health && break
+            sleep 3
+          done
+      - name: Wait for MinIO
+        run: |
+          for i in $(seq 1 60); do
+            curl -sf http://localhost:9000/minio/health/live && break
             sleep 3
           done
       # One pass: race-checked tests + coverage profile (make test emits coverage.out).

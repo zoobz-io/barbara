@@ -18,5 +18,9 @@ func All() []rocco.Endpoint {
 		PublishDocument,
 		UnpublishDocument,
 		RollbackDocument,
+		UploadAsset,
+		GetAsset,
+		ListAssets,
+		DeleteAsset,
 	}
 }

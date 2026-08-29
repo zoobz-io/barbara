@@ -173,8 +173,8 @@ github.com/zoobz-io/openapi v1.0.2 h1:KWJmjt/EYTkyzTvNCEK6BXDRWV7J45LhRXqWWZjm2m
 github.com/zoobz-io/openapi v1.0.2/go.mod h1:B1AhdYd+dAtRRPIH8IQo2yjrvZbUdQAIhyrC+WhdrZA=
 github.com/zoobz-io/pipz v1.0.7 h1:z0ND04aOfmVfp/9w/7e2UEtvcVvx7vhinV/1Pto5dwY=
 github.com/zoobz-io/pipz v1.0.7/go.mod h1:Fqif5Ciw0GViOA1FbR2BBnSeOF0fWB9MCQ//ViGuGhs=
-github.com/zoobz-io/rocco v0.1.16 h1:IMcpUxgFARrTCCqldNDJK70Yg6gBleJN/9ArSqCWOZk=
-github.com/zoobz-io/rocco v0.1.16/go.mod h1:RkkWlhv/AWOb3cb/ywrjDobomzprt0R7lVtRH5WUkXE=
+github.com/zoobz-io/rocco v0.1.23 h1:vVfvxJz1qnr2youUtyAXzkOOZCSvvrxjORS+11vHp/g=
+github.com/zoobz-io/rocco v0.1.23/go.mod h1:RkkWlhv/AWOb3cb/ywrjDobomzprt0R7lVtRH5WUkXE=
 github.com/zoobz-io/scio v0.0.5 h1:fPDdnLIAUxhdzB0IycdbnI7j8V7is3KRRUiFzmahCeU=
 github.com/zoobz-io/scio v0.0.5/go.mod h1:zzwKhZ6DCbWq9gpUQC8b5GehZAjgcX/Aq39bjjxdNQE=
 github.com/zoobz-io/sentinel v1.0.4 h1:nGn4zzwwjmd30tJ2nf75xgvkw47lrD+0dDYFMCg1s1k=

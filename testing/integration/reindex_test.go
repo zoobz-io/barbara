@@ -11,6 +11,7 @@ import (
 
 	"github.com/zoobz-io/barbara/database/stores"
 	"github.com/zoobz-io/barbara/internal/boot"
+	"github.com/zoobz-io/barbara/testing/testkit"
 )
 
 // reindexFixture builds the aggregate over real Postgres AND a real OpenSearch
@@ -35,7 +36,7 @@ func reindexFixture(t *testing.T) *stores.Stores {
 		_ = db.Close()
 	})
 
-	st := stores.New(db, astqlpg.New(), provider)
+	st := stores.New(db, astqlpg.New(), provider, testkit.NewBucketProvider())
 
 	// t1: one published doc.
 	t1 := tenantCtx(testTenant)

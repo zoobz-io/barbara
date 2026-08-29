@@ -62,6 +62,24 @@ func (d *Driver) Request(t *testing.T, method, path string, body any) *httptest.
 	return d.RequestAs(t, DefaultTenant, method, path, body)
 }
 
+// RequestRaw fires a request as the given tenant (empty for none) with a raw
+// body and explicit content type — for binary endpoints (rocco.RawBody input,
+// rocco.Blob output) that the JSON-encoding Request helpers can't drive. On a
+// download the raw bytes are in the returned recorder's Body.
+func (d *Driver) RequestRaw(t *testing.T, tenant, method, path, contentType string, body []byte) *httptest.ResponseRecorder {
+	t.Helper()
+	req := httptest.NewRequest(method, path, bytes.NewReader(body))
+	if tenant != "" {
+		req.Header.Set("X-Tenant-ID", tenant)
+	}
+	if contentType != "" {
+		req.Header.Set("Content-Type", contentType)
+	}
+	w := httptest.NewRecorder()
+	d.handler.ServeHTTP(w, req)
+	return w
+}
+
 // RequestAs fires a request as the given tenant (empty for none), JSON-encoding
 // a non-nil body.
 func (d *Driver) RequestAs(t *testing.T, tenant, method, path string, body any) *httptest.ResponseRecorder {
