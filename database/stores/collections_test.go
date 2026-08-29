@@ -7,6 +7,8 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/lib/pq"
+
 	"github.com/zoobz-io/grub/mockdb"
 
 	"github.com/zoobz-io/barbara/events"
@@ -228,6 +230,74 @@ func TestCollections_Delete_RefusesNonEmpty(t *testing.T) {
 	}
 	for _, q := range capture.Queries {
 		notSQL(t, q, `DELETE FROM "collections"`)
+	}
+}
+
+// Create at the root validates the app is the tenant's: an unknown app scopes
+// out with ErrNotFound, before any INSERT.
+func TestCollections_Create_UnknownAppScopesOut(t *testing.T) {
+	st, capture := newQueryTest(t) // apps.Get finds no row → ErrNotFound
+	_, err := st.Collections.Create(tenantCtx(), testApp, nil, "guides")
+	if !errors.Is(err, ErrNotFound) {
+		t.Fatalf("create under an unknown app = %v, want ErrNotFound", err)
+	}
+	for _, q := range capture.Queries {
+		notSQL(t, q, `INSERT INTO "collections"`)
+	}
+}
+
+// Moving a collection to the parent it already has is a no-op: nothing past the
+// lock, no event.
+func TestCollections_Move_SameParentNoOp(t *testing.T) {
+	st, capture, cfg := newQueryTestCfg(t)
+	cfg.PushRowData(collectionRow("c-1", "guides", "p-1")) // lock: already under p-1
+
+	fired := false
+	l := events.Collection.Moved.Listen(func(_ context.Context, _ events.CollectionMovedEvent) { fired = true })
+	defer l.Close()
+
+	parent := "p-1"
+	if _, err := st.Collections.Move(tenantCtx(), testApp, "c-1", &parent); err != nil {
+		t.Fatalf("move to same parent: %v", err)
+	}
+	if fired {
+		t.Error("Collection.Moved emitted for a same-parent move")
+	}
+	if len(capture.Queries) != 1 {
+		t.Errorf("a same-parent move issued %d queries, want 1 (the lock)", len(capture.Queries))
+	}
+}
+
+// If rewriting a descendant key collides with an existing document at the
+// destination (unique key), the rename fails with ErrCollectionNameTaken.
+func TestCollections_Rename_DescendantKeyCollision(t *testing.T) {
+	st, _, cfg := newQueryTestCfg(t)
+	cfg.PushRowData(collectionRow("c-1", "guides", nil))    // lock
+	cfg.PushRowData(countRow(0))                            // sibling check
+	cfg.PushRowData(collectionRow("c-1", "tutorials", nil)) // UPDATE ... RETURNING
+	cfg.PushRowData(&mockdb.RowData{ // the one descendant document to rewrite
+		Columns: []string{"id", "tenant_id", "key"},
+		Rows:    [][]any{{"d-1", testTenant, "guides/sub.md"}},
+	})
+	cfg.PushQueryErr(&pq.Error{Code: "23505"}) // its key rewrite (UPDATE ... RETURNING) collides
+
+	_, err := st.Collections.Rename(tenantCtx(), testApp, "c-1", "tutorials")
+	if !errors.Is(err, ErrCollectionNameTaken) {
+		t.Fatalf("rename with a colliding descendant key = %v, want ErrCollectionNameTaken", err)
+	}
+}
+
+// A child added between the emptiness check and the delete surfaces at the DB as
+// a foreign-key violation, translated back to ErrCollectionNotEmpty.
+func TestCollections_Delete_ForeignKeyRaceIsNotEmpty(t *testing.T) {
+	st, _, cfg := newQueryTestCfg(t)
+	cfg.PushRowData(collectionRow("c-1", "guides", nil)) // lock
+	cfg.PushRowData(countRow(0))                         // subcollection count
+	cfg.PushRowData(countRow(0))                         // document count
+	cfg.PushExecErr(&pq.Error{Code: "23503"})            // ...but the DELETE hits a child FK
+
+	if err := st.Collections.Delete(tenantCtx(), testApp, "c-1"); !errors.Is(err, ErrCollectionNotEmpty) {
+		t.Fatalf("delete racing a child insert = %v, want ErrCollectionNotEmpty", err)
 	}
 }
 
