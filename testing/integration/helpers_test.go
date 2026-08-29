@@ -28,6 +28,18 @@ func env(key, def string) string {
 	return def
 }
 
+// integrationSkip skips a test when a backing service is unreachable — so the
+// suite is a no-op on a machine without the dev stack — EXCEPT in CI, where the
+// stack is provisioned as service containers and an unreachable service is a
+// real failure, not a reason to silently pass. GitHub Actions sets CI=true.
+func integrationSkip(t *testing.T, format string, args ...any) {
+	t.Helper()
+	if os.Getenv("CI") != "" {
+		t.Fatalf("CI requires the integration stack but "+format, args...)
+	}
+	t.Skipf(format, args...)
+}
+
 // pgDB connects to Postgres for integration tests, resetting the sum catalog so
 // stores can re-register, and skipping when the database or schema is absent —
 // so the suite is a no-op without the dev stack.
@@ -42,7 +54,7 @@ func pgDB(t *testing.T) *sqlx.DB {
 
 	db, err := sqlx.Connect("postgres", dsn)
 	if err != nil {
-		t.Skipf("Postgres not reachable (%v); skipping integration test", err)
+		integrationSkip(t, "Postgres not reachable (%v)", err)
 	}
 	return db
 }
@@ -72,7 +84,7 @@ func osProvider(t *testing.T) grub.SearchProvider {
 	}
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		t.Skipf("OpenSearch not reachable at %s (%v); skipping", addr, err)
+		integrationSkip(t, "OpenSearch not reachable at %s (%v)", addr, err)
 	}
 	_ = resp.Body.Close()
 
