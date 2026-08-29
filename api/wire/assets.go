@@ -1,6 +1,6 @@
 package wire
 
-// AssetResponse is the admin API metadata for a stored asset. The bytes are
+// AssetResponse is the authoring API metadata for a stored asset. The bytes are
 // served separately by the download endpoint; this carries metadata only.
 type AssetResponse struct {
 	Key         string `json:"key" description:"Asset key, unique per tenant" example:"images/logo.png"`
@@ -11,7 +11,7 @@ type AssetResponse struct {
 // Clone returns a deep copy.
 func (r AssetResponse) Clone() AssetResponse { return r }
 
-// AssetListResponse is the admin API response for listing a tenant's assets.
+// AssetListResponse is the authoring API response for listing a tenant's assets.
 type AssetListResponse struct {
 	Assets []AssetResponse `json:"assets" description:"The tenant's assets"`
 	Total  int             `json:"total" description:"Number of assets returned"`

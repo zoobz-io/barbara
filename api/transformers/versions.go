@@ -1,11 +1,11 @@
 package transformers
 
 import (
-	"github.com/zoobz-io/barbara/admin/wire"
+	"github.com/zoobz-io/barbara/api/wire"
 	"github.com/zoobz-io/barbara/database/models"
 )
 
-// VersionToResponse maps a version model to its admin response.
+// VersionToResponse maps a version model to its authoring response.
 func VersionToResponse(v *models.Version) wire.VersionResponse {
 	return wire.VersionResponse{
 		ID:            v.ID,
@@ -18,7 +18,7 @@ func VersionToResponse(v *models.Version) wire.VersionResponse {
 	}
 }
 
-// VersionsToListResponse maps a slice of versions to the admin list response.
+// VersionsToListResponse maps a slice of versions to the authoring list response.
 func VersionsToListResponse(versions []*models.Version, limit, offset int) wire.VersionListResponse {
 	out := wire.VersionListResponse{
 		Versions: make([]wire.VersionResponse, len(versions)),

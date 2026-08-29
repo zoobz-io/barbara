@@ -1,6 +1,6 @@
-// Package contracts defines the interfaces the site-facing (api) surface
-// depends on. Each contract exposes only what the read surface needs; the
-// shared search store implements them.
+// Package contracts defines the interfaces the public-API surface depends on:
+// the read interface over the search store and the authoring interfaces over
+// the shared stores. Each exposes only what its surface needs.
 package contracts
 
 import (

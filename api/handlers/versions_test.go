@@ -10,7 +10,7 @@ import (
 
 	"github.com/zoobz-io/sum"
 
-	"github.com/zoobz-io/barbara/admin/contracts"
+	"github.com/zoobz-io/barbara/api/contracts"
 	"github.com/zoobz-io/barbara/database/models"
 	"github.com/zoobz-io/barbara/database/stores"
 	"github.com/zoobz-io/barbara/testing/testkit"

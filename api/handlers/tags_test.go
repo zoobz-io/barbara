@@ -10,7 +10,7 @@ import (
 
 	"github.com/zoobz-io/sum"
 
-	"github.com/zoobz-io/barbara/admin/contracts"
+	"github.com/zoobz-io/barbara/api/contracts"
 	"github.com/zoobz-io/barbara/database/models"
 	"github.com/zoobz-io/barbara/database/stores"
 	"github.com/zoobz-io/barbara/testing/testkit"
@@ -33,7 +33,7 @@ func (m *mockTagging) RemoveTag(_ context.Context, id, tag string) (*models.Docu
 	return m.doc, m.err
 }
 
-// tagDriver wires the admin tag handlers over the mock contract.
+// tagDriver wires the tag handlers over the mock contract.
 func tagDriver(t *testing.T, mock contracts.Tagging) *testkit.Driver {
 	return testkit.Handlers(t, func(k sum.Key) {
 		sum.Register[contracts.Tagging](k, mock)

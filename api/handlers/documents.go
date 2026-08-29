@@ -1,15 +1,12 @@
-// Package handlers defines the admin (authoring) HTTP endpoints. Handlers are
-// thin: resolve the contract, bridge the request identity into the context so
-// the store is tenant-scoped, call the contract, and transform the result.
 package handlers
 
 import (
 	"github.com/zoobz-io/rocco"
 	"github.com/zoobz-io/sum"
 
-	"github.com/zoobz-io/barbara/admin/contracts"
-	"github.com/zoobz-io/barbara/admin/transformers"
-	"github.com/zoobz-io/barbara/admin/wire"
+	"github.com/zoobz-io/barbara/api/contracts"
+	"github.com/zoobz-io/barbara/api/transformers"
+	"github.com/zoobz-io/barbara/api/wire"
 	"github.com/zoobz-io/barbara/database/models"
 	dbtransformers "github.com/zoobz-io/barbara/database/transformers"
 	"github.com/zoobz-io/barbara/internal/auth"

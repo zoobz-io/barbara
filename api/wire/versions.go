@@ -7,7 +7,7 @@ type SaveVersionRequest struct {
 	Content string `json:"content" description:"The document's full markdown content"`
 }
 
-// VersionResponse is the admin API representation of a version.
+// VersionResponse is the authoring API representation of a version.
 type VersionResponse struct {
 	CreatedAt     time.Time `json:"created_at" description:"Creation timestamp"`
 	ID            string    `json:"id" description:"Version ID"`
@@ -22,7 +22,7 @@ type VersionResponse struct {
 // copy is a deep copy.
 func (r VersionResponse) Clone() VersionResponse { return r }
 
-// VersionListResponse is the admin API response for listing versions.
+// VersionListResponse is the authoring API response for listing versions.
 type VersionListResponse struct {
 	Versions []VersionResponse `json:"versions" description:"The document's versions, newest first"`
 	Total    int               `json:"total" description:"Number of versions returned"`

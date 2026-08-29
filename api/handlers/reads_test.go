@@ -52,7 +52,7 @@ func TestGetPublishedDocument_OK(t *testing.T) {
 	mock := &mockReads{doc: &models.DocumentIndex{
 		DocumentID: "d1", Key: "guides/install.md", TenantID: "t1", VersionID: "v1",
 	}}
-	w := driver(t, mock).Request(t, http.MethodGet, "/documents/lookup?key=guides/install.md", nil)
+	w := driver(t, mock).Request(t, http.MethodGet, "/published/lookup?key=guides/install.md", nil)
 
 	if w.Code != http.StatusOK {
 		t.Fatalf("status = %d, want 200; body=%s", w.Code, w.Body.String())
@@ -75,21 +75,21 @@ func TestGetPublishedDocument_OK(t *testing.T) {
 }
 
 func TestGetPublishedDocument_MissingKey(t *testing.T) {
-	w := driver(t, &mockReads{}).Request(t, http.MethodGet, "/documents/lookup", nil)
+	w := driver(t, &mockReads{}).Request(t, http.MethodGet, "/published/lookup", nil)
 	if w.Code != http.StatusBadRequest {
 		t.Fatalf("status = %d, want 400; body=%s", w.Code, w.Body.String())
 	}
 }
 
 func TestGetPublishedDocument_NotFound(t *testing.T) {
-	w := driver(t, &mockReads{err: stores.ErrNotFound}).Request(t, http.MethodGet, "/documents/lookup?key=nope.md", nil)
+	w := driver(t, &mockReads{err: stores.ErrNotFound}).Request(t, http.MethodGet, "/published/lookup?key=nope.md", nil)
 	if w.Code != http.StatusNotFound {
 		t.Fatalf("status = %d, want 404; body=%s", w.Code, w.Body.String())
 	}
 }
 
 func TestGetPublishedDocument_NoTenant(t *testing.T) {
-	w := driver(t, &mockReads{err: auth.ErrNoTenant}).Request(t, http.MethodGet, "/documents/lookup?key=x.md", nil)
+	w := driver(t, &mockReads{err: auth.ErrNoTenant}).Request(t, http.MethodGet, "/published/lookup?key=x.md", nil)
 	if w.Code != http.StatusUnauthorized {
 		t.Fatalf("status = %d, want 401; body=%s", w.Code, w.Body.String())
 	}
@@ -100,7 +100,7 @@ func TestEnumerateDocuments_OK(t *testing.T) {
 		list:  []models.DocumentIndex{{DocumentID: "d1"}, {DocumentID: "d2"}},
 		total: 2,
 	}
-	w := driver(t, mock).Request(t, http.MethodGet, "/documents?tag=guide&limit=10", nil)
+	w := driver(t, mock).Request(t, http.MethodGet, "/published/documents?tag=guide&limit=10", nil)
 	if w.Code != http.StatusOK {
 		t.Fatalf("status = %d, want 200; body=%s", w.Code, w.Body.String())
 	}
@@ -118,7 +118,7 @@ func TestEnumerateDocuments_OK(t *testing.T) {
 
 func TestSearchDocuments_OK(t *testing.T) {
 	mock := &mockReads{list: []models.DocumentIndex{{DocumentID: "d1"}}, total: 1}
-	w := driver(t, mock).Request(t, http.MethodGet, "/search?q=install", nil)
+	w := driver(t, mock).Request(t, http.MethodGet, "/published/search?q=install", nil)
 	if w.Code != http.StatusOK {
 		t.Fatalf("status = %d, want 200; body=%s", w.Code, w.Body.String())
 	}
@@ -128,7 +128,7 @@ func TestSearchDocuments_OK(t *testing.T) {
 }
 
 func TestSearchDocuments_MissingQuery(t *testing.T) {
-	w := driver(t, &mockReads{}).Request(t, http.MethodGet, "/search", nil)
+	w := driver(t, &mockReads{}).Request(t, http.MethodGet, "/published/search", nil)
 	if w.Code != http.StatusBadRequest {
 		t.Fatalf("status = %d, want 400; body=%s", w.Code, w.Body.String())
 	}

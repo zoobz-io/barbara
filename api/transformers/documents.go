@@ -1,14 +1,11 @@
-// Package transformers maps domain models to admin API wire types. Pure
-// functions, no side effects. Admin sees everything — audit fields included, no
-// masking.
 package transformers
 
 import (
-	"github.com/zoobz-io/barbara/admin/wire"
+	"github.com/zoobz-io/barbara/api/wire"
 	"github.com/zoobz-io/barbara/database/models"
 )
 
-// DocumentToResponse maps a document model to its admin response.
+// DocumentToResponse maps a document model to its authoring response.
 func DocumentToResponse(d *models.Document) wire.DocumentResponse {
 	return wire.DocumentResponse{
 		ID:                 d.ID,
@@ -21,7 +18,7 @@ func DocumentToResponse(d *models.Document) wire.DocumentResponse {
 	}
 }
 
-// DocumentsToListResponse maps a slice of documents to the admin list response.
+// DocumentsToListResponse maps a slice of documents to the authoring list response.
 func DocumentsToListResponse(docs []*models.Document, limit, offset int) wire.DocumentListResponse {
 	out := wire.DocumentListResponse{
 		Documents: make([]wire.DocumentResponse, len(docs)),
