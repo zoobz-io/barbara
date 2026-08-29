@@ -38,9 +38,14 @@ func e2eFixture(t *testing.T) (*stores.Stores, grub.SearchProvider) {
 		t.Fatalf("ensure indices: %v", err)
 	}
 	t.Cleanup(func() {
+		_, _ = db.Exec("UPDATE apps SET current_release_id = NULL")
+		_, _ = db.Exec("DELETE FROM release_entries")
+		_, _ = db.Exec("DELETE FROM releases")
 		_, _ = db.Exec("DELETE FROM jobs")
 		_, _ = db.Exec("DELETE FROM versions")
 		_, _ = db.Exec("DELETE FROM documents")
+		_, _ = db.Exec("DELETE FROM collections")
+		_, _ = db.Exec("DELETE FROM apps")
 		_ = db.Close()
 		deleteIndex(t, addr, "documents")
 	})

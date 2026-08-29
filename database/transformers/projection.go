@@ -13,7 +13,13 @@ import (
 // the DocumentIndex — the OpenSearch projection of a published document. app_id
 // and parent_path are materialized here (parent_path is the key's folder), so
 // the live index answers app scoping and folder listing without a tree walk.
-func Projection(doc *models.Document, version *models.Version) models.DocumentIndex {
+//
+// key is the SERVING path — the release entry's key, not the document's. The
+// two diverge when a document moves or renames after a release is cut: the
+// authoring key changes, but the release (and therefore the live site) keeps
+// the path it recorded until the next cut. Passing doc.Key here is only
+// correct when the caller has just derived the entry from the live tree.
+func Projection(doc *models.Document, version *models.Version, key string) models.DocumentIndex {
 	appID := ""
 	if doc.AppID != nil {
 		appID = *doc.AppID
@@ -22,8 +28,8 @@ func Projection(doc *models.Document, version *models.Version) models.DocumentIn
 		DocumentID:    doc.ID,
 		TenantID:      doc.TenantID,
 		AppID:         appID,
-		Key:           doc.Key,
-		ParentPath:    parentPath(doc.Key),
+		Key:           key,
+		ParentPath:    parentPath(key),
 		Tags:          []string(doc.Tags),
 		VersionID:     version.ID,
 		VersionNumber: version.VersionNumber,

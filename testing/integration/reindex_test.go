@@ -31,30 +31,41 @@ func reindexFixture(t *testing.T) (*stores.Stores, *models.App, *models.App) {
 	}
 	t.Cleanup(func() {
 		deleteIndex(t, addr, "documents")
+		_, _ = db.Exec("UPDATE apps SET current_release_id = NULL")
+		_, _ = db.Exec("DELETE FROM release_entries")
+		_, _ = db.Exec("DELETE FROM releases")
 		_, _ = db.Exec("DELETE FROM jobs")
 		_, _ = db.Exec("DELETE FROM versions")
 		_, _ = db.Exec("DELETE FROM documents")
+		_, _ = db.Exec("DELETE FROM collections")
+		_, _ = db.Exec("DELETE FROM apps")
 		_ = db.Close()
 	})
 
 	st := stores.New(db, astqlpg.New(), provider, testkit.NewBucketProvider())
 
-	// t1: one published doc.
+	// t1: one released doc — cut BEFORE the draft exists, so the release holds
+	// exactly it.
 	t1 := tenantCtx(testTenant)
 	app1 := seedApp(t, st, t1)
 	a, err := seedDoc(st, t1, app1.ID, "guides/a.md")
 	if err != nil {
 		t.Fatalf("create a: %v", err)
 	}
-	av, err := st.Versions.Save(t1, a.ID, "# alpha", 0)
+	_, err = st.Versions.Save(t1, a.ID, "# alpha", 0)
 	if err != nil {
 		t.Fatalf("save a version: %v", err)
 	}
-	if _, err := st.Publish(t1, a.ID, av.ID); err != nil {
-		t.Fatalf("publish a: %v", err)
+	if _, err := st.Releases.Cut(t1, app1.ID); err != nil {
+		t.Fatalf("cut r1 for app1: %v", err)
+	}
+	// Rename a AFTER the cut: the authoring key moves to renamed.md, but the
+	// release recorded guides/a.md — the reindex must serve the entry key.
+	if _, err := st.Documents.Move(t1, app1.ID, a.ID, nil, "renamed.md"); err != nil {
+		t.Fatalf("rename a: %v", err)
 	}
 
-	// t1: a draft (saved but never published) — must not be reindexed.
+	// t1: a draft (saved after the cut, in no release) — must not be reindexed.
 	d, err := seedDoc(st, t1, app1.ID, "draft.md")
 	if err != nil {
 		t.Fatalf("create draft: %v", err)
@@ -63,23 +74,23 @@ func reindexFixture(t *testing.T) (*stores.Stores, *models.App, *models.App) {
 		t.Fatalf("save draft version: %v", err)
 	}
 
-	// t2: one published doc — proves the reindex crosses tenants.
+	// t2: one released doc — proves the reindex crosses tenants and apps.
 	t2 := tenantCtx(otherTenant)
 	app2 := seedApp(t, st, t2)
 	b, err := seedDoc(st, t2, app2.ID, "guides/b.md")
 	if err != nil {
 		t.Fatalf("create b: %v", err)
 	}
-	bv, err := st.Versions.Save(t2, b.ID, "# beta", 0)
+	_, err = st.Versions.Save(t2, b.ID, "# beta", 0)
 	if err != nil {
 		t.Fatalf("save b version: %v", err)
 	}
-	if _, err := st.Publish(t2, b.ID, bv.ID); err != nil {
-		t.Fatalf("publish b: %v", err)
+	if _, err := st.Releases.Cut(t2, app2.ID); err != nil {
+		t.Fatalf("cut r1 for app2: %v", err)
 	}
 
-	// Publish only enqueued outbox jobs; the index is still empty. Reindex must
-	// rebuild it from Postgres alone.
+	// The cuts only enqueued outbox jobs (never drained); the index is still
+	// empty. Reindex must rebuild it from the current releases alone.
 	return st, app1, app2
 }
 
@@ -107,6 +118,11 @@ func TestReindex_RebuildsPublishedSetFromPostgres(t *testing.T) {
 	// The draft was excluded.
 	if _, err := st.Search.GetPublishedByKey(t1, app1.ID, "draft.md"); !errors.Is(err, stores.ErrNotFound) {
 		t.Errorf("draft.md = %v, want ErrNotFound (drafts are not projected)", err)
+	}
+	// The post-cut rename did not leak: the release-recorded path serves, the
+	// new authoring key does not.
+	if _, err := st.Search.GetPublishedByKey(t1, app1.ID, "renamed.md"); !errors.Is(err, stores.ErrNotFound) {
+		t.Errorf("renamed.md = %v, want ErrNotFound (authoring key is not the serving key)", err)
 	}
 	// Each tenant sees only its own published document.
 	if _, total, err := st.Search.Enumerate(t1, app1.ID, "", 50, 0); err != nil || total != 1 {

@@ -21,7 +21,7 @@ func TestProjection(t *testing.T) {
 	}
 	version := &models.Version{ID: "v1", VersionNumber: 3, Content: "# hello"}
 
-	idx := Projection(doc, version)
+	idx := Projection(doc, version, doc.Key)
 
 	if idx.DocumentID != "d1" || idx.TenantID != "t1" || idx.Key != "guides/a.md" {
 		t.Errorf("document metadata not merged: %+v", idx)
@@ -40,12 +40,12 @@ func TestProjection_MaterializesAppAndParentPath(t *testing.T) {
 	app := "app-1"
 	version := &models.Version{ID: "v1"}
 
-	nested := Projection(&models.Document{ID: "d1", Key: "guides/api/ref.md", AppID: &app}, version)
+	nested := Projection(&models.Document{ID: "d1", Key: "guides/api/ref.md", AppID: &app}, version, "guides/api/ref.md")
 	if nested.AppID != "app-1" || nested.ParentPath != "guides/api" {
 		t.Errorf("nested projection = app:%q parent:%q; want app-1/guides/api", nested.AppID, nested.ParentPath)
 	}
 
-	root := Projection(&models.Document{ID: "d2", Key: "readme.md"}, version)
+	root := Projection(&models.Document{ID: "d2", Key: "readme.md"}, version, "readme.md")
 	if root.AppID != "" || root.ParentPath != "" {
 		t.Errorf("root projection = app:%q parent:%q; want empty/empty", root.AppID, root.ParentPath)
 	}
@@ -65,5 +65,16 @@ func TestParentPath(t *testing.T) {
 		if got := parentPath(key); got != want {
 			t.Errorf("parentPath(%q) = %q, want %q", key, got, want)
 		}
+	}
+}
+
+// The serving key wins over the authoring key: a document renamed after a
+// release is cut still serves at the path the release recorded.
+func TestProjection_ServesTheEntryKey(t *testing.T) {
+	app := "app-1"
+	doc := &models.Document{ID: "d1", Key: "renamed/new.md", AppID: &app}
+	idx := Projection(doc, &models.Version{ID: "v1"}, "old/original.md")
+	if idx.Key != "old/original.md" || idx.ParentPath != "old" {
+		t.Errorf("projection = key:%q parent:%q; want the release-recorded path old/original.md", idx.Key, idx.ParentPath)
 	}
 }

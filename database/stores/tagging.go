@@ -116,7 +116,7 @@ func (s *Stores) enqueueReprojection(ctx context.Context, tx *sqlx.Tx, tenantID 
 	if err != nil {
 		return err
 	}
-	payload, err := json.Marshal(transformers.Projection(doc, version))
+	payload, err := json.Marshal(transformers.Projection(doc, version, doc.Key))
 	if err != nil {
 		return fmt.Errorf("building projection: %w", err)
 	}
