@@ -10,6 +10,12 @@ func All() []rocco.Endpoint {
 		GetPublishedDocument,
 		EnumerateDocuments,
 		SearchDocuments,
+		// Apps.
+		CreateApp,
+		GetApp,
+		ListApps,
+		RenameApp,
+		DeleteApp,
 		// Documents authoring.
 		CreateDocument,
 		GetDocument,

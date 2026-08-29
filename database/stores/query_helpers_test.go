@@ -72,6 +72,14 @@ func docRow(publishedVersionID any) *mockdb.RowData {
 	}
 }
 
+// appRow is an apps row — enough for an INSERT/UPDATE ... RETURNING to scan.
+func appRow() *mockdb.RowData {
+	return &mockdb.RowData{
+		Columns: []string{"id", "tenant_id", "name"},
+		Rows:    [][]any{{"app-1", testTenant, "docs-site"}},
+	}
+}
+
 // versionRow is a versions row belonging to document d-1.
 func versionRow() *mockdb.RowData {
 	return &mockdb.RowData{

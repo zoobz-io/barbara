@@ -27,6 +27,10 @@ func ErrorToResponse(err error) error {
 		return rocco.ErrNotFound.WithMessage("resource not found")
 	case errors.Is(err, stores.ErrDocumentPublished):
 		return rocco.ErrConflict.WithMessage("document is published; unpublish before deleting")
+	case errors.Is(err, stores.ErrAppNameTaken):
+		return rocco.ErrConflict.WithMessage("an app with that name already exists")
+	case errors.Is(err, stores.ErrAppHasReleases):
+		return rocco.ErrConflict.WithMessage("app has releases; releases are never deleted")
 	case errors.Is(err, stores.ErrVersionMismatch):
 		return rocco.ErrBadRequest.WithMessage("version does not belong to the document")
 	case errors.Is(err, auth.ErrNoTenant):
