@@ -139,6 +139,28 @@ func TestReleases_Cut_ProjectsDiff(t *testing.T) {
 	wantArg(t, del, "d-2")
 }
 
+// An unchanged path (same document at the same version and key) enqueues no
+// projection job.
+func TestReleases_Cut_UnchangedPathSkipped(t *testing.T) {
+	st, capture, cfg := newQueryTestCfg(t)
+	cfg.PushRowData(docRow(nil))                           // snapshotHeads: d-1 (a.md)
+	cfg.PushRowData(versionRow())                          // head v-1
+	cfg.PushRowData(appRowWithRelease("r-prev"))           // app lock with a current release
+	cfg.PushRowData(countRow(1))                           // number 2
+	cfg.PushRowData(releaseRow("r-new", 2))                // release insert
+	cfg.PushRowData(releaseEntryRow("a.md", "d-1", "v-1")) // entry insert
+	cfg.PushRowData(appRow())                              // pointer update
+	cfg.PushRowData(entryRowFor("a.md", "d-1", "v-1"))     // prev entries: SAME d-1@v-1@a.md
+
+	if _, err := st.Releases.Cut(tenantCtx(), testApp); err != nil {
+		t.Fatalf("cut: %v", err)
+	}
+	// Nothing changed between releases, so no index or delete job is written.
+	for _, q := range capture.Queries {
+		notSQL(t, q, `INSERT INTO "jobs"`)
+	}
+}
+
 // List is app- and tenant-scoped, newest number first, paginated.
 func TestReleases_List_Query(t *testing.T) {
 	st, capture := newQueryTest(t)
