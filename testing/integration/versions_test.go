@@ -12,6 +12,7 @@ import (
 
 	"github.com/zoobz-io/barbara/database/stores"
 	"github.com/zoobz-io/barbara/internal/auth"
+	"github.com/zoobz-io/barbara/testing/testkit"
 )
 
 // versionsFixture creates a parent document and returns the stores plus its ID.
@@ -23,13 +24,12 @@ func versionsFixture(t *testing.T) (*stores.Versions, string) {
 		_, _ = db.Exec("DELETE FROM documents")
 		_ = db.Close()
 	})
-	docs := stores.NewDocuments(db, astqlpg.New())
-	versions := stores.NewVersions(db, astqlpg.New(), docs)
-	doc, err := docs.Create(tenantCtx(testTenant), "versioned.md")
+	st := stores.New(db, astqlpg.New(), testkit.NewSearchProvider(), testkit.NewBucketProvider())
+	doc, err := seedDoc(st, tenantCtx(testTenant), "versioned.md")
 	if err != nil {
 		t.Fatalf("create parent document: %v", err)
 	}
-	return versions, doc.ID
+	return st.Versions, doc.ID
 }
 
 func TestVersions_SaveListGet(t *testing.T) {

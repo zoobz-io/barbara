@@ -40,7 +40,7 @@ func reindexFixture(t *testing.T) *stores.Stores {
 
 	// t1: one published doc.
 	t1 := tenantCtx(testTenant)
-	a, err := st.Documents.Create(t1, "guides/a.md")
+	a, err := seedDoc(st, t1, "guides/a.md")
 	if err != nil {
 		t.Fatalf("create a: %v", err)
 	}
@@ -53,7 +53,7 @@ func reindexFixture(t *testing.T) *stores.Stores {
 	}
 
 	// t1: a draft (saved but never published) — must not be reindexed.
-	d, err := st.Documents.Create(t1, "draft.md")
+	d, err := seedDoc(st, t1, "draft.md")
 	if err != nil {
 		t.Fatalf("create draft: %v", err)
 	}
@@ -63,7 +63,7 @@ func reindexFixture(t *testing.T) *stores.Stores {
 
 	// t2: one published doc — proves the reindex crosses tenants.
 	t2 := tenantCtx(otherTenant)
-	b, err := st.Documents.Create(t2, "guides/b.md")
+	b, err := seedDoc(st, t2, "guides/b.md")
 	if err != nil {
 		t.Fatalf("create b: %v", err)
 	}

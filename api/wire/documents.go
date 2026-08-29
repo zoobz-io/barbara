@@ -1,15 +1,39 @@
 package wire
 
-import "time"
+import (
+	"errors"
+	"time"
+)
 
-// CreateDocumentRequest is the body for creating a document.
+// CreateDocumentRequest is the body for creating a document in the tree.
+// collection_id is null (or omitted) to place at the app root.
 type CreateDocumentRequest struct {
-	Key string `json:"key" description:"User-supplied key, unique per tenant" example:"guides/install.md"`
+	CollectionID *string `json:"collection_id" description:"Parent collection ID, or null for the app root"`
+	Name         string  `json:"name" description:"Document name, unique among siblings" example:"install.md"`
 }
 
-// RenameDocumentRequest is the body for renaming a document.
-type RenameDocumentRequest struct {
-	Key string `json:"key" description:"New key, unique per tenant" example:"guides/setup.md"`
+// Validate requires a non-empty name. Value receiver so rocco's value-typed
+// Validatable check picks it up.
+func (r CreateDocumentRequest) Validate() error {
+	if r.Name == "" {
+		return errors.New("name is required")
+	}
+	return nil
+}
+
+// MoveDocumentRequest is the body for moving a document: a new parent collection
+// (null = app root) and a new name.
+type MoveDocumentRequest struct {
+	CollectionID *string `json:"collection_id" description:"New parent collection ID, or null for the app root"`
+	Name         string  `json:"name" description:"New name, unique among siblings" example:"setup.md"`
+}
+
+// Validate requires a non-empty name.
+func (r MoveDocumentRequest) Validate() error {
+	if r.Name == "" {
+		return errors.New("name is required")
+	}
+	return nil
 }
 
 // AddTagRequest is the body for adding a tag to a document.

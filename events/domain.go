@@ -34,6 +34,16 @@ type DocumentDeletedEvent struct {
 	TenantID   string
 }
 
+// DocumentMovedEvent is emitted when a document moves to a new collection or is
+// renamed (both rewrite the key). CollectionID is the new parent (nil = app
+// root); Key is the new materialized key.
+type DocumentMovedEvent struct {
+	CollectionID *string
+	DocumentID   string
+	TenantID     string
+	Key          string
+}
+
 // DocumentPublishedEvent is emitted when a document's published pointer moves to
 // a version (publish or rollback both point the document at a version; the
 // distinct RolledBack event names the intent).
@@ -75,6 +85,7 @@ type DocumentTagRemovedEvent struct {
 var (
 	documentCreatedSignal     = capitan.NewSignal("barbara.document.created", "Document created")
 	documentRenamedSignal     = capitan.NewSignal("barbara.document.renamed", "Document key changed")
+	documentMovedSignal       = capitan.NewSignal("barbara.document.moved", "Document moved to a new collection or renamed")
 	documentDeletedSignal     = capitan.NewSignal("barbara.document.deleted", "Document deleted")
 	documentPublishedSignal   = capitan.NewSignal("barbara.document.published", "Document published")
 	documentUnpublishedSignal = capitan.NewSignal("barbara.document.unpublished", "Document unpublished")
@@ -87,6 +98,7 @@ var (
 var Document = struct {
 	Created     sum.Event[DocumentCreatedEvent]
 	Renamed     sum.Event[DocumentRenamedEvent]
+	Moved       sum.Event[DocumentMovedEvent]
 	Deleted     sum.Event[DocumentDeletedEvent]
 	Published   sum.Event[DocumentPublishedEvent]
 	Unpublished sum.Event[DocumentUnpublishedEvent]
@@ -96,6 +108,7 @@ var Document = struct {
 }{
 	Created:     sum.NewInfoEvent[DocumentCreatedEvent](documentCreatedSignal),
 	Renamed:     sum.NewInfoEvent[DocumentRenamedEvent](documentRenamedSignal),
+	Moved:       sum.NewInfoEvent[DocumentMovedEvent](documentMovedSignal),
 	Deleted:     sum.NewInfoEvent[DocumentDeletedEvent](documentDeletedSignal),
 	Published:   sum.NewInfoEvent[DocumentPublishedEvent](documentPublishedSignal),
 	Unpublished: sum.NewInfoEvent[DocumentUnpublishedEvent](documentUnpublishedSignal),

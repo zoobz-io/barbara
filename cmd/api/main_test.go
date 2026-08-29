@@ -48,15 +48,20 @@ func TestSetup_WiresService(t *testing.T) {
 func TestDocuments_EndToEnd(t *testing.T) {
 	d := apiDriver(t)
 	const tenant = "e2e11111-0000-0000-0000-000000000001"
-	t.Cleanup(func() { _, _ = cleanupDB(t).Exec("DELETE FROM documents WHERE tenant_id = $1", tenant) })
+	t.Cleanup(func() {
+		db := cleanupDB(t)
+		_, _ = db.Exec("DELETE FROM documents WHERE tenant_id = $1", tenant)
+		_, _ = db.Exec("DELETE FROM apps WHERE tenant_id = $1", tenant)
+	})
 
-	w := d.RequestAs(t, tenant, http.MethodPost, "/documents", map[string]string{"key": "e2e/doc.md"})
+	app := createApp(t, d, tenant, "e2e-docs")
+	w := d.RequestAs(t, tenant, http.MethodPost, "/apps/"+app+"/documents", map[string]string{"name": "doc.md"})
 	if w.Code != http.StatusCreated {
 		t.Fatalf("create status = %d, want 201; body=%s", w.Code, w.Body.String())
 	}
 	var created struct{ ID, Key string }
 	_ = json.Unmarshal(w.Body.Bytes(), &created)
-	if created.ID == "" || created.Key != "e2e/doc.md" {
+	if created.ID == "" || created.Key != "doc.md" {
 		t.Fatalf("unexpected create response: %s", w.Body.String())
 	}
 
@@ -79,9 +84,11 @@ func TestVersions_EndToEnd(t *testing.T) {
 		db := cleanupDB(t)
 		_, _ = db.Exec("DELETE FROM versions WHERE tenant_id = $1", tenant)
 		_, _ = db.Exec("DELETE FROM documents WHERE tenant_id = $1", tenant)
+		_, _ = db.Exec("DELETE FROM apps WHERE tenant_id = $1", tenant)
 	})
 
-	cw := d.RequestAs(t, tenant, http.MethodPost, "/documents", map[string]string{"key": "e2e/versioned.md"})
+	app := createApp(t, d, tenant, "e2e-versions")
+	cw := d.RequestAs(t, tenant, http.MethodPost, "/apps/"+app+"/documents", map[string]string{"name": "versioned.md"})
 	if cw.Code != http.StatusCreated {
 		t.Fatalf("create doc status = %d; body=%s", cw.Code, cw.Body.String())
 	}
@@ -117,9 +124,11 @@ func TestPublishing_EndToEnd(t *testing.T) {
 		_, _ = db.Exec("DELETE FROM jobs WHERE tenant_id = $1", tenant)
 		_, _ = db.Exec("DELETE FROM versions WHERE tenant_id = $1", tenant)
 		_, _ = db.Exec("DELETE FROM documents WHERE tenant_id = $1", tenant)
+		_, _ = db.Exec("DELETE FROM apps WHERE tenant_id = $1", tenant)
 	})
 
-	cw := d.RequestAs(t, tenant, http.MethodPost, "/documents", map[string]string{"key": "e2e/publish.md"})
+	app := createApp(t, d, tenant, "e2e-publish")
+	cw := d.RequestAs(t, tenant, http.MethodPost, "/apps/"+app+"/documents", map[string]string{"name": "publish.md"})
 	var doc struct{ ID string }
 	_ = json.Unmarshal(cw.Body.Bytes(), &doc)
 
@@ -142,6 +151,22 @@ func TestPublishing_EndToEnd(t *testing.T) {
 	if published.PublishedVersionID == nil || *published.PublishedVersionID != version.ID {
 		t.Errorf("published_version_id = %v, want %s", published.PublishedVersionID, version.ID)
 	}
+}
+
+// createApp creates an app for the tenant through the real router and returns
+// its id — the container documents are now placed in.
+func createApp(t *testing.T, d *testkit.Driver, tenant, name string) string {
+	t.Helper()
+	w := d.RequestAs(t, tenant, http.MethodPost, "/apps", map[string]string{"name": name})
+	if w.Code != http.StatusCreated {
+		t.Fatalf("create app status = %d, want 201; body=%s", w.Code, w.Body.String())
+	}
+	var app struct{ ID string }
+	_ = json.Unmarshal(w.Body.Bytes(), &app)
+	if app.ID == "" {
+		t.Fatalf("create app returned no id: %s", w.Body.String())
+	}
+	return app.ID
 }
 
 // apiDriver boots the public-API service and returns a driver over its router,

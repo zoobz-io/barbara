@@ -7,10 +7,12 @@ import (
 )
 
 // Documents is the authoring view of the logical document. Every method is
-// tenant-scoped via the request context.
+// tenant-scoped via the request context; create and move are additionally
+// app-scoped.
 type Documents interface {
-	// Create makes a new document with the given key.
-	Create(ctx context.Context, key string) (*models.Document, error)
+	// Create places a new document under a collection (nil = app root) in the
+	// app, with the given name; the key is materialized from the tree.
+	Create(ctx context.Context, appID string, collectionID *string, name string) (*models.Document, error)
 	// Get retrieves a document by ID.
 	Get(ctx context.Context, id string) (*models.Document, error)
 	// GetWithHead retrieves a document with its head (latest) version — the
@@ -20,8 +22,9 @@ type Documents interface {
 	List(ctx context.Context, limit, offset int) ([]*models.Document, error)
 	// ListByTag returns the tenant's documents carrying the given tag, paginated.
 	ListByTag(ctx context.Context, tag string, limit, offset int) ([]*models.Document, error)
-	// Rename changes a document's key, freeing the old one.
-	Rename(ctx context.Context, id, newKey string) (*models.Document, error)
-	// Delete removes an unpublished document (cascading to its versions).
+	// Move reparents and/or renames a document, rewriting its key.
+	Move(ctx context.Context, appID, id string, newCollectionID *string, newName string) (*models.Document, error)
+	// Delete removes a document absent from the current release (hard-deleting an
+	// unreferenced one, soft-deleting one a historical release references).
 	Delete(ctx context.Context, id string) error
 }

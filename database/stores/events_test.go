@@ -16,6 +16,8 @@ import (
 // insert has committed, carrying the created id, tenant, and key.
 func TestEvents_DocumentCreated_OnSuccess(t *testing.T) {
 	st, _, cfg := newQueryTestCfg(t)
+	cfg.PushRowData(appRow())    // requireParentScope: apps.Get
+	cfg.PushRowData(countRow(0)) // siblingCollectionExists
 	cfg.PushRowData(docRow(nil)) // the INSERT ... RETURNING scans a created row
 
 	var got events.DocumentCreatedEvent
@@ -25,7 +27,7 @@ func TestEvents_DocumentCreated_OnSuccess(t *testing.T) {
 	})
 	defer l.Close()
 
-	if _, err := st.Documents.Create(tenantCtx(), "a.md"); err != nil {
+	if _, err := st.Documents.Create(tenantCtx(), testApp, nil, "a.md"); err != nil {
 		t.Fatalf("create: %v", err)
 	}
 	if !fired {
@@ -40,7 +42,9 @@ func TestEvents_DocumentCreated_OnSuccess(t *testing.T) {
 // for work that did not commit.
 func TestEvents_DocumentCreated_SilentOnFailure(t *testing.T) {
 	st, _, cfg := newQueryTestCfg(t)
-	cfg.PushQueryErr(errors.New("insert boom")) // the INSERT errors
+	cfg.PushRowData(appRow())                    // scope ok
+	cfg.PushRowData(countRow(0))                 // no sibling collection
+	cfg.PushQueryErr(errors.New("insert boom"))  // the INSERT errors
 
 	fired := false
 	l := events.Document.Created.Listen(func(_ context.Context, _ events.DocumentCreatedEvent) {
@@ -48,7 +52,7 @@ func TestEvents_DocumentCreated_SilentOnFailure(t *testing.T) {
 	})
 	defer l.Close()
 
-	if _, err := st.Documents.Create(tenantCtx(), "a.md"); err == nil {
+	if _, err := st.Documents.Create(tenantCtx(), testApp, nil, "a.md"); err == nil {
 		t.Fatal("expected create to fail")
 	}
 	if fired {

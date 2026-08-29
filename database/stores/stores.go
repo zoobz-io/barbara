@@ -33,11 +33,18 @@ func New(db *sqlx.DB, renderer astql.Renderer, search grub.SearchProvider, bucke
 	// versions already depends on documents for the parent-row lock.
 	documents.versions = versions
 	apps := NewApps(db, renderer)
+	collections := NewCollections(db, renderer, documents, apps)
+	// Documents materializes keys from the tree, checks the cross-table sibling
+	// namespace, and consults the app's current release for the delete rules, so
+	// it needs the collections and apps stores. Wired here to break the
+	// construction cycle: collections already depends on documents.
+	documents.collections = collections
+	documents.apps = apps
 	return &Stores{
 		Documents:   documents,
 		Versions:    versions,
 		Apps:        apps,
-		Collections: NewCollections(db, renderer, documents, apps),
+		Collections: collections,
 		Jobs:        NewJobs(db, renderer),
 		Search:      NewSearch(search),
 		Assets:      NewAssets(bucket, apps),
