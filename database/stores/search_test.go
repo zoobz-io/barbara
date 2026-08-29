@@ -4,11 +4,14 @@ package stores
 
 import (
 	"context"
+	"reflect"
 	"testing"
 
 	"github.com/zoobz-io/grub"
+	"github.com/zoobz-io/lucene"
 	"github.com/zoobz-io/sum"
 
+	"github.com/zoobz-io/barbara/internal/auth"
 	"github.com/zoobz-io/barbara/testing/testkit"
 )
 
@@ -45,6 +48,57 @@ func TestSearch_Index_RejectsInvalidPayload(t *testing.T) {
 	}
 	if len(mp.Indexed) != 0 {
 		t.Error("provider.Index was called despite a malformed payload")
+	}
+}
+
+// Every paginated read must carry a deterministic sort ending in the unique
+// document_id tiebreaker, so offset paging is stable across requests. A listing
+// (filter context) sorts oldest-first; a full-text search sorts by relevance
+// first. Without the sort these reads fall back to unstable Lucene doc order.
+
+func searchCtx() context.Context {
+	return auth.WithPrincipal(context.Background(),
+		auth.NewPrincipal("u-1", "t-1", "", nil, nil))
+}
+
+func TestSearch_Enumerate_SortsByCreatedAtThenDocID(t *testing.T) {
+	mp := testkit.NewSearchProvider()
+	s := newTestSearch(mp)
+
+	if _, _, err := s.Enumerate(searchCtx(), "", 10, 0); err != nil {
+		t.Fatalf("enumerate: %v", err)
+	}
+	got := mp.LastSearch.SortValue()
+	want := []lucene.SortField{
+		{Field: "created_at", Order: "asc"},
+		{Field: "document_id", Order: "asc"},
+	}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("enumerate sort = %+v, want %+v", got, want)
+	}
+}
+
+func TestSearch_FullText_SortsByScoreThenDocID(t *testing.T) {
+	mp := testkit.NewSearchProvider()
+	s := newTestSearch(mp)
+
+	if _, _, err := s.Search(searchCtx(), "hello", 10, 0); err != nil {
+		t.Fatalf("search: %v", err)
+	}
+	want := []lucene.SortField{
+		{Field: "_score", Order: "desc"},
+		{Field: "document_id", Order: "asc"},
+	}
+	if got := mp.LastSearch.SortValue(); !reflect.DeepEqual(got, want) {
+		t.Errorf("full-text sort = %+v, want %+v", got, want)
+	}
+
+	// The cross-tenant admin search paginates too — same stable ordering.
+	if _, _, err := s.SearchAll(context.Background(), "hello", 10, 0); err != nil {
+		t.Fatalf("search all: %v", err)
+	}
+	if got := mp.LastSearch.SortValue(); !reflect.DeepEqual(got, want) {
+		t.Errorf("SearchAll sort = %+v, want %+v", got, want)
 	}
 }
 
