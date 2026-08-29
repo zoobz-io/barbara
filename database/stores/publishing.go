@@ -12,6 +12,7 @@ import (
 
 	"github.com/zoobz-io/barbara/database/models"
 	"github.com/zoobz-io/barbara/database/transformers"
+	"github.com/zoobz-io/barbara/events"
 	"github.com/zoobz-io/barbara/internal/auth"
 )
 
@@ -24,13 +25,27 @@ var ErrVersionMismatch = errors.New("version does not belong to the document")
 // OpenSearch write follows via the jobs pipeline and retries until it lands, so
 // serving lags authoring by seconds. Returns the updated document.
 func (s *Stores) Publish(ctx context.Context, documentID, versionID string) (*models.Document, error) {
-	return s.publishVersion(ctx, documentID, versionID)
+	updated, err := s.publishVersion(ctx, documentID, versionID)
+	if err != nil {
+		return nil, err
+	}
+	events.Document.Published.Emit(ctx, events.DocumentPublishedEvent{
+		DocumentID: documentID, TenantID: updated.TenantID, VersionID: versionID,
+	})
+	return updated, nil
 }
 
 // Rollback republishes an older version: the same pointer-move-and-reindex as
 // Publish, nothing copied. Mechanically identical; named for intent.
 func (s *Stores) Rollback(ctx context.Context, documentID, versionID string) (*models.Document, error) {
-	return s.publishVersion(ctx, documentID, versionID)
+	updated, err := s.publishVersion(ctx, documentID, versionID)
+	if err != nil {
+		return nil, err
+	}
+	events.Document.RolledBack.Emit(ctx, events.DocumentRolledBackEvent{
+		DocumentID: documentID, TenantID: updated.TenantID, VersionID: versionID,
+	})
+	return updated, nil
 }
 
 // publishVersion is the shared publish/rollback core: validate the version
@@ -91,6 +106,9 @@ func (s *Stores) Unpublish(ctx context.Context, documentID string) (*models.Docu
 	if err != nil {
 		return nil, err
 	}
+	events.Document.Unpublished.Emit(ctx, events.DocumentUnpublishedEvent{
+		DocumentID: documentID, TenantID: tenantID,
+	})
 	return updated, nil
 }
 

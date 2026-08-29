@@ -11,6 +11,7 @@ import (
 
 	"github.com/zoobz-io/barbara/database/models"
 	"github.com/zoobz-io/barbara/database/transformers"
+	"github.com/zoobz-io/barbara/events"
 	"github.com/zoobz-io/barbara/internal/auth"
 )
 
@@ -19,6 +20,10 @@ import (
 func (s *Stores) AddTag(ctx context.Context, documentID, tag string) (*models.Document, error) {
 	return s.changeTags(ctx, documentID, func(tags []string) ([]string, bool) {
 		return transformers.AddTag(tags, tag)
+	}, func(ctx context.Context, doc *models.Document) {
+		events.Document.TagAdded.Emit(ctx, events.DocumentTagAddedEvent{
+			DocumentID: doc.ID, TenantID: doc.TenantID, Tag: tag,
+		})
 	})
 }
 
@@ -27,6 +32,10 @@ func (s *Stores) AddTag(ctx context.Context, documentID, tag string) (*models.Do
 func (s *Stores) RemoveTag(ctx context.Context, documentID, tag string) (*models.Document, error) {
 	return s.changeTags(ctx, documentID, func(tags []string) ([]string, bool) {
 		return transformers.RemoveTag(tags, tag)
+	}, func(ctx context.Context, doc *models.Document) {
+		events.Document.TagRemoved.Emit(ctx, events.DocumentTagRemovedEvent{
+			DocumentID: doc.ID, TenantID: doc.TenantID, Tag: tag,
+		})
 	})
 }
 
@@ -38,13 +47,14 @@ func (s *Stores) RemoveTag(ctx context.Context, documentID, tag string) (*models
 // published pointer: a tag change is metadata, not a new publish. A no-op
 // mutation (tag already present / already absent) writes nothing and enqueues
 // nothing. Returns ErrNotFound if the document is absent for the tenant.
-func (s *Stores) changeTags(ctx context.Context, documentID string, mutate func([]string) ([]string, bool)) (*models.Document, error) {
+func (s *Stores) changeTags(ctx context.Context, documentID string, mutate func([]string) ([]string, bool), emit func(context.Context, *models.Document)) (*models.Document, error) {
 	tenantID, err := auth.RequireTenant(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	var result *models.Document
+	var changed bool
 	err = s.inTx(ctx, func(tx *sqlx.Tx) error {
 		doc, lockErr := s.Documents.Select().
 			Where("id", "=", "id").
@@ -55,11 +65,12 @@ func (s *Stores) changeTags(ctx context.Context, documentID string, mutate func(
 			return lockErr // soy.ErrNotFound when the document is absent for the tenant
 		}
 
-		newTags, changed := mutate([]string(doc.Tags))
-		if !changed {
+		newTags, didChange := mutate([]string(doc.Tags))
+		if !didChange {
 			result = doc
 			return nil
 		}
+		changed = true
 
 		result, err = s.setTags(ctx, tx, documentID, tenantID, newTags)
 		if err != nil {
@@ -72,6 +83,11 @@ func (s *Stores) changeTags(ctx context.Context, documentID string, mutate func(
 	})
 	if err != nil {
 		return nil, err
+	}
+	// Post-commit: a no-op tag change (already present / already absent) emits
+	// nothing, mirroring its Postgres/outbox no-op.
+	if changed {
+		emit(ctx, result)
 	}
 	return result, nil
 }

@@ -9,6 +9,7 @@ import (
 	"github.com/zoobz-io/grub"
 
 	"github.com/zoobz-io/barbara/database/models"
+	"github.com/zoobz-io/barbara/events"
 	"github.com/zoobz-io/barbara/internal/auth"
 )
 
@@ -54,6 +55,9 @@ func (s *Assets) Put(ctx context.Context, key, contentType string, data []byte) 
 	if err := s.bucket.Put(ctx, obj, data, info); err != nil {
 		return nil, fmt.Errorf("putting asset %q: %w", key, err)
 	}
+	events.Asset.Written.Emit(ctx, events.AssetWrittenEvent{
+		Key: key, TenantID: tenantID, ContentType: contentType, Size: int64(len(data)),
+	})
 	return &models.Asset{Key: key, ContentType: contentType, Size: int64(len(data))}, nil
 }
 
@@ -110,5 +114,6 @@ func (s *Assets) Delete(ctx context.Context, key string) error {
 		}
 		return fmt.Errorf("deleting asset %q: %w", key, err)
 	}
+	events.Asset.Deleted.Emit(ctx, events.AssetDeletedEvent{Key: key, TenantID: tenantID})
 	return nil
 }

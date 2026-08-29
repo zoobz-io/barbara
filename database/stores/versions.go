@@ -10,6 +10,7 @@ import (
 	"github.com/zoobz-io/sum"
 
 	"github.com/zoobz-io/barbara/database/models"
+	"github.com/zoobz-io/barbara/events"
 	"github.com/zoobz-io/barbara/internal/auth"
 )
 
@@ -90,6 +91,9 @@ func (s *Versions) Save(ctx context.Context, documentID, content string) (*model
 	if err := tx.Commit(); err != nil {
 		return nil, fmt.Errorf("committing version: %w", err)
 	}
+	events.Version.Saved.Emit(ctx, events.VersionSavedEvent{
+		VersionID: created.ID, DocumentID: documentID, TenantID: tenantID, VersionNumber: created.VersionNumber,
+	})
 	return created, nil
 }
 

@@ -13,6 +13,7 @@ import (
 	"github.com/zoobz-io/sum"
 
 	"github.com/zoobz-io/barbara/database/models"
+	"github.com/zoobz-io/barbara/events"
 	"github.com/zoobz-io/barbara/internal/auth"
 )
 
@@ -56,6 +57,9 @@ func (s *Documents) Create(ctx context.Context, key string) (*models.Document, e
 	if err != nil {
 		return nil, fmt.Errorf("creating document: %w", err)
 	}
+	events.Document.Created.Emit(ctx, events.DocumentCreatedEvent{
+		DocumentID: created.ID, TenantID: tenantID, Key: created.Key,
+	})
 	return created, nil
 }
 
@@ -156,6 +160,9 @@ func (s *Documents) Rename(ctx context.Context, id, newKey string) (*models.Docu
 	if err != nil {
 		return nil, fmt.Errorf("renaming document: %w", err)
 	}
+	events.Document.Renamed.Emit(ctx, events.DocumentRenamedEvent{
+		DocumentID: doc.ID, TenantID: tenantID, Key: doc.Key,
+	})
 	return doc, nil
 }
 
@@ -182,6 +189,7 @@ func (s *Documents) Delete(ctx context.Context, id string) error {
 		}
 		return ErrDocumentPublished
 	}
+	events.Document.Deleted.Emit(ctx, events.DocumentDeletedEvent{DocumentID: id, TenantID: tenantID})
 	return nil
 }
 
