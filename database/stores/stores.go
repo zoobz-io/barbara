@@ -28,9 +28,14 @@ type Stores struct {
 // provider; the assets store wraps the object-storage bucket.
 func New(db *sqlx.DB, renderer astql.Renderer, search grub.SearchProvider, bucket grub.BucketProvider) *Stores {
 	documents := NewDocuments(db, renderer)
+	versions := NewVersions(db, renderer, documents)
+	// Documents enriches reads with the head version (GetWithHead/ListWithHead),
+	// so it needs the versions store. Wired here to break the construction cycle:
+	// versions already depends on documents for the parent-row lock.
+	documents.versions = versions
 	return &Stores{
 		Documents: documents,
-		Versions:  NewVersions(db, renderer, documents),
+		Versions:  versions,
 		Jobs:      NewJobs(db, renderer),
 		Search:    NewSearch(search),
 		Assets:    NewAssets(bucket),

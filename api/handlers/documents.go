@@ -28,7 +28,7 @@ var CreateDocument = rocco.POST("/documents",
 	WithErrors(rocco.ErrConflict, rocco.ErrUnauthorized).
 	WithAuthentication()
 
-// GetDocument returns a document by ID.
+// GetDocument returns a document by ID, carrying its draft/published status.
 var GetDocument = rocco.GET("/documents/{id}",
 	func(req *rocco.Request[rocco.NoBody]) (wire.DocumentResponse, error) {
 		docs := sum.MustUse[contracts.Documents](req.Context)
@@ -40,6 +40,25 @@ var GetDocument = rocco.GET("/documents/{id}",
 		return transformers.DocumentToResponse(doc), nil
 	}).WithPathParams("id").
 	WithSummary("Get a document by ID").
+	WithTags("Documents").
+	WithErrors(rocco.ErrNotFound, rocco.ErrUnauthorized).
+	WithAuthentication()
+
+// GetDocumentContent returns a document together with its head version's content
+// — the single request an editing client makes to open a document. The content
+// block is null when the document has no versions yet (an empty document, not a
+// 404).
+var GetDocumentContent = rocco.GET("/documents/{id}/content",
+	func(req *rocco.Request[rocco.NoBody]) (wire.DocumentContentResponse, error) {
+		docs := sum.MustUse[contracts.Documents](req.Context)
+		ctx := auth.WithPrincipal(req.Context, req.Identity)
+		dh, err := docs.GetWithHead(ctx, req.Params.Path["id"])
+		if err != nil {
+			return wire.DocumentContentResponse{}, transformers.ErrorToResponse(err)
+		}
+		return transformers.DocumentContentToResponse(dh), nil
+	}).WithPathParams("id").
+	WithSummary("Get a document with its head version content").
 	WithTags("Documents").
 	WithErrors(rocco.ErrNotFound, rocco.ErrUnauthorized).
 	WithAuthentication()

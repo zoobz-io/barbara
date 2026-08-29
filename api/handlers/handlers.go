@@ -14,6 +14,7 @@ func All() []rocco.Endpoint {
 		// Documents authoring.
 		CreateDocument,
 		GetDocument,
+		GetDocumentContent,
 		ListDocuments,
 		RenameDocument,
 		DeleteDocument,

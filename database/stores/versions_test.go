@@ -96,3 +96,22 @@ func TestVersions_Save_CountsThenInsertsNextNumber(t *testing.T) {
 	wantArg(t, ins, testUser)  // created_by
 	wantArg(t, ins, 3)         // version_number = existing count (2) + 1
 }
+
+// Head loads the document's latest version — tenant + document scoped, newest
+// first, one row.
+func TestVersions_Head_Query(t *testing.T) {
+	st, capture := newQueryTest(t)
+	_, _ = st.Versions.Head(tenantCtx(), "d-1")
+
+	q := lastQuery(t, capture)
+	wantSQL(t, q,
+		`FROM "versions"`,
+		`"document_id" = ?`,
+		`"tenant_id" = ?`,
+		`ORDER BY "version_number" DESC`,
+		`LIMIT 1`,
+	)
+	wantArg(t, q, "d-1")
+	wantArg(t, q, testTenant)
+}
+

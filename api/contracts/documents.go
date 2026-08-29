@@ -13,6 +13,9 @@ type Documents interface {
 	Create(ctx context.Context, key string) (*models.Document, error)
 	// Get retrieves a document by ID.
 	Get(ctx context.Context, id string) (*models.Document, error)
+	// GetWithHead retrieves a document with its head (latest) version — the
+	// single-call read behind opening a document for editing (#48).
+	GetWithHead(ctx context.Context, id string) (*models.DocumentHead, error)
 	// List returns the tenant's documents, paginated.
 	List(ctx context.Context, limit, offset int) ([]*models.Document, error)
 	// ListByTag returns the tenant's documents carrying the given tag, paginated.

@@ -146,3 +146,26 @@ func (s *Versions) Get(ctx context.Context, id string) (*models.Version, error) 
 	}
 	return v, nil
 }
+
+// Head returns a document's latest version, scoped to the tenant, or nil when the
+// document has no versions yet (an empty document, not an error).
+func (s *Versions) Head(ctx context.Context, documentID string) (*models.Version, error) {
+	tenantID, err := auth.RequireTenant(ctx)
+	if err != nil {
+		return nil, err
+	}
+	versions, err := s.Query().
+		Where("document_id", "=", "document_id").
+		Where("tenant_id", "=", "tenant_id").
+		OrderBy("version_number", "desc").
+		Limit(1).
+		Exec(ctx, map[string]any{"document_id": documentID, "tenant_id": tenantID})
+	if err != nil {
+		return nil, fmt.Errorf("loading head version: %w", err)
+	}
+	if len(versions) == 0 {
+		return nil, nil
+	}
+	return versions[0], nil
+}
+
