@@ -143,6 +143,61 @@ var App = struct {
 	Deleted: sum.NewInfoEvent[AppDeletedEvent](appDeletedSignal),
 }
 
+// --- Collection ---
+
+// CollectionCreatedEvent is emitted when a collection is created.
+type CollectionCreatedEvent struct {
+	CollectionID string
+	TenantID     string
+	AppID        string
+	Name         string
+}
+
+// CollectionRenamedEvent is emitted when a collection's name changes. Name is
+// the new name.
+type CollectionRenamedEvent struct {
+	CollectionID string
+	TenantID     string
+	AppID        string
+	Name         string
+}
+
+// CollectionMovedEvent is emitted when a collection moves to a new parent.
+// ParentID is the new parent (nil = app root).
+type CollectionMovedEvent struct {
+	ParentID     *string
+	CollectionID string
+	TenantID     string
+	AppID        string
+}
+
+// CollectionDeletedEvent is emitted when a collection is deleted.
+type CollectionDeletedEvent struct {
+	CollectionID string
+	TenantID     string
+	AppID        string
+}
+
+var (
+	collectionCreatedSignal = capitan.NewSignal("barbara.collection.created", "Collection created")
+	collectionRenamedSignal = capitan.NewSignal("barbara.collection.renamed", "Collection name changed")
+	collectionMovedSignal   = capitan.NewSignal("barbara.collection.moved", "Collection moved to a new parent")
+	collectionDeletedSignal = capitan.NewSignal("barbara.collection.deleted", "Collection deleted")
+)
+
+// Collection groups the collection lifecycle events.
+var Collection = struct {
+	Created sum.Event[CollectionCreatedEvent]
+	Renamed sum.Event[CollectionRenamedEvent]
+	Moved   sum.Event[CollectionMovedEvent]
+	Deleted sum.Event[CollectionDeletedEvent]
+}{
+	Created: sum.NewInfoEvent[CollectionCreatedEvent](collectionCreatedSignal),
+	Renamed: sum.NewInfoEvent[CollectionRenamedEvent](collectionRenamedSignal),
+	Moved:   sum.NewInfoEvent[CollectionMovedEvent](collectionMovedSignal),
+	Deleted: sum.NewInfoEvent[CollectionDeletedEvent](collectionDeletedSignal),
+}
+
 // --- Version ---
 
 // VersionSavedEvent is emitted when a new version of a document is saved.

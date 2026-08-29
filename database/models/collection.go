@@ -18,6 +18,15 @@ type Collection struct {
 	Name      string    `json:"name" db:"name" constraints:"notnull"`
 }
 
+// CollectionContents is the one-round-trip listing of a collection: its direct
+// subcollections and documents together. The app root is listed the same way,
+// with a nil collection. Derived document status is computed by the transformer,
+// not carried here.
+type CollectionContents struct {
+	Subcollections []*Collection
+	Documents      []*Document
+}
+
 // GetID returns the collection's primary key.
 func (c Collection) GetID() string { return c.ID }
 
