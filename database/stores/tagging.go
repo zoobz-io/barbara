@@ -78,12 +78,9 @@ func (s *Stores) changeTags(ctx context.Context, documentID string, mutate func(
 		}
 		// Reproject only if the document is live — carried by the app's current
 		// release — using the release-recorded version and path, not the head.
-		var entry *models.ReleaseEntry
-		if result.AppID != nil {
-			entry, err = s.Releases.CurrentEntryFor(ctx, *result.AppID, documentID)
-			if err != nil {
-				return err
-			}
+		entry, entryErr := s.Releases.CurrentEntryFor(ctx, result.AppID, documentID)
+		if entryErr != nil {
+			return entryErr
 		}
 		if entry == nil {
 			return nil // not in the current release: Postgres only, nothing to reproject

@@ -9,21 +9,6 @@ import (
 	"github.com/zoobz-io/grub/mockdb"
 )
 
-// Publish loads the document first; an unplaced document (no app) can't be
-// published, since publish state lives in an app's release.
-func TestPublish_RefusesUnplacedDocument(t *testing.T) {
-	st, capture, cfg := newQueryTestCfg(t)
-	cfg.PushRowData(docRow(nil)) // Documents.Get: no app_id
-
-	if _, err := st.Publish(tenantCtx(), "d-1", "v-1"); !errors.Is(err, ErrDocumentNotPlaced) {
-		t.Fatalf("publish unplaced = %v, want ErrDocumentNotPlaced", err)
-	}
-	// It stops at the document load — no release is cut.
-	for _, q := range capture.Queries {
-		notSQL(t, q, `INSERT INTO "releases"`)
-	}
-}
-
 // Publish validates the version belongs to the document before cutting anything.
 func TestPublish_ValidatesVersionOwnership(t *testing.T) {
 	st, capture, cfg := newQueryTestCfg(t)

@@ -18,7 +18,7 @@ func TestEvents_DocumentCreated_OnSuccess(t *testing.T) {
 	st, _, cfg := newQueryTestCfg(t)
 	cfg.PushRowData(appRow())    // requireParentScope: apps.Get
 	cfg.PushRowData(countRow(0)) // siblingCollectionExists
-	cfg.PushRowData(docRow(nil)) // the INSERT ... RETURNING scans a created row
+	cfg.PushRowData(docRow(testApp)) // the INSERT ... RETURNING scans a created row
 
 	var got events.DocumentCreatedEvent
 	fired := false

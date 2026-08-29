@@ -64,10 +64,9 @@ func tenantCtx() context.Context {
 // next query. Only the columns a test needs are supplied; unlisted struct fields
 // scan to their zero value. Columns are real db fields, so StructScan maps them.
 
-// docRow is a documents row. publishedVersionID may be nil (a draft) or a string.
-// docRow is a documents row. appID may be nil (unplaced) or an app id; publish
-// state lives in releases now, not on the row.
-func docRow(appID any) *mockdb.RowData {
+// docRow is a documents row, placed in the given app; publish state lives in
+// releases, not on the row.
+func docRow(appID string) *mockdb.RowData {
 	return &mockdb.RowData{
 		Columns: []string{"id", "tenant_id", "key", "app_id"},
 		Rows:    [][]any{{"d-1", testTenant, "a.md", appID}},

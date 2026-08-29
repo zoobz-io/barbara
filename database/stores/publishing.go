@@ -15,10 +15,6 @@ import (
 // different document.
 var ErrVersionMismatch = errors.New("version does not belong to the document")
 
-// ErrDocumentNotPlaced is returned when publishing a document that has no app —
-// publish state lives in an app's release, so a document must be in the tree.
-var ErrDocumentNotPlaced = errors.New("document is not placed in an app")
-
 // Publish makes a version the document's live version by cutting a release of
 // the app's current tree with this document's entry set to it. Publish state
 // lives in releases now, so this is sugar over the release primitive; the
@@ -69,10 +65,7 @@ func (s *Stores) cutForDocument(ctx context.Context, documentID string, versionI
 	if err != nil {
 		return nil, err // ErrNotFound when the document is absent for the tenant
 	}
-	if doc.AppID == nil {
-		return nil, ErrDocumentNotPlaced
-	}
-	appID := *doc.AppID
+	appID := doc.AppID
 
 	if versionID != nil {
 		version, verr := s.Versions.Get(ctx, *versionID)

@@ -121,7 +121,7 @@ func TestRollback_RepublishesOlderVersion(t *testing.T) {
 	if err != nil {
 		t.Fatalf("rollback: %v", err)
 	}
-	entry, err := st.Releases.CurrentEntryFor(ctx, *updated.AppID, docID)
+	entry, err := st.Releases.CurrentEntryFor(ctx, updated.AppID, docID)
 	if err != nil || entry == nil {
 		t.Fatalf("current entry after rollback: entry=%v err=%v", entry, err)
 	}

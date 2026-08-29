@@ -1,15 +1,9 @@
 -- +goose Up
--- Apps, collections, and releases: the tree and the release model.
---
--- Sequencing constraints, load-bearing:
---   - documents.published_version_id is NOT dropped here. Publish state still
---     lives in that pointer; it drops only once release-based publishing
---     replaces it as the record of what is live.
---   - The new document columns are nullable and carry no unique indexes yet:
---     the write paths do not populate them until the tree stores exist. NOT
---     NULL and the per-app namespace/key indexes ship in a later migration,
---     once every code path writes the columns. Until then the existing
---     per-tenant key index remains the uniqueness guarantee.
+-- Apps, collections, and releases: the tree and the release model. The new
+-- document columns start nullable and loosely indexed here, so this migration
+-- could land ahead of the code that populates them; later migrations retire
+-- the published pointer (007) and tighten the tree columns to their final
+-- shape (008).
 
 -- The release unit. A tenant owns many apps; an app owns a collection tree and
 -- a linear release history. current_release_id is the only mutable pointer in
@@ -90,10 +84,10 @@ ALTER TABLE apps ADD CONSTRAINT fk_apps_current_release
     FOREIGN KEY (current_release_id) REFERENCES releases(id);
 
 -- Tree placement for documents. collection_id NULL means the app root and
--- stays nullable forever; app_id and name are nullable only until the write
--- paths populate them, then tighten. deleted_at is the soft-delete marker for
--- documents referenced by a historical release (delete frees the key and name
--- via the future partial indexes; versions survive).
+-- stays nullable forever; app_id and name start nullable (tightened in 008).
+-- deleted_at is the soft-delete marker for documents referenced by a
+-- historical release (delete frees the key and name via the partial indexes;
+-- versions survive).
 ALTER TABLE documents ADD COLUMN app_id UUID REFERENCES apps(id);
 ALTER TABLE documents ADD COLUMN collection_id UUID REFERENCES collections(id);
 ALTER TABLE documents ADD COLUMN name TEXT;
