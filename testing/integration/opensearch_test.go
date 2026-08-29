@@ -30,7 +30,7 @@ func osAddr(t *testing.T) string {
 	}
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		t.Skipf("OpenSearch not reachable at %s (%v); skipping integration test", addr, err)
+		integrationSkip(t, "OpenSearch not reachable at %s (%v)", addr, err)
 	}
 	_ = resp.Body.Close()
 	return addr
