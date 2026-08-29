@@ -63,3 +63,36 @@ func TestVersions_Save_LocksParentForUpdate(t *testing.T) {
 	wantArg(t, q, "d-1")
 	wantArg(t, q, testTenant)
 }
+
+// Save's full query sequence, driven to completion by feeding the lock row and
+// the count: after the FOR UPDATE lock it counts the document's existing
+// versions (scoped to document + tenant) and inserts the next version, numbering
+// it count+1 and stamping the acting user.
+func TestVersions_Save_CountsThenInsertsNextNumber(t *testing.T) {
+	st, capture, cfg := newQueryTestCfg(t)
+	cfg.PushRowData(docRow(nil))   // parent lock select
+	cfg.PushRowData(countRow(2))   // existing version count
+	cfg.PushRowData(versionRow())  // INSERT ... RETURNING
+	_, _ = st.Versions.Save(tenantCtx(), "d-1", "hello")
+
+	// Query 1: count the document's versions, tenant-scoped.
+	count := queryAt(t, capture, 1)
+	wantSQL(t, count, `SELECT COUNT(*) FROM "versions"`, `"document_id" = ?`, `"tenant_id" = ?`)
+	wantArg(t, count, "d-1")
+	wantArg(t, count, testTenant)
+
+	// Query 2: insert the next version — content, acting user, and version_number
+	// = count + 1 (3, here).
+	ins := queryAt(t, capture, 2)
+	wantSQL(t, ins,
+		`INSERT INTO "versions"`,
+		`"content"`,
+		`"created_by"`,
+		`"document_id"`,
+		`"version_number"`,
+		`RETURNING`,
+	)
+	wantArg(t, ins, "hello")   // content
+	wantArg(t, ins, testUser)  // created_by
+	wantArg(t, ins, 3)         // version_number = existing count (2) + 1
+}

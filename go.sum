@@ -161,8 +161,8 @@ github.com/zoobz-io/edamame v1.0.2 h1:HisMAzyHOPW5vrzPmTFNLAJMBCrn+lt1LXFSEazLNR
 github.com/zoobz-io/edamame v1.0.2/go.mod h1:af1PKqjn61ba70CSmqB4gLZkZYz8QPDnQVeRFasiNu4=
 github.com/zoobz-io/fig v0.0.3 h1:6IliqhlJM/LHPROkcHyOFDJAte9uwhg7x9lRPAdeWCs=
 github.com/zoobz-io/fig v0.0.3/go.mod h1:E0LCV07Y3/XpDuO+0vhvYcmNj83ArG3fievsPjDreH4=
-github.com/zoobz-io/grub v1.0.19 h1:kuRw1vnsgCv0hBdMgSjqTxaF1OWPwkpP74HJcCsSdqQ=
-github.com/zoobz-io/grub v1.0.19/go.mod h1:PIlZjwGAKknT9AMEG6rLSXU5Uxu5Zd5L1qj22IhWU8A=
+github.com/zoobz-io/grub v1.0.20 h1:KgP4ZRRQpU5lbmCNHMgD7JPfdHuI+T26009m9TA1mfM=
+github.com/zoobz-io/grub v1.0.20/go.mod h1:PIlZjwGAKknT9AMEG6rLSXU5Uxu5Zd5L1qj22IhWU8A=
 github.com/zoobz-io/grub/minio v1.0.18 h1:hq5MDprEskSGeoES+KKI29QV/RfA9USdTuQggJTGjb4=
 github.com/zoobz-io/grub/minio v1.0.18/go.mod h1:JWYNTLmaovec/P1ZsadBJkoEgS2nxrqH7ppkD4NZbgE=
 github.com/zoobz-io/grub/opensearch v0.1.11 h1:s7m8Y+kPZk+YvRVNXT44WgDDLBb0aYv13yuI2L+kJe0=
