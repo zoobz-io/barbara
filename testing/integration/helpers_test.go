@@ -56,7 +56,7 @@ func seedDoc(st *stores.Stores, ctx context.Context, appID, key string) (*models
 		name = key[i+1:]
 	}
 	return st.Documents.Insert().Exec(ctx, &models.Document{
-		TenantID: tenant, AppID: &appID, Name: &name,
+		TenantID: tenant, AppID: appID, Name: name,
 		Key: key, Tags: pq.StringArray{}, CreatedAt: now, UpdatedAt: now,
 	})
 }

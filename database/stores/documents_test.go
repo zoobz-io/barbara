@@ -15,16 +15,7 @@ import (
 
 // placedDoc is document d-1 placed in the test app.
 func placedDoc() *models.Document {
-	app := testApp
-	return &models.Document{ID: "d-1", TenantID: testTenant, Key: "a.md", AppID: &app}
-}
-
-// Status is draft for an unplaced document — no app means no release can carry it.
-func TestDocuments_Status_UnplacedIsDraft(t *testing.T) {
-	st, _ := newQueryTest(t)
-	if got, err := st.Documents.Status(tenantCtx(), &models.Document{ID: "d-1"}); err != nil || got != models.StatusDraft {
-		t.Fatalf("status = %q, %v; want draft", got, err)
-	}
+	return &models.Document{ID: "d-1", TenantID: testTenant, Key: "a.md", AppID: testApp}
 }
 
 // Status is draft when the app's current release does not carry the document.
@@ -69,7 +60,7 @@ func TestDocuments_Statuses_Batch(t *testing.T) {
 	cfg.PushRowData(entryRowFor("a.md", "d-1", "v-1")) // CurrentEntries: entries (d-1 live)
 	cfg.PushRowData(versionRow())                      // d-1 head is v-1 → published
 
-	got, err := st.Documents.Statuses(tenantCtx(), []*models.Document{placedDoc(), {ID: "d-2"}})
+	got, err := st.Documents.Statuses(tenantCtx(), []*models.Document{placedDoc(), {ID: "d-2", TenantID: testTenant, AppID: testApp}})
 	if err != nil {
 		t.Fatalf("statuses: %v", err)
 	}
@@ -82,9 +73,9 @@ func TestDocuments_Statuses_Batch(t *testing.T) {
 // collection holds the name, and inserts with the tree columns set.
 func TestDocuments_Create_Query(t *testing.T) {
 	st, capture, cfg := newQueryTestCfg(t)
-	cfg.PushRowData(appRow())    // requireParentScope: apps.Get
-	cfg.PushRowData(countRow(0)) // siblingCollectionExists: no collection sibling
-	cfg.PushRowData(docRow(nil)) // INSERT ... RETURNING
+	cfg.PushRowData(appRow())        // requireParentScope: apps.Get
+	cfg.PushRowData(countRow(0))     // siblingCollectionExists: no collection sibling
+	cfg.PushRowData(docRow(testApp)) // INSERT ... RETURNING
 
 	_, err := st.Documents.Create(tenantCtx(), testApp, nil, "a.md")
 	if err != nil {
@@ -149,10 +140,10 @@ func TestDocuments_ListByTag_Query(t *testing.T) {
 // key, tenant-scoped, returning the row.
 func TestDocuments_Move_Query(t *testing.T) {
 	st, capture, cfg := newQueryTestCfg(t)
-	cfg.PushRowData(appRow())    // requireParentScope: apps.Get (new parent = root)
-	cfg.PushRowData(docRow(nil)) // lock (FOR UPDATE)
-	cfg.PushRowData(countRow(0)) // siblingCollectionExists
-	cfg.PushRowData(docRow(nil)) // UPDATE ... RETURNING
+	cfg.PushRowData(appRow())        // requireParentScope: apps.Get (new parent = root)
+	cfg.PushRowData(docRow(testApp)) // lock (FOR UPDATE)
+	cfg.PushRowData(countRow(0))     // siblingCollectionExists
+	cfg.PushRowData(docRow(testApp)) // UPDATE ... RETURNING
 
 	_, err := st.Documents.Move(tenantCtx(), testApp, "d-1", nil, "b.md")
 	if err != nil {
@@ -176,11 +167,11 @@ func TestDocuments_Move_Query(t *testing.T) {
 	wantArg(t, upd, testTenant)
 }
 
-// Delete loads the document, and — for an unplaced one not in any release —
+// Delete loads the document, and — for one carried by no release —
 // hard-deletes it, tenant-scoped.
 func TestDocuments_Delete_Query(t *testing.T) {
 	st, capture, cfg := newQueryTestCfg(t)
-	cfg.PushRowData(docRow(nil)) // Get: a draft, unplaced document (app_id nil)
+	cfg.PushRowData(docRow(testApp)) // Get: a draft (in no release)
 
 	_ = st.Documents.Delete(tenantCtx(), "d-1")
 
@@ -209,9 +200,9 @@ func TestDocuments_Create_SiblingCollectionBlocks(t *testing.T) {
 // A sibling collection at the destination blocks a move, before the UPDATE.
 func TestDocuments_Move_SiblingCollectionBlocks(t *testing.T) {
 	st, capture, cfg := newQueryTestCfg(t)
-	cfg.PushRowData(appRow())    // requireParentScope
-	cfg.PushRowData(docRow(nil)) // lock
-	cfg.PushRowData(countRow(1)) // sibling collection at the destination
+	cfg.PushRowData(appRow())        // requireParentScope
+	cfg.PushRowData(docRow(testApp)) // lock
+	cfg.PushRowData(countRow(1))     // sibling collection at the destination
 
 	_, err := st.Documents.Move(tenantCtx(), testApp, "d-1", nil, "guides")
 	if !errors.Is(err, ErrCollectionNameTaken) {
@@ -226,9 +217,10 @@ func TestDocuments_Move_SiblingCollectionBlocks(t *testing.T) {
 // document is soft-deleted instead: deleted_at is set, the row survives.
 func TestDocuments_Delete_SoftOnForeignKey(t *testing.T) {
 	st, capture, cfg := newQueryTestCfg(t)
-	cfg.PushRowData(docRow(nil))              // Get: a draft, unplaced doc
+	cfg.PushRowData(docRow(testApp))          // Get: a draft (in no release)
+	cfg.PushRowData(appRow())                 // inCurrentRelease: app has no current release
 	cfg.PushExecErr(&pq.Error{Code: "23503"}) // hard DELETE hits the release FK
-	cfg.PushRowData(docRow(nil))              // soft UPDATE ... RETURNING
+	cfg.PushRowData(docRow(testApp))          // soft UPDATE ... RETURNING
 
 	if err := st.Documents.Delete(tenantCtx(), "d-1"); err != nil {
 		t.Fatalf("soft delete: %v", err)
@@ -272,8 +264,8 @@ func TestDocuments_Delete_RefusesInCurrentRelease(t *testing.T) {
 // lookup — the doc plus its latest version in one method.
 func TestDocuments_GetWithHead_Query(t *testing.T) {
 	st, capture, cfg := newQueryTestCfg(t)
-	cfg.PushRowData(docRow(nil))  // Documents.Get succeeds
-	cfg.PushRowData(versionRow()) // Versions.Head returns the head
+	cfg.PushRowData(docRow(testApp)) // Documents.Get succeeds
+	cfg.PushRowData(versionRow())    // Versions.Head returns the head
 	_, _ = st.Documents.GetWithHead(tenantCtx(), "d-1")
 
 	get := queryAt(t, capture, 0)

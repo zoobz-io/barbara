@@ -79,9 +79,9 @@ func (s *Documents) Create(ctx context.Context, appID string, collectionID *stri
 		now := time.Now()
 		created, err = s.Insert().ExecTx(ctx, tx, &models.Document{
 			TenantID:     tenantID,
-			AppID:        &appID,
+			AppID:        appID,
 			CollectionID: collectionID,
-			Name:         &name,
+			Name:         name,
 			Key:          joinPath(path, name),
 			Tags:         pq.StringArray{},
 			CreatedAt:    now,
@@ -162,13 +162,9 @@ func (s *Documents) ListByTag(ctx context.Context, tag string, limit, offset int
 // Status derives a document's lifecycle status from the app's current release:
 // draft when the release does not carry it, published when the release carries
 // its head version, and published-with-newer-draft when the release carries an
-// older version than the head (a newer draft is waiting). An unplaced document
-// (no app) is always a draft.
+// older version than the head (a newer draft is waiting).
 func (s *Documents) Status(ctx context.Context, doc *models.Document) (string, error) {
-	if doc.AppID == nil {
-		return models.StatusDraft, nil
-	}
-	entry, err := s.releases.CurrentEntryFor(ctx, *doc.AppID, doc.ID)
+	entry, err := s.releases.CurrentEntryFor(ctx, doc.AppID, doc.ID)
 	if err != nil {
 		return "", err
 	}
@@ -195,19 +191,15 @@ func (s *Documents) Statuses(ctx context.Context, docs []*models.Document) (map[
 	entryByDoc := map[string]string{} // document id -> live version id in the current release
 	loadedApps := map[string]bool{}
 	for _, doc := range docs {
-		if doc.AppID == nil {
-			out[doc.ID] = models.StatusDraft
-			continue
-		}
-		if !loadedApps[*doc.AppID] {
-			entries, err := s.releases.CurrentEntries(ctx, *doc.AppID)
+		if !loadedApps[doc.AppID] {
+			entries, err := s.releases.CurrentEntries(ctx, doc.AppID)
 			if err != nil {
 				return nil, err
 			}
 			for _, e := range entries {
 				entryByDoc[e.DocumentID] = e.VersionID
 			}
-			loadedApps[*doc.AppID] = true
+			loadedApps[doc.AppID] = true
 		}
 		liveVersion, live := entryByDoc[doc.ID]
 		if !live {
@@ -367,13 +359,9 @@ func (s *Documents) Delete(ctx context.Context, id string) error {
 }
 
 // inCurrentRelease reports whether the document is carried by its app's current
-// release. An unplaced document (no app) or an app with no current release is
-// not in any release.
+// release. An app with no current release has nothing live.
 func (s *Documents) inCurrentRelease(ctx context.Context, doc *models.Document) (bool, error) {
-	if doc.AppID == nil {
-		return false, nil
-	}
-	app, err := s.apps.Get(ctx, *doc.AppID)
+	app, err := s.apps.Get(ctx, doc.AppID)
 	if err != nil {
 		if errors.Is(err, ErrNotFound) {
 			return false, nil

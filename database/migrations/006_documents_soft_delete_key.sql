@@ -5,9 +5,8 @@
 -- document at the same path. Making the per-tenant key index partial on
 -- deleted_at IS NULL stops a tombstoned row from holding its key.
 --
--- Scope stays per-tenant here, matching migration 002; the per-app key/name
--- tightening is a later migration (see 005), once every write path populates
--- the tree columns.
+-- Scope stays per-tenant here, matching migration 002; migration 008 moves it
+-- to per-app.
 DROP INDEX idx_documents_tenant_key;
 CREATE UNIQUE INDEX idx_documents_tenant_key
     ON documents(tenant_id, key)

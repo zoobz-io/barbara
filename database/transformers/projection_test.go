@@ -37,10 +37,9 @@ func TestProjection(t *testing.T) {
 // app_id and parent_path are materialized: parent_path is the key's folder, and
 // a nil app_id projects as empty.
 func TestProjection_MaterializesAppAndParentPath(t *testing.T) {
-	app := "app-1"
 	version := &models.Version{ID: "v1"}
 
-	nested := Projection(&models.Document{ID: "d1", Key: "guides/api/ref.md", AppID: &app}, version, "guides/api/ref.md")
+	nested := Projection(&models.Document{ID: "d1", Key: "guides/api/ref.md", AppID: "app-1"}, version, "guides/api/ref.md")
 	if nested.AppID != "app-1" || nested.ParentPath != "guides/api" {
 		t.Errorf("nested projection = app:%q parent:%q; want app-1/guides/api", nested.AppID, nested.ParentPath)
 	}
@@ -71,8 +70,7 @@ func TestParentPath(t *testing.T) {
 // The serving key wins over the authoring key: a document renamed after a
 // release is cut still serves at the path the release recorded.
 func TestProjection_ServesTheEntryKey(t *testing.T) {
-	app := "app-1"
-	doc := &models.Document{ID: "d1", Key: "renamed/new.md", AppID: &app}
+	doc := &models.Document{ID: "d1", Key: "renamed/new.md", AppID: "app-1"}
 	idx := Projection(doc, &models.Version{ID: "v1"}, "old/original.md")
 	if idx.Key != "old/original.md" || idx.ParentPath != "old" {
 		t.Errorf("projection = key:%q parent:%q; want the release-recorded path old/original.md", idx.Key, idx.ParentPath)

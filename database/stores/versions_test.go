@@ -70,7 +70,7 @@ func TestVersions_Save_LocksParentForUpdate(t *testing.T) {
 // it count+1 and stamping the acting user.
 func TestVersions_Save_CountsThenInsertsNextNumber(t *testing.T) {
 	st, capture, cfg := newQueryTestCfg(t)
-	cfg.PushRowData(docRow(nil))  // parent lock select
+	cfg.PushRowData(docRow(testApp))  // parent lock select
 	cfg.PushRowData(countRow(2))  // existing version count (head)
 	cfg.PushRowData(versionRow()) // INSERT ... RETURNING
 	// base_version must equal the head (2) so the save proceeds to the insert.

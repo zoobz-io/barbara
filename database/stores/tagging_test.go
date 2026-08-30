@@ -48,8 +48,9 @@ func TestRemoveTag_LocksDocumentForUpdate(t *testing.T) {
 // because the document is unpublished — enqueues no reprojection.
 func TestAddTag_Draft_WritesTagsNoReproject(t *testing.T) {
 	st, capture, cfg := newQueryTestCfg(t)
-	cfg.PushRowData(docRow(nil)) // lock select — an unplaced draft
-	cfg.PushRowData(docRow(nil)) // setTags RETURNING
+	cfg.PushRowData(docRow(testApp)) // lock select — a draft
+	cfg.PushRowData(docRow(testApp)) // setTags RETURNING
+	cfg.PushRowData(appRow())        // CurrentEntryFor: app has no current release
 	_, _ = st.AddTag(tenantCtx(), "d-1", "guide")
 
 	// The tags write is the second query; the tag set is bound as a pq array.
@@ -63,10 +64,10 @@ func TestAddTag_Draft_WritesTagsNoReproject(t *testing.T) {
 	)
 	wantArg(t, set, `{"guide"}`)
 
-	// A draft writes Postgres only: exactly the lock and the tags update, no
-	// outbox insert.
-	if len(capture.Queries) != 2 {
-		t.Errorf("draft tag change issued %d queries, want 2 (lock + update, no enqueue): %+v", len(capture.Queries), capture.Queries)
+	// A draft writes Postgres only: the lock, the tags update, and the
+	// current-release check that finds nothing — no outbox insert.
+	if len(capture.Queries) != 3 {
+		t.Errorf("draft tag change issued %d queries, want 3 (lock + update + release check, no enqueue): %+v", len(capture.Queries), capture.Queries)
 	}
 }
 

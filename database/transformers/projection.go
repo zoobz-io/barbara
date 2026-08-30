@@ -20,14 +20,10 @@ import (
 // the path it recorded until the next cut. Passing doc.Key here is only
 // correct when the caller has just derived the entry from the live tree.
 func Projection(doc *models.Document, version *models.Version, key string) models.DocumentIndex {
-	appID := ""
-	if doc.AppID != nil {
-		appID = *doc.AppID
-	}
 	return models.DocumentIndex{
 		DocumentID:    doc.ID,
 		TenantID:      doc.TenantID,
-		AppID:         appID,
+		AppID:         doc.AppID,
 		Key:           key,
 		ParentPath:    parentPath(key),
 		Tags:          []string(doc.Tags),
