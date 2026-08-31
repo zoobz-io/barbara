@@ -1,0 +1,25 @@
+{
+  "name": "@barbara/api-sdk",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "generate": "openapi-typescript ./data/openapi.json -o ./src/schema.ts",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "openapi-press": "0.1.1"
+  },
+  "devDependencies": {
+    "eslint": "10.9.0",
+    "openapi-typescript": "7.9.1",
+    "typescript": "5.9.3",
+    "vitest": "4.1.11"
+  }
+}

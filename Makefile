@@ -1,4 +1,4 @@
-.PHONY: build run run-admin test test-unit test-integration test-bench lint lint-fix coverage clean help check ci setup install-tools install-hooks dev dev-api dev-admin dev-observability dev-down dev-logs dev-reset
+.PHONY: build run run-admin test test-unit test-integration test-bench lint lint-fix coverage clean help check ci setup install-tools install-hooks dev dev-api dev-admin dev-observability dev-down dev-logs dev-reset web-install web-check web-lint web-test web-build
 
 .DEFAULT_GOAL := help
 
@@ -66,6 +66,27 @@ dev-reset: ## Reset development environment (removes volumes)
 	@echo "All volumes removed. Run 'make dev' to start fresh."
 
 # =============================================================================
+# Web Workspace
+# =============================================================================
+# The web/ pnpm workspace (Nuxt apps + generated SDKs) is driven from here so a
+# Go-only checkout never needs to cd. Requires pnpm (see web/README.md).
+
+web-install: ## Install web workspace dependencies
+	@cd web && pnpm install
+
+web-check: ## Typecheck the web workspace
+	@cd web && pnpm run typecheck
+
+web-lint: ## Lint the web workspace
+	@cd web && pnpm run lint
+
+web-test: ## Run web workspace tests
+	@cd web && pnpm run test
+
+web-build: ## Build the web workspace (SDK packages + apps)
+	@cd web && pnpm run build
+
+# =============================================================================
 # Testing
 # =============================================================================
 
@@ -130,8 +151,8 @@ install-hooks: ## Install git pre-commit hook
 # CI
 # =============================================================================
 
-check: test lint ## Run tests and lint (quick validation)
+check: test lint web-check web-lint web-test ## Run Go + web tests, lint, and typecheck (quick validation)
 	@echo "All checks passed!"
 
-ci: clean lint test coverage test-bench ## Full CI simulation
+ci: clean lint test coverage test-bench web-check web-lint web-test web-build ## Full CI simulation
 	@echo "CI simulation complete!"

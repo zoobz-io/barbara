@@ -14,6 +14,7 @@ Main continuous integration pipeline. Runs on push to main and pull requests.
 - **security** - Run gosec and upload SARIF results
 - **coverage** - Generate and upload coverage to Codecov
 - **benchmark** - Run benchmarks and upload results
+- **web** - Typecheck, lint, format-check, test, and build the web/ pnpm workspace
 - **ci-complete** - Gate job requiring all others to pass
 
 ### Adding New Workflows
