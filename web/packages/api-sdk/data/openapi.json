@@ -1,0 +1,3977 @@
+{
+  "paths": {
+    "/apps": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppListResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrUnauthorized"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrForbidden"
+                }
+              }
+            },
+            "description": "Forbidden"
+          }
+        },
+        "summary": "List apps",
+        "operationId": "get-apps-e26b44c8",
+        "tags": [
+          "Apps"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "offset",
+            "in": "query"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": [
+              "documents:read"
+            ]
+          }
+        ]
+      },
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAppRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrUnauthorized"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrForbidden"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrConflict"
+                }
+              }
+            },
+            "description": "Conflict"
+          }
+        },
+        "summary": "Create an app",
+        "operationId": "post-apps-ba905213",
+        "tags": [
+          "Apps"
+        ],
+        "security": [
+          {
+            "bearerAuth": [
+              "documents:write"
+            ]
+          }
+        ]
+      }
+    },
+    "/apps/{app_id}/assets": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetListResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrUnauthorized"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrForbidden"
+                }
+              }
+            },
+            "description": "Forbidden"
+          }
+        },
+        "summary": "List assets",
+        "operationId": "get-apps-app_id-assets-392c887e",
+        "tags": [
+          "Assets"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "app_id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "prefix",
+            "in": "query"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": [
+              "documents:read"
+            ]
+          }
+        ]
+      }
+    },
+    "/apps/{app_id}/assets/object": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              },
+              "application/pdf": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              },
+              "image/jpeg": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              },
+              "image/png": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Binary response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrUnauthorized"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrForbidden"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrNotFound"
+                }
+              }
+            },
+            "description": "NotFound"
+          }
+        },
+        "summary": "Download an asset",
+        "operationId": "get-apps-app_id-assets-object-5f10984e",
+        "tags": [
+          "Assets"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "app_id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "key",
+            "in": "query"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": [
+              "documents:read"
+            ]
+          }
+        ]
+      },
+      "put": {
+        "requestBody": {
+          "content": {
+            "application/octet-stream": {
+              "schema": {
+                "format": "binary",
+                "type": "string"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrBadRequest"
+                }
+              }
+            },
+            "description": "BadRequest"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrUnauthorized"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrForbidden"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrNotFound"
+                }
+              }
+            },
+            "description": "NotFound"
+          }
+        },
+        "summary": "Upload an asset (overwrites an existing key)",
+        "operationId": "put-apps-app_id-assets-object-3a5929a8",
+        "tags": [
+          "Assets"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "app_id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "key",
+            "in": "query"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": [
+              "documents:write"
+            ]
+          }
+        ]
+      },
+      "delete": {
+        "responses": {
+          "204": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrUnauthorized"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrForbidden"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrNotFound"
+                }
+              }
+            },
+            "description": "NotFound"
+          }
+        },
+        "summary": "Delete an asset",
+        "operationId": "delete-apps-app_id-assets-object-9e117b54",
+        "tags": [
+          "Assets"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "app_id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "key",
+            "in": "query"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": [
+              "documents:write"
+            ]
+          }
+        ]
+      }
+    },
+    "/apps/{app_id}/collections": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCollectionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CollectionResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrUnauthorized"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrForbidden"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrNotFound"
+                }
+              }
+            },
+            "description": "NotFound"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrConflict"
+                }
+              }
+            },
+            "description": "Conflict"
+          }
+        },
+        "summary": "Create a collection",
+        "operationId": "post-apps-app_id-collections-f10b2ced",
+        "tags": [
+          "Collections"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "app_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": [
+              "documents:write"
+            ]
+          }
+        ]
+      }
+    },
+    "/apps/{app_id}/collections/{id}": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CollectionResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrUnauthorized"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrForbidden"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrNotFound"
+                }
+              }
+            },
+            "description": "NotFound"
+          }
+        },
+        "summary": "Get a collection by ID",
+        "operationId": "get-apps-app_id-collections-id-2aaed31e",
+        "tags": [
+          "Collections"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "app_id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": [
+              "documents:read"
+            ]
+          }
+        ]
+      },
+      "delete": {
+        "responses": {
+          "204": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CollectionResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrUnauthorized"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrForbidden"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrNotFound"
+                }
+              }
+            },
+            "description": "NotFound"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrConflict"
+                }
+              }
+            },
+            "description": "Conflict"
+          }
+        },
+        "summary": "Delete an empty collection",
+        "operationId": "delete-apps-app_id-collections-id-9808ff69",
+        "tags": [
+          "Collections"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "app_id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": [
+              "documents:write"
+            ]
+          }
+        ]
+      },
+      "patch": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RenameCollectionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CollectionResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrUnauthorized"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrForbidden"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrNotFound"
+                }
+              }
+            },
+            "description": "NotFound"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrConflict"
+                }
+              }
+            },
+            "description": "Conflict"
+          }
+        },
+        "summary": "Rename a collection",
+        "operationId": "patch-apps-app_id-collections-id-949ec4ef",
+        "tags": [
+          "Collections"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "app_id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": [
+              "documents:write"
+            ]
+          }
+        ]
+      }
+    },
+    "/apps/{app_id}/collections/{id}/contents": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CollectionContentsResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrUnauthorized"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrForbidden"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrNotFound"
+                }
+              }
+            },
+            "description": "NotFound"
+          }
+        },
+        "summary": "List a collection's contents",
+        "operationId": "get-apps-app_id-collections-id-contents-e77b4152",
+        "tags": [
+          "Collections"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "app_id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": [
+              "documents:read"
+            ]
+          }
+        ]
+      }
+    },
+    "/apps/{app_id}/collections/{id}/move": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MoveCollectionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CollectionResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrUnauthorized"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrForbidden"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrNotFound"
+                }
+              }
+            },
+            "description": "NotFound"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrConflict"
+                }
+              }
+            },
+            "description": "Conflict"
+          }
+        },
+        "summary": "Move a collection to a new parent",
+        "operationId": "post-apps-app_id-collections-id-move-d81bb7c2",
+        "tags": [
+          "Collections"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "app_id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": [
+              "documents:write"
+            ]
+          }
+        ]
+      }
+    },
+    "/apps/{app_id}/contents": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CollectionContentsResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrUnauthorized"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrForbidden"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrNotFound"
+                }
+              }
+            },
+            "description": "NotFound"
+          }
+        },
+        "summary": "List the app root contents",
+        "operationId": "get-apps-app_id-contents-f68801e1",
+        "tags": [
+          "Collections"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "app_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": [
+              "documents:read"
+            ]
+          }
+        ]
+      }
+    },
+    "/apps/{app_id}/documents": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateDocumentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrUnauthorized"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrForbidden"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrNotFound"
+                }
+              }
+            },
+            "description": "NotFound"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrConflict"
+                }
+              }
+            },
+            "description": "Conflict"
+          }
+        },
+        "summary": "Create a document",
+        "operationId": "post-apps-app_id-documents-1152a740",
+        "tags": [
+          "Documents"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "app_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": [
+              "documents:write"
+            ]
+          }
+        ]
+      }
+    },
+    "/apps/{app_id}/documents/{id}/move": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MoveDocumentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrUnauthorized"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrForbidden"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrNotFound"
+                }
+              }
+            },
+            "description": "NotFound"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrConflict"
+                }
+              }
+            },
+            "description": "Conflict"
+          }
+        },
+        "summary": "Move a document to a new collection or name",
+        "operationId": "post-apps-app_id-documents-id-move-c0a6fef3",
+        "tags": [
+          "Documents"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "app_id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": [
+              "documents:write"
+            ]
+          }
+        ]
+      }
+    },
+    "/apps/{app_id}/releases": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReleaseListResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrUnauthorized"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrForbidden"
+                }
+              }
+            },
+            "description": "Forbidden"
+          }
+        },
+        "summary": "List releases",
+        "operationId": "get-apps-app_id-releases-dc015e61",
+        "tags": [
+          "Releases"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "app_id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "offset",
+            "in": "query"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": [
+              "documents:read"
+            ]
+          }
+        ]
+      },
+      "post": {
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReleaseResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrUnauthorized"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrForbidden"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrNotFound"
+                }
+              }
+            },
+            "description": "NotFound"
+          }
+        },
+        "summary": "Cut a release",
+        "operationId": "post-apps-app_id-releases-0ddccd44",
+        "tags": [
+          "Releases"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "app_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": [
+              "documents:publish"
+            ]
+          }
+        ]
+      }
+    },
+    "/apps/{app_id}/releases/{id}": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReleaseWithEntriesResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrUnauthorized"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrForbidden"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrNotFound"
+                }
+              }
+            },
+            "description": "NotFound"
+          }
+        },
+        "summary": "Get a release with its entries",
+        "operationId": "get-apps-app_id-releases-id-75311809",
+        "tags": [
+          "Releases"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "app_id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": [
+              "documents:read"
+            ]
+          }
+        ]
+      }
+    },
+    "/apps/{app_id}/releases/{id}/rollback": {
+      "post": {
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReleaseResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrUnauthorized"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrForbidden"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrNotFound"
+                }
+              }
+            },
+            "description": "NotFound"
+          }
+        },
+        "summary": "Roll back to a release",
+        "operationId": "post-apps-app_id-releases-id-rollback-c3947693",
+        "tags": [
+          "Releases"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "app_id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": [
+              "documents:publish"
+            ]
+          }
+        ]
+      }
+    },
+    "/apps/{id}": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrUnauthorized"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrForbidden"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrNotFound"
+                }
+              }
+            },
+            "description": "NotFound"
+          }
+        },
+        "summary": "Get an app by ID",
+        "operationId": "get-apps-id-8867dd41",
+        "tags": [
+          "Apps"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": [
+              "documents:read"
+            ]
+          }
+        ]
+      },
+      "delete": {
+        "responses": {
+          "204": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrUnauthorized"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrForbidden"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrNotFound"
+                }
+              }
+            },
+            "description": "NotFound"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrConflict"
+                }
+              }
+            },
+            "description": "Conflict"
+          }
+        },
+        "summary": "Delete an app that has no release",
+        "operationId": "delete-apps-id-99fbe0b0",
+        "tags": [
+          "Apps"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": [
+              "documents:write"
+            ]
+          }
+        ]
+      },
+      "patch": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RenameAppRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrUnauthorized"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrForbidden"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrNotFound"
+                }
+              }
+            },
+            "description": "NotFound"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrConflict"
+                }
+              }
+            },
+            "description": "Conflict"
+          }
+        },
+        "summary": "Rename an app",
+        "operationId": "patch-apps-id-cd1e6a86",
+        "tags": [
+          "Apps"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": [
+              "documents:write"
+            ]
+          }
+        ]
+      }
+    },
+    "/documents": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentListResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrUnauthorized"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrForbidden"
+                }
+              }
+            },
+            "description": "Forbidden"
+          }
+        },
+        "summary": "List documents",
+        "operationId": "get-documents-0e0c81d1",
+        "tags": [
+          "Documents"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "tag",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "offset",
+            "in": "query"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": [
+              "documents:read"
+            ]
+          }
+        ]
+      }
+    },
+    "/documents/{document_id}/versions": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VersionListResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrUnauthorized"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrForbidden"
+                }
+              }
+            },
+            "description": "Forbidden"
+          }
+        },
+        "summary": "List a document's versions",
+        "operationId": "get-documents-document_id-versions-399a86fe",
+        "tags": [
+          "Versions"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "document_id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "offset",
+            "in": "query"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": [
+              "documents:read"
+            ]
+          }
+        ]
+      },
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveVersionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VersionResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrBadRequest"
+                }
+              }
+            },
+            "description": "BadRequest"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrUnauthorized"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrForbidden"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrNotFound"
+                }
+              }
+            },
+            "description": "NotFound"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrConflict"
+                }
+              }
+            },
+            "description": "Conflict"
+          }
+        },
+        "summary": "Save a new version of a document",
+        "operationId": "post-documents-document_id-versions-5c783c5e",
+        "tags": [
+          "Versions"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "document_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": [
+              "documents:write"
+            ]
+          }
+        ]
+      }
+    },
+    "/documents/{id}": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrUnauthorized"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrForbidden"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrNotFound"
+                }
+              }
+            },
+            "description": "NotFound"
+          }
+        },
+        "summary": "Get a document by ID",
+        "operationId": "get-documents-id-93ce64b7",
+        "tags": [
+          "Documents"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": [
+              "documents:read"
+            ]
+          }
+        ]
+      },
+      "delete": {
+        "responses": {
+          "204": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrUnauthorized"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrForbidden"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrNotFound"
+                }
+              }
+            },
+            "description": "NotFound"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrConflict"
+                }
+              }
+            },
+            "description": "Conflict"
+          }
+        },
+        "summary": "Delete an unpublished document",
+        "operationId": "delete-documents-id-c9eeed83",
+        "tags": [
+          "Documents"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": [
+              "documents:write"
+            ]
+          }
+        ]
+      }
+    },
+    "/documents/{id}/content": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentContentResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrUnauthorized"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrForbidden"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrNotFound"
+                }
+              }
+            },
+            "description": "NotFound"
+          }
+        },
+        "summary": "Get a document with its head version content",
+        "operationId": "get-documents-id-content-14d82ac3",
+        "tags": [
+          "Documents"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": [
+              "documents:read"
+            ]
+          }
+        ]
+      }
+    },
+    "/documents/{id}/publish": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PublishRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrBadRequest"
+                }
+              }
+            },
+            "description": "BadRequest"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrUnauthorized"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrForbidden"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrNotFound"
+                }
+              }
+            },
+            "description": "NotFound"
+          }
+        },
+        "summary": "Publish a document version",
+        "operationId": "post-documents-id-publish-8e747dcc",
+        "tags": [
+          "Publishing"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": [
+              "documents:publish"
+            ]
+          }
+        ]
+      }
+    },
+    "/documents/{id}/rollback": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PublishRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrBadRequest"
+                }
+              }
+            },
+            "description": "BadRequest"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrUnauthorized"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrForbidden"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrNotFound"
+                }
+              }
+            },
+            "description": "NotFound"
+          }
+        },
+        "summary": "Roll back to an older document version",
+        "operationId": "post-documents-id-rollback-f50c131a",
+        "tags": [
+          "Publishing"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": [
+              "documents:publish"
+            ]
+          }
+        ]
+      }
+    },
+    "/documents/{id}/tags": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddTagRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrBadRequest"
+                }
+              }
+            },
+            "description": "BadRequest"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrUnauthorized"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrForbidden"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrNotFound"
+                }
+              }
+            },
+            "description": "NotFound"
+          }
+        },
+        "summary": "Add a tag to a document",
+        "operationId": "post-documents-id-tags-ce5e0202",
+        "tags": [
+          "Documents"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": [
+              "documents:write"
+            ]
+          }
+        ]
+      },
+      "delete": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrBadRequest"
+                }
+              }
+            },
+            "description": "BadRequest"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrUnauthorized"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrForbidden"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrNotFound"
+                }
+              }
+            },
+            "description": "NotFound"
+          }
+        },
+        "summary": "Remove a tag from a document",
+        "operationId": "delete-documents-id-tags-353f65a5",
+        "tags": [
+          "Documents"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "tag",
+            "in": "query"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": [
+              "documents:write"
+            ]
+          }
+        ]
+      }
+    },
+    "/documents/{id}/unpublish": {
+      "post": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrUnauthorized"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrForbidden"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrNotFound"
+                }
+              }
+            },
+            "description": "NotFound"
+          }
+        },
+        "summary": "Unpublish a document",
+        "operationId": "post-documents-id-unpublish-680b7711",
+        "tags": [
+          "Publishing"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": [
+              "documents:publish"
+            ]
+          }
+        ]
+      }
+    },
+    "/published/apps/{app_id}/assets/object": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              },
+              "application/pdf": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              },
+              "image/jpeg": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              },
+              "image/png": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Binary response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrUnauthorized"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrNotFound"
+                }
+              }
+            },
+            "description": "NotFound"
+          }
+        },
+        "summary": "Download a published app's asset",
+        "operationId": "get-published-apps-app_id-assets-object-d0513716",
+        "tags": [
+          "Assets"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "app_id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "key",
+            "in": "query"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": null
+          }
+        ]
+      }
+    },
+    "/published/apps/{app_id}/documents": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublishedDocumentListResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrUnauthorized"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "summary": "Enumerate published documents",
+        "operationId": "get-published-apps-app_id-documents-994ca694",
+        "tags": [
+          "Published"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "app_id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "tag",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "offset",
+            "in": "query"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": null
+          }
+        ]
+      }
+    },
+    "/published/apps/{app_id}/folder": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublishedDocumentListResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrUnauthorized"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "summary": "List a folder's published documents",
+        "operationId": "get-published-apps-app_id-folder-e5037ddb",
+        "tags": [
+          "Published"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "app_id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "path",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "offset",
+            "in": "query"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": null
+          }
+        ]
+      }
+    },
+    "/published/apps/{app_id}/lookup": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublishedDocumentResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrBadRequest"
+                }
+              }
+            },
+            "description": "BadRequest"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrUnauthorized"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrNotFound"
+                }
+              }
+            },
+            "description": "NotFound"
+          }
+        },
+        "summary": "Get a published document by key",
+        "operationId": "get-published-apps-app_id-lookup-4b901673",
+        "tags": [
+          "Published"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "app_id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "key",
+            "in": "query"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": null
+          }
+        ]
+      }
+    },
+    "/published/apps/{app_id}/search": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublishedDocumentListResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrBadRequest"
+                }
+              }
+            },
+            "description": "BadRequest"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrUnauthorized"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "summary": "Full-text search over published documents",
+        "operationId": "get-published-apps-app_id-search-bbbbff4b",
+        "tags": [
+          "Published"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "app_id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "q",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "offset",
+            "in": "query"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": null
+          }
+        ]
+      }
+    },
+    "/versions/{id}": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VersionResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrUnauthorized"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrForbidden"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrNotFound"
+                }
+              }
+            },
+            "description": "NotFound"
+          }
+        },
+        "summary": "Get a version by ID",
+        "operationId": "get-versions-id-59b64e57",
+        "tags": [
+          "Versions"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": [
+              "documents:read"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AddTagRequest": {
+        "properties": {
+          "tag": {
+            "example": "guide",
+            "type": "string",
+            "description": "Organizational tag to add"
+          }
+        },
+        "type": "object",
+        "required": [
+          "tag"
+        ]
+      },
+      "AppListResponse": {
+        "properties": {
+          "apps": {
+            "items": {
+              "$ref": "#/components/schemas/AppResponse"
+            },
+            "type": "array",
+            "description": "The tenant's apps"
+          },
+          "limit": {
+            "type": "integer",
+            "description": "Page size"
+          },
+          "offset": {
+            "type": "integer",
+            "description": "Page offset"
+          },
+          "total": {
+            "type": "integer",
+            "description": "Number of apps returned"
+          }
+        },
+        "type": "object",
+        "required": [
+          "apps",
+          "total",
+          "limit",
+          "offset"
+        ]
+      },
+      "AppResponse": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Creation timestamp"
+          },
+          "current_release_id": {
+            "type": "string",
+            "description": "The live release, if any"
+          },
+          "id": {
+            "type": "string",
+            "description": "App ID"
+          },
+          "name": {
+            "example": "docs-site",
+            "type": "string",
+            "description": "App name"
+          },
+          "tenant_id": {
+            "type": "string",
+            "description": "Owning tenant"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Last update timestamp"
+          }
+        },
+        "type": "object",
+        "required": [
+          "created_at",
+          "updated_at",
+          "id",
+          "tenant_id",
+          "name"
+        ]
+      },
+      "AssetListResponse": {
+        "properties": {
+          "assets": {
+            "items": {
+              "$ref": "#/components/schemas/AssetResponse"
+            },
+            "type": "array",
+            "description": "The app's assets"
+          },
+          "total": {
+            "type": "integer",
+            "description": "Number of assets returned"
+          }
+        },
+        "type": "object",
+        "required": [
+          "assets",
+          "total"
+        ]
+      },
+      "AssetResponse": {
+        "properties": {
+          "content_type": {
+            "example": "image/png",
+            "type": "string",
+            "description": "Stored MIME type"
+          },
+          "key": {
+            "example": "images/logo.png",
+            "type": "string",
+            "description": "Asset key, unique per app"
+          },
+          "size": {
+            "type": "integer",
+            "description": "Size in bytes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "content_type",
+          "size"
+        ]
+      },
+      "CollectionContentsResponse": {
+        "properties": {
+          "documents": {
+            "items": {
+              "$ref": "#/components/schemas/DocumentResponse"
+            },
+            "type": "array",
+            "description": "Direct documents, by key"
+          },
+          "subcollections": {
+            "items": {
+              "$ref": "#/components/schemas/CollectionResponse"
+            },
+            "type": "array",
+            "description": "Direct subcollections, by name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "subcollections",
+          "documents"
+        ]
+      },
+      "CollectionResponse": {
+        "properties": {
+          "app_id": {
+            "type": "string",
+            "description": "Owning app"
+          },
+          "created_at": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Creation timestamp"
+          },
+          "id": {
+            "type": "string",
+            "description": "Collection ID"
+          },
+          "name": {
+            "example": "guides",
+            "type": "string",
+            "description": "Collection name"
+          },
+          "parent_id": {
+            "type": "string",
+            "description": "Parent collection ID, or null at the app root"
+          },
+          "tenant_id": {
+            "type": "string",
+            "description": "Owning tenant"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Last update timestamp"
+          }
+        },
+        "type": "object",
+        "required": [
+          "created_at",
+          "updated_at",
+          "id",
+          "tenant_id",
+          "app_id",
+          "name"
+        ]
+      },
+      "ContentBlock": {
+        "properties": {
+          "content": {
+            "type": "string",
+            "description": "Head version content"
+          },
+          "created_at": {
+            "format": "date-time",
+            "type": "string",
+            "description": "When the head version was saved"
+          },
+          "version_id": {
+            "type": "string",
+            "description": "Head version ID"
+          },
+          "version_number": {
+            "type": "integer",
+            "description": "Head version number"
+          }
+        },
+        "type": "object",
+        "required": [
+          "created_at",
+          "version_id",
+          "content",
+          "version_number"
+        ]
+      },
+      "CreateAppRequest": {
+        "properties": {
+          "name": {
+            "example": "docs-site",
+            "type": "string",
+            "description": "App name, unique per tenant"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ]
+      },
+      "CreateCollectionRequest": {
+        "properties": {
+          "name": {
+            "example": "guides",
+            "type": "string",
+            "description": "Collection name, unique among siblings"
+          },
+          "parent_id": {
+            "type": "string",
+            "description": "Parent collection ID, or null for the app root"
+          }
+        },
+        "type": "object",
+        "required": [
+          "parent_id",
+          "name"
+        ]
+      },
+      "CreateDocumentRequest": {
+        "properties": {
+          "collection_id": {
+            "type": "string",
+            "description": "Parent collection ID, or null for the app root"
+          },
+          "name": {
+            "example": "install.md",
+            "type": "string",
+            "description": "Document name, unique among siblings"
+          }
+        },
+        "type": "object",
+        "required": [
+          "collection_id",
+          "name"
+        ]
+      },
+      "DocumentContentResponse": {
+        "properties": {
+          "content": {
+            "description": "The head version's content, or null if the document has no versions",
+            "$ref": "#/components/schemas/ContentBlock"
+          },
+          "document": {
+            "$ref": "#/components/schemas/DocumentResponse"
+          }
+        },
+        "type": "object",
+        "required": [
+          "content",
+          "document"
+        ]
+      },
+      "DocumentListResponse": {
+        "properties": {
+          "documents": {
+            "items": {
+              "$ref": "#/components/schemas/DocumentResponse"
+            },
+            "type": "array",
+            "description": "The tenant's documents"
+          },
+          "limit": {
+            "type": "integer",
+            "description": "Page size"
+          },
+          "offset": {
+            "type": "integer",
+            "description": "Page offset"
+          },
+          "total": {
+            "type": "integer",
+            "description": "Number of documents returned"
+          }
+        },
+        "type": "object",
+        "required": [
+          "documents",
+          "total",
+          "limit",
+          "offset"
+        ]
+      },
+      "DocumentResponse": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Creation timestamp"
+          },
+          "id": {
+            "example": "b1e1...",
+            "type": "string",
+            "description": "Document ID"
+          },
+          "key": {
+            "example": "guides/install.md",
+            "type": "string",
+            "description": "Document key"
+          },
+          "status": {
+            "example": "published",
+            "type": "string",
+            "description": "Lifecycle status: draft, published, or published-with-newer-draft"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "description": "Organizational tags"
+          },
+          "tenant_id": {
+            "type": "string",
+            "description": "Owning tenant"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Last update timestamp"
+          }
+        },
+        "type": "object",
+        "required": [
+          "created_at",
+          "updated_at",
+          "id",
+          "tenant_id",
+          "key",
+          "status",
+          "tags"
+        ]
+      },
+      "ErrBadRequest": {
+        "properties": {
+          "code": {
+            "const": "BAD_REQUEST",
+            "type": "string",
+            "description": "Machine-readable error code"
+          },
+          "details": {
+            "properties": {
+              "reason": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "message": {
+            "type": "string",
+            "description": "Human-readable error message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "message"
+        ]
+      },
+      "ErrConflict": {
+        "properties": {
+          "code": {
+            "const": "CONFLICT",
+            "type": "string",
+            "description": "Machine-readable error code"
+          },
+          "details": {
+            "properties": {
+              "reason": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "message": {
+            "type": "string",
+            "description": "Human-readable error message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "message"
+        ]
+      },
+      "ErrForbidden": {
+        "properties": {
+          "code": {
+            "const": "FORBIDDEN",
+            "type": "string",
+            "description": "Machine-readable error code"
+          },
+          "details": {
+            "properties": {
+              "reason": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "message": {
+            "type": "string",
+            "description": "Human-readable error message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "message"
+        ]
+      },
+      "ErrNotFound": {
+        "properties": {
+          "code": {
+            "const": "NOT_FOUND",
+            "type": "string",
+            "description": "Machine-readable error code"
+          },
+          "details": {
+            "properties": {
+              "resource": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "message": {
+            "type": "string",
+            "description": "Human-readable error message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "message"
+        ]
+      },
+      "ErrUnauthorized": {
+        "properties": {
+          "code": {
+            "const": "UNAUTHORIZED",
+            "type": "string",
+            "description": "Machine-readable error code"
+          },
+          "details": {
+            "properties": {
+              "reason": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "message": {
+            "type": "string",
+            "description": "Human-readable error message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "message"
+        ]
+      },
+      "MoveCollectionRequest": {
+        "properties": {
+          "parent_id": {
+            "type": "string",
+            "description": "New parent collection ID, or null for the app root"
+          }
+        },
+        "type": "object",
+        "required": [
+          "parent_id"
+        ]
+      },
+      "MoveDocumentRequest": {
+        "properties": {
+          "collection_id": {
+            "type": "string",
+            "description": "New parent collection ID, or null for the app root"
+          },
+          "name": {
+            "example": "setup.md",
+            "type": "string",
+            "description": "New name, unique among siblings"
+          }
+        },
+        "type": "object",
+        "required": [
+          "collection_id",
+          "name"
+        ]
+      },
+      "PublishRequest": {
+        "properties": {
+          "version_id": {
+            "type": "string",
+            "description": "The version to publish"
+          }
+        },
+        "type": "object",
+        "required": [
+          "version_id"
+        ]
+      },
+      "PublishedDocumentListResponse": {
+        "properties": {
+          "documents": {
+            "items": {
+              "$ref": "#/components/schemas/PublishedDocumentResponse"
+            },
+            "type": "array",
+            "description": "The page of published documents"
+          },
+          "limit": {
+            "type": "integer",
+            "description": "Page size"
+          },
+          "offset": {
+            "type": "integer",
+            "description": "Page offset"
+          },
+          "total": {
+            "type": "integer",
+            "description": "Total number of matches across all pages"
+          }
+        },
+        "type": "object",
+        "required": [
+          "documents",
+          "total",
+          "limit",
+          "offset"
+        ]
+      },
+      "PublishedDocumentResponse": {
+        "properties": {
+          "content": {
+            "type": "string",
+            "description": "Published content"
+          },
+          "created_at": {
+            "format": "date-time",
+            "type": "string",
+            "description": "When the document was created"
+          },
+          "document_id": {
+            "example": "b1e1...",
+            "type": "string",
+            "description": "Document ID"
+          },
+          "key": {
+            "example": "guides/install.md",
+            "type": "string",
+            "description": "Document key"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "description": "Organizational tags"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "type": "string",
+            "description": "When the document was last updated"
+          },
+          "version_number": {
+            "example": 3,
+            "type": "integer",
+            "description": "Published version number"
+          }
+        },
+        "type": "object",
+        "required": [
+          "created_at",
+          "updated_at",
+          "document_id",
+          "key",
+          "content",
+          "tags",
+          "version_number"
+        ]
+      },
+      "ReleaseEntryResponse": {
+        "properties": {
+          "document_id": {
+            "type": "string",
+            "description": "Document served at the path"
+          },
+          "key": {
+            "type": "string",
+            "description": "Live path"
+          },
+          "version_id": {
+            "type": "string",
+            "description": "Version served"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "document_id",
+          "version_id"
+        ]
+      },
+      "ReleaseListResponse": {
+        "properties": {
+          "limit": {
+            "type": "integer",
+            "description": "Page size"
+          },
+          "offset": {
+            "type": "integer",
+            "description": "Page offset"
+          },
+          "releases": {
+            "items": {
+              "$ref": "#/components/schemas/ReleaseResponse"
+            },
+            "type": "array",
+            "description": "The app's releases, newest first"
+          },
+          "total": {
+            "type": "integer",
+            "description": "Number of releases returned"
+          }
+        },
+        "type": "object",
+        "required": [
+          "releases",
+          "total",
+          "limit",
+          "offset"
+        ]
+      },
+      "ReleaseResponse": {
+        "properties": {
+          "app_id": {
+            "type": "string",
+            "description": "Owning app"
+          },
+          "created_at": {
+            "format": "date-time",
+            "type": "string",
+            "description": "When the release was cut"
+          },
+          "created_by": {
+            "type": "string",
+            "description": "User who cut the release"
+          },
+          "id": {
+            "type": "string",
+            "description": "Release ID"
+          },
+          "number": {
+            "type": "integer",
+            "description": "Monotonic release number within the app"
+          },
+          "tenant_id": {
+            "type": "string",
+            "description": "Owning tenant"
+          }
+        },
+        "type": "object",
+        "required": [
+          "created_at",
+          "id",
+          "app_id",
+          "tenant_id",
+          "created_by",
+          "number"
+        ]
+      },
+      "ReleaseWithEntriesResponse": {
+        "properties": {
+          "entries": {
+            "items": {
+              "$ref": "#/components/schemas/ReleaseEntryResponse"
+            },
+            "type": "array",
+            "description": "The release's live paths, by key"
+          },
+          "release": {
+            "$ref": "#/components/schemas/ReleaseResponse"
+          }
+        },
+        "type": "object",
+        "required": [
+          "release",
+          "entries"
+        ]
+      },
+      "RenameAppRequest": {
+        "properties": {
+          "name": {
+            "example": "marketing-site",
+            "type": "string",
+            "description": "New name, unique per tenant"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ]
+      },
+      "RenameCollectionRequest": {
+        "properties": {
+          "name": {
+            "example": "tutorials",
+            "type": "string",
+            "description": "New name, unique among siblings"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ]
+      },
+      "SaveVersionRequest": {
+        "properties": {
+          "base_version": {
+            "type": "integer",
+            "description": "The head version the edit was based on (0 for the first version)"
+          },
+          "content": {
+            "type": "string",
+            "description": "The document's full markdown content"
+          }
+        },
+        "type": "object",
+        "required": [
+          "base_version",
+          "content"
+        ]
+      },
+      "ValidationFieldError": {
+        "properties": {
+          "field": {
+            "type": "string",
+            "description": "The field that failed validation"
+          },
+          "message": {
+            "type": "string",
+            "description": "Description of the validation failure"
+          }
+        },
+        "type": "object",
+        "required": [
+          "field",
+          "message"
+        ]
+      },
+      "VersionListResponse": {
+        "properties": {
+          "limit": {
+            "type": "integer",
+            "description": "Page size"
+          },
+          "offset": {
+            "type": "integer",
+            "description": "Page offset"
+          },
+          "total": {
+            "type": "integer",
+            "description": "Number of versions returned"
+          },
+          "versions": {
+            "items": {
+              "$ref": "#/components/schemas/VersionResponse"
+            },
+            "type": "array",
+            "description": "The document's versions, newest first"
+          }
+        },
+        "type": "object",
+        "required": [
+          "versions",
+          "total",
+          "limit",
+          "offset"
+        ]
+      },
+      "VersionResponse": {
+        "properties": {
+          "content": {
+            "type": "string",
+            "description": "The version's markdown content"
+          },
+          "created_at": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Creation timestamp"
+          },
+          "created_by": {
+            "type": "string",
+            "description": "User who saved this version"
+          },
+          "document_id": {
+            "type": "string",
+            "description": "Parent document ID"
+          },
+          "id": {
+            "type": "string",
+            "description": "Version ID"
+          },
+          "tenant_id": {
+            "type": "string",
+            "description": "Owning tenant"
+          },
+          "version_number": {
+            "type": "integer",
+            "description": "Monotonic number within the document"
+          }
+        },
+        "type": "object",
+        "required": [
+          "created_at",
+          "id",
+          "document_id",
+          "tenant_id",
+          "content",
+          "created_by",
+          "version_number"
+        ]
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "description": "Bearer token authentication",
+        "scheme": "bearer"
+      }
+    }
+  },
+  "info": {
+    "title": "Barbara API",
+    "description": "Public API for the Barbara platform: tenant-scoped authoring over apps, collections, documents, versions, releases, and assets, plus the site-facing published read surface. All endpoints require an authenticated session.",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "tags": [
+    {
+      "name": "Published",
+      "description": "Read published documents and assets exactly as released."
+    },
+    {
+      "name": "Apps",
+      "description": "The top-level containers a tenant publishes from."
+    },
+    {
+      "name": "Collections",
+      "description": "Folder hierarchy organizing documents within an app."
+    },
+    {
+      "name": "Documents",
+      "description": "Authored documents, their placement, and their tags."
+    },
+    {
+      "name": "Versions",
+      "description": "Immutable saved snapshots of a document's content."
+    },
+    {
+      "name": "Publishing",
+      "description": "Per-document publish, unpublish, and rollback lifecycle."
+    },
+    {
+      "name": "Releases",
+      "description": "App-wide cut points and rollback targets."
+    },
+    {
+      "name": "Assets",
+      "description": "Uploaded binary assets and their published counterparts."
+    }
+  ],
+  "x-tagGroups": [
+    {
+      "name": "Site",
+      "tags": [
+        "Published"
+      ]
+    },
+    {
+      "name": "Authoring",
+      "tags": [
+        "Apps",
+        "Collections",
+        "Documents",
+        "Versions",
+        "Publishing",
+        "Releases",
+        "Assets"
+      ]
+    }
+  ]
+}

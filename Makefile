@@ -1,4 +1,4 @@
-.PHONY: build run run-admin test test-unit test-integration test-bench lint lint-fix coverage clean help check ci setup install-tools install-hooks dev dev-api dev-admin dev-observability dev-down dev-logs dev-reset web-install web-check web-lint web-test web-build
+.PHONY: build run run-admin test test-unit test-integration test-bench lint lint-fix coverage clean help check ci setup install-tools install-hooks dev dev-api dev-admin dev-observability dev-down dev-logs dev-reset openapi-api openapi-admin web-install web-check web-lint web-test web-build
 
 .DEFAULT_GOAL := help
 
@@ -70,6 +70,12 @@ dev-reset: ## Reset development environment (removes volumes)
 # =============================================================================
 # The web/ pnpm workspace (Nuxt apps + generated SDKs) is driven from here so a
 # Go-only checkout never needs to cd. Requires pnpm (see web/README.md).
+
+openapi-api: ## Dump the public API OpenAPI spec into the api SDK package
+	@go run ./cmd/apispec web/packages/api-sdk/data/openapi.json
+
+openapi-admin: ## Dump the admin API OpenAPI spec into the admin SDK package
+	@go run ./cmd/adminspec web/packages/admin-sdk/data/openapi.json
 
 web-install: ## Install web workspace dependencies
 	@cd web && pnpm install

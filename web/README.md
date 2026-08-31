@@ -18,26 +18,28 @@ apps/public ── @barbara/api-sdk ────▶ public API  (:8080)
 apps/admin ── @barbara/admin-sdk ──▶ admin API   (:8081)
 ```
 
-> Scaffold status: the workspace, configs, and package shapes are in place; the SDKs
-> export nothing yet and each app is a single placeholder page. The OpenAPI → SDK
-> pipeline (spec dump → `openapi-typescript` → press client) is wired but waiting on
-> spec dumps from the Go surfaces.
+> Scaffold status: the workspace, configs, and SDKs are in place; each app is still a
+> single placeholder page that doesn't consume its SDK yet.
 
 ## The OpenAPI → SDK pipeline
 
-The clients are not written; they are generated. Per SDK:
+The clients are typed by generation, not by hand. Per SDK:
 
 ```
-{api,admin}/handlers ─▶ spec dump ─▶ packages/*-sdk/data/openapi.json
-                                          │
-                              openapi-typescript (pnpm generate)
-                                          ▼
-                            *-sdk/src/schema.ts   (generated — do not edit)
-                                          │
-                          src/client.ts · openapi-press factory
-                                          ▼
-                                     apps/{public,admin}
+{api,admin}/handlers ─▶ cmd/{api,admin}spec ─▶ packages/*-sdk/data/openapi.json
+                                                    │            (make openapi-{api,admin})
+                                        openapi-typescript (pnpm generate)
+                                                    ▼
+                                      *-sdk/src/schema.ts   (generated — do not edit)
+                                                    │
+                                    src/client.ts · openapi-press factory
+                                                    ▼
+                                           apps/{public,admin}
 ```
+
+Change an endpoint's shape and the chain re-runs from `make openapi-api` /
+`make openapi-admin`; typecheck fails if a client names a path or method the
+spec no longer has.
 
 ## Layout
 
@@ -79,11 +81,13 @@ The [top-level Makefile](../Makefile) drives this workspace so a Go-only checkou
 no `cd`:
 
 ```
-make web-install   # pnpm install
-make web-check     # pnpm run typecheck
-make web-lint      # pnpm run lint
-make web-test      # pnpm run test
-make web-build     # pnpm run build
+make web-install    # pnpm install
+make web-check      # pnpm run typecheck
+make web-lint       # pnpm run lint
+make web-test       # pnpm run test
+make web-build      # pnpm run build
+make openapi-api    # regenerate api-sdk/data/openapi.json from the handlers
+make openapi-admin  # regenerate admin-sdk/data/openapi.json from the handlers
 ```
 
 `make check` folds `web-check`, `web-lint`, and `web-test` into the quick gate;
