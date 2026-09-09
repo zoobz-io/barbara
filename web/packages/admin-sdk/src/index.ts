@@ -6,9 +6,13 @@
  * options object, return the response body directly, and throw from the
  * openapi-press error hierarchy on failure. Cross-cutting behavior (retry,
  * timeouts, caching, …) is applied per endpoint through `.with`.
+ *
+ * `createAdminClient` is also the default export — the Press shape
+ * `@openapi-press/nuxt` resolves when a Nuxt app mounts this SDK as a named
+ * client.
  */
 
-export { createAdminClient } from "./client";
+export { createAdminClient, createAdminClient as default } from "./client";
 export type { AdminClient } from "./client";
 
 // Re-export openapi-press's shared surface so consumers configure, instrument,

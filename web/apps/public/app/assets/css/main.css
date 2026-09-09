@@ -1,0 +1,170 @@
+/*
+ * Base + shared chrome, painted with untheme tokens. The static cascade
+ * (#build/untheme.css) is linked into the bundle by @untheme/nuxt; every
+ * var() here resolves from foundation's theme, so the app follows theme,
+ * color-mode, contrast, radius (--shape-*), density (--space-*), and motion
+ * (--transition-*) switches for free.
+ */
+
+@import "./foundation.css";
+@import "./landing.css";
+@import "./form-page.css";
+@import "./studio.css";
+@import "./settings.css";
+@import "./history.css";
+@import "./content.css";
+@import "./editor.css";
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--body-size);
+  line-height: var(--body-line-height);
+  background: var(--surface);
+  color: var(--on-surface);
+}
+
+/* Hover state layer from the theme's scalar, tinted by the element's own
+   text color. */
+:root {
+  --state-hover-layer: color-mix(
+    in srgb,
+    currentColor calc(var(--state-hover) * 100%),
+    transparent
+  );
+}
+
+button {
+  font: inherit;
+}
+
+/* Interactive chrome follows the motion axis (f-* transitions live in
+   foundation.css). */
+.primary,
+.danger,
+.ghost,
+.tab,
+.segment,
+.app-item {
+  transition:
+    background-color var(--transition-base),
+    color var(--transition-base),
+    border-color var(--transition-base);
+}
+
+.primary {
+  display: inline-block;
+  padding: 0.4rem 0.9rem;
+  border: none;
+  border-radius: var(--shape-sm);
+  background: var(--primary);
+  color: var(--on-primary);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.primary:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.danger {
+  display: inline-block;
+  padding: 0.4rem 0.9rem;
+  border: none;
+  border-radius: var(--shape-sm);
+  background: var(--error);
+  color: var(--on-error);
+  font: inherit;
+  cursor: pointer;
+}
+
+.danger:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.ghost {
+  padding: 0.4rem 0.6rem;
+  border: none;
+  border-radius: var(--shape-sm);
+  background: transparent;
+  color: var(--on-surface-muted);
+  font-size: var(--label-size);
+  cursor: pointer;
+}
+
+.ghost:hover {
+  color: var(--on-surface);
+  background: var(--state-hover-layer);
+}
+
+.ghost:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.ghost:disabled:hover {
+  color: var(--on-surface-muted);
+  background: transparent;
+}
+
+/* A titled content box (settings sections, history results). */
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  border: 1px solid var(--outline-muted);
+  border-radius: var(--shape-md);
+  background: var(--surface-container);
+}
+
+.panel h2 {
+  margin: 0;
+  font-size: var(--title-size);
+}
+
+.panel-danger {
+  border-color: var(--error-muted);
+}
+
+input[type="text"] {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--outline-muted);
+  border-radius: var(--shape-sm);
+  font: inherit;
+  background: var(--surface);
+  color: var(--on-surface);
+}
+
+input[type="text"]:focus-visible {
+  outline: none;
+  border-color: var(--border-focus, var(--outline));
+}
+
+.error {
+  margin: 0;
+  color: var(--error);
+  font-size: var(--label-size);
+}
+
+.placeholder {
+  margin: 0;
+  color: var(--on-surface-muted);
+  font-size: var(--label-size);
+}
+
+.dialog-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.dialog-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+

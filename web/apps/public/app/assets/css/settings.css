@@ -1,0 +1,91 @@
+/* The studio settings page: stacked panels for general metadata, appearance
+   switches, and the danger zone. */
+
+.settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.field label {
+  font-size: var(--label-size);
+  font-weight: var(--weight-medium);
+  color: var(--on-surface-muted);
+}
+
+.field-hint {
+  margin: 0;
+  color: var(--on-surface-muted);
+  font-size: var(--label-size);
+}
+
+.appearance-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.appearance-group h3 {
+  margin: 0;
+  font-size: var(--label-size);
+  font-weight: var(--weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--on-surface-muted);
+}
+
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.setting-label {
+  margin: 0;
+  font-weight: var(--weight-medium);
+}
+
+.setting-description {
+  margin: 0;
+  color: var(--on-surface-muted);
+  font-size: var(--label-size);
+}
+
+.segmented {
+  display: inline-flex;
+  flex-shrink: 0;
+  border: 1px solid var(--outline-muted);
+  border-radius: var(--shape-sm);
+  overflow: hidden;
+}
+
+.segment {
+  padding: 0.35rem 0.8rem;
+  border: none;
+  background: transparent;
+  color: var(--on-surface-muted);
+  font-size: var(--label-size);
+  cursor: pointer;
+}
+
+.segment + .segment {
+  border-left: 1px solid var(--outline-muted);
+}
+
+.segment:hover {
+  color: var(--on-surface);
+  background: var(--state-hover-layer);
+}
+
+.segment.active {
+  color: var(--on-surface);
+  background: var(--surface-container-high);
+  font-weight: var(--weight-medium);
+}

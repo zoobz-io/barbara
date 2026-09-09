@@ -7,9 +7,13 @@
  * and throw from the openapi-press error hierarchy on failure. Cross-cutting
  * behavior (retry, timeouts, caching, …) is applied per endpoint through
  * `.with`.
+ *
+ * `createApiClient` is also the default export — the Press shape
+ * `@openapi-press/nuxt` resolves when a Nuxt app mounts this SDK as a named
+ * client.
  */
 
-export { createApiClient } from "./client";
+export { createApiClient, createApiClient as default } from "./client";
 export type { ApiClient } from "./client";
 
 // Re-export openapi-press's shared surface so consumers configure, instrument,

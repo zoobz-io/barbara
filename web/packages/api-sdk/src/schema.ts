@@ -612,12 +612,12 @@ export interface components {
              * @example guides
              */
             name: string;
-            /** @description Parent collection ID, or null for the app root */
-            parent_id: string;
+            /** @description Parent collection ID, or omitted for the app root */
+            parent_id?: string;
         };
         CreateDocumentRequest: {
-            /** @description Parent collection ID, or null for the app root */
-            collection_id: string;
+            /** @description Parent collection ID, or omitted for the app root */
+            collection_id?: string;
             /**
              * @description Document name, unique among siblings
              * @example install.md

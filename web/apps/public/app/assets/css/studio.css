@@ -1,0 +1,122 @@
+/* The app studio shell (/apps/[id]): top bar, sidebar, content pane. */
+
+.studio {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid var(--outline-muted);
+  background: var(--surface);
+}
+
+.tabs {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.tab {
+  padding: 0.4rem 0.75rem;
+  border-radius: var(--shape-sm);
+  color: var(--on-surface-muted);
+  text-decoration: none;
+}
+
+.tab:hover {
+  color: var(--on-surface);
+  background: var(--state-hover-layer);
+}
+
+.tab.active {
+  color: var(--on-surface);
+  background: var(--state-hover-layer);
+  font-weight: var(--weight-medium);
+}
+
+.spacer {
+  flex: 1;
+}
+
+/* The Content page: file tree beside the editor. */
+.content-grid {
+  display: grid;
+  grid-template-columns: 16rem 1fr;
+  height: 100%;
+}
+
+.sidebar {
+  border-right: 1px solid var(--outline-muted);
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.sidebar-title {
+  margin: 0;
+  font-size: var(--label-size);
+  font-weight: var(--weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--on-surface-muted);
+}
+
+.sidebar-actions {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* A centered studio page: title, description, panels. */
+.studio-page {
+  max-width: 46rem;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.studio-page h1 {
+  margin: 0;
+  font-size: var(--headline-size);
+}
+
+.page-description {
+  margin: 0;
+  color: var(--on-surface-muted);
+}
+
+.editor {
+  overflow-y: auto;
+}
+
+.pane-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--on-surface-muted);
+}
+
+.pane-empty a {
+  color: var(--on-surface);
+}

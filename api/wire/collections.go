@@ -8,7 +8,7 @@ import (
 // CreateCollectionRequest is the body for creating a collection. parent_id is
 // null (or omitted) to create at the app root.
 type CreateCollectionRequest struct {
-	ParentID *string `json:"parent_id" description:"Parent collection ID, or null for the app root"`
+	ParentID *string `json:"parent_id,omitempty" description:"Parent collection ID, or omitted for the app root"`
 	Name     string  `json:"name" description:"Collection name, unique among siblings" example:"guides"`
 }
 

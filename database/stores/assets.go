@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"mime"
+	"path"
 	"strings"
 
 	"github.com/zoobz-io/grub"
@@ -15,6 +17,22 @@ import (
 
 // defaultAssetContentType is used when an upload declares no content type.
 const defaultAssetContentType = "application/octet-stream"
+
+// contentTypeForKey infers a media type from a key's extension. Bucket
+// listings carry no per-object content type (an S3 listing omits it, and a
+// Stat per object would be N+1), so List falls back to the extension. The
+// stored type still governs downloads; this is listing metadata only. Any
+// parameters (charset) are stripped to the bare media type.
+func contentTypeForKey(key string) string {
+	ct := mime.TypeByExtension(path.Ext(key))
+	if ct == "" {
+		return defaultAssetContentType
+	}
+	if mediaType, _, err := mime.ParseMediaType(ct); err == nil {
+		return mediaType
+	}
+	return ct
+}
 
 // Assets is the data-access layer for binary assets in object storage. An
 // asset is an opaque blob addressed by a key that is unique per app; there is
@@ -103,9 +121,14 @@ func (s *Assets) List(ctx context.Context, appID, keyPrefix string) ([]*models.A
 	}
 	assets := make([]*models.Asset, 0, len(infos))
 	for i := range infos {
+		key := strings.TrimPrefix(infos[i].Key, scope)
+		contentType := infos[i].ContentType
+		if contentType == "" {
+			contentType = contentTypeForKey(key)
+		}
 		assets = append(assets, &models.Asset{
-			Key:         strings.TrimPrefix(infos[i].Key, scope),
-			ContentType: infos[i].ContentType,
+			Key:         key,
+			ContentType: contentType,
 			Size:        infos[i].Size,
 		})
 	}

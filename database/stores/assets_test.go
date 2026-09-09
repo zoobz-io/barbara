@@ -222,6 +222,23 @@ func TestAssets_ListPrefix(t *testing.T) {
 	}
 }
 
+// Listing falls back to the key's extension when the bucket listing omits a
+// content type — S3 listings carry none. Only extensions in Go's builtin mime
+// table appear here, so the test is environment-independent.
+func TestContentTypeForKey(t *testing.T) {
+	cases := map[string]string{
+		"images/logo.png": "image/png",
+		"styles.css":      "text/css",
+		"docs/spec.pdf":   "application/pdf",
+		"blob":            "application/octet-stream",
+	}
+	for key, want := range cases {
+		if got := contentTypeForKey(key); got != want {
+			t.Errorf("contentTypeForKey(%q) = %q, want %q", key, got, want)
+		}
+	}
+}
+
 // Every operation refuses to run without a tenant.
 func TestAssets_RequireTenant(t *testing.T) {
 	s, _ := newAssetsTest(t)

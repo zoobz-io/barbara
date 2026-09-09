@@ -1,0 +1,154 @@
+/* The content editor: document bar, formatting toolbar, centered tiptap. */
+
+.editor-pane {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.doc-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--outline-muted);
+}
+
+.doc-title {
+  margin: 0;
+  font-weight: var(--weight-medium);
+}
+
+.doc-meta {
+  margin: 0;
+  color: var(--on-surface-muted);
+  font-size: var(--label-size);
+}
+
+.doc-status {
+  text-transform: capitalize;
+}
+
+.editor-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-4);
+  border-bottom: 1px solid var(--outline-muted);
+}
+
+.toolbar-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-1);
+  border: none;
+  border-radius: var(--shape-sm);
+  background: transparent;
+  color: var(--on-surface-muted);
+  cursor: pointer;
+  transition:
+    background-color var(--transition-base),
+    color var(--transition-base);
+}
+
+.toolbar-btn:hover {
+  color: var(--on-surface);
+  background: var(--state-hover-layer);
+}
+
+.toolbar-btn.active {
+  color: var(--on-surface);
+  background: var(--surface-container-high);
+}
+
+.toolbar-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.toolbar-sep {
+  width: 1px;
+  height: 1.1rem;
+  margin: 0 var(--space-1);
+  background: var(--outline-muted);
+}
+
+.editor-body {
+  flex: 1;
+  padding: var(--space-5) var(--space-4);
+  display: flex;
+  justify-content: center;
+}
+
+.editor-container {
+  width: 100%;
+  max-width: 46rem;
+}
+
+/* --- tiptap / ProseMirror typography ---------------------------------------- */
+
+.editor-container .ProseMirror {
+  outline: none;
+  min-height: 24rem;
+  line-height: var(--body-line-height);
+}
+
+.editor-container .ProseMirror > * + * {
+  margin-top: var(--space-3);
+}
+
+.editor-container .ProseMirror h1 {
+  margin: var(--space-5) 0 0;
+  font-size: var(--headline-size);
+  line-height: var(--headline-line-height);
+}
+
+.editor-container .ProseMirror h2 {
+  margin: var(--space-4) 0 0;
+  font-size: var(--title-size);
+  line-height: var(--title-line-height);
+}
+
+.editor-container .ProseMirror h3 {
+  margin: var(--space-3) 0 0;
+  font-size: var(--body-size);
+  font-weight: var(--weight-bold);
+}
+
+.editor-container .ProseMirror ul,
+.editor-container .ProseMirror ol {
+  padding-left: var(--space-5);
+}
+
+.editor-container .ProseMirror blockquote {
+  margin: 0;
+  padding-left: var(--space-4);
+  border-left: 2px solid var(--outline);
+  color: var(--on-surface-muted);
+}
+
+.editor-container .ProseMirror code {
+  padding: 0.1em 0.35em;
+  border-radius: var(--shape-sm);
+  background: var(--surface-container-high);
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+}
+
+.editor-container .ProseMirror pre {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--shape-md);
+  background: var(--surface-container-high);
+  overflow-x: auto;
+}
+
+.editor-container .ProseMirror pre code {
+  padding: 0;
+  background: transparent;
+}
+
+.editor-container .ProseMirror hr {
+  border: none;
+  border-top: 1px solid var(--outline-muted);
+}

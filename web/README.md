@@ -18,8 +18,10 @@ apps/public ── @barbara/api-sdk ────▶ public API  (:8080)
 apps/admin ── @barbara/admin-sdk ──▶ admin API   (:8081)
 ```
 
-> Scaffold status: the workspace, configs, and SDKs are in place; each app is still a
-> single placeholder page that doesn't consume its SDK yet.
+> Scaffold status: the workspace, configs, and SDKs are in place. The public app
+> consumes its SDK through `@openapi-press/nuxt` (typed `usePress` composable +
+> `/api` proxy — the browser never reaches the API host directly); the admin app
+> is still a placeholder page.
 
 ## The OpenAPI → SDK pipeline
 

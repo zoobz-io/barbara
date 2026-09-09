@@ -7,7 +7,9 @@ Consumed by [`apps/public`](../../apps/public/).
 (`client.documents.tags.add(documentId)`) built with
 [openapi-press](https://www.npmjs.com/package/openapi-press): methods take
 positional path params then a trailing options object, return the response body
-directly, and throw from the openapi-press error hierarchy on failure.
+directly, and throw from the openapi-press error hierarchy on failure. It is
+also the package's default export — the Press that `@openapi-press/nuxt`
+resolves when a Nuxt app mounts this SDK as a named client.
 
 ## The pipeline
 
