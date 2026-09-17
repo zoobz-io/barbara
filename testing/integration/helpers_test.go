@@ -82,13 +82,13 @@ func integrationSkip(t *testing.T, format string, args ...any) {
 
 // pgDB connects to Postgres for integration tests, resetting the sum catalog so
 // stores can re-register, and skipping when the database or schema is absent —
-// so the suite is a no-op without the dev stack.
+// so the suite is a no-op without its stack (make test-stack-up).
 func pgDB(t *testing.T) *sqlx.DB {
 	t.Helper()
 	sum.Reset()
 	sum.New()
 	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-		env("APP_DB_HOST", "127.0.0.1"), env("APP_DB_PORT", "5432"),
+		env("APP_DB_HOST", "127.0.0.1"), env("APP_DB_PORT", "15432"),
 		env("APP_DB_USER", "barbara"), env("APP_DB_PASSWORD", "barbara"),
 		env("APP_DB_NAME", "barbara"))
 
@@ -114,7 +114,7 @@ func tenantCtx(tenantID string) context.Context {
 // when no cluster is reachable — so the suite is a no-op without the dev stack.
 func osProvider(t *testing.T) grub.SearchProvider {
 	t.Helper()
-	addr := env("APP_OPENSEARCH_ADDR", "http://localhost:9200")
+	addr := env("APP_OPENSEARCH_ADDR", "http://localhost:19200")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()

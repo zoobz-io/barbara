@@ -12,7 +12,6 @@ import (
 	"github.com/zoobz-io/grub"
 
 	"github.com/zoobz-io/barbara/database/stores"
-	"github.com/zoobz-io/barbara/internal/boot"
 	"github.com/zoobz-io/barbara/internal/jobs"
 	"github.com/zoobz-io/barbara/testing/testkit"
 )
@@ -29,14 +28,10 @@ func e2eFixture(t *testing.T) (*stores.Stores, grub.SearchProvider) {
 	db := pgDB(t) // resets the sum catalog; skips when Postgres is absent
 	addr := osAddr(t)
 	provider := osProvider(t)
-	ctx := context.Background()
 
 	// A fresh, explicitly-mapped index (keyword key/tags, analyzed content) so
 	// term and full-text queries behave.
-	deleteIndex(t, addr, "documents")
-	if err := boot.EnsureIndices(ctx, addr); err != nil {
-		t.Fatalf("ensure indices: %v", err)
-	}
+	clearDocumentsIndex(t, addr)
 	t.Cleanup(func() {
 		_, _ = db.Exec("UPDATE apps SET current_release_id = NULL")
 		_, _ = db.Exec("DELETE FROM release_entries")
@@ -45,9 +40,13 @@ func e2eFixture(t *testing.T) (*stores.Stores, grub.SearchProvider) {
 		_, _ = db.Exec("DELETE FROM versions")
 		_, _ = db.Exec("DELETE FROM documents")
 		_, _ = db.Exec("DELETE FROM collections")
+		_, _ = db.Exec("DELETE FROM asset_folders")
+		_, _ = db.Exec("DELETE FROM asset_stats")
+		_, _ = db.Exec("DELETE FROM asset_stats_daily")
+		_, _ = db.Exec("DELETE FROM asset_bookkeeping")
 		_, _ = db.Exec("DELETE FROM apps")
 		_ = db.Close()
-		deleteIndex(t, addr, "documents")
+		clearDocumentsIndex(t, addr)
 	})
 
 	return stores.New(db, astqlpg.New(), provider, testkit.NewBucketProvider()), provider

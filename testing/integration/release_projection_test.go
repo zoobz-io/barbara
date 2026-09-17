@@ -5,6 +5,7 @@ package integration
 import (
 	"context"
 	"errors"
+	"github.com/google/uuid"
 	"testing"
 
 	astqlpg "github.com/zoobz-io/astql/postgres"
@@ -12,7 +13,6 @@ import (
 	"github.com/zoobz-io/grub"
 
 	"github.com/zoobz-io/barbara/database/stores"
-	"github.com/zoobz-io/barbara/internal/boot"
 	"github.com/zoobz-io/barbara/internal/jobs"
 	"github.com/zoobz-io/barbara/testing/testkit"
 )
@@ -24,10 +24,7 @@ func projectionFixture(t *testing.T) (*stores.Stores, *jobs.Pipeline, grub.Searc
 	db := pgDB(t)
 	addr := osAddr(t)
 	provider := osProvider(t)
-	deleteIndex(t, addr, "documents")
-	if err := boot.EnsureIndices(context.Background(), addr); err != nil {
-		t.Fatalf("ensure indices: %v", err)
-	}
+	clearDocumentsIndex(t, addr)
 	t.Cleanup(func() {
 		_, _ = db.Exec("UPDATE apps SET current_release_id = NULL")
 		_, _ = db.Exec("DELETE FROM release_entries")
@@ -35,9 +32,13 @@ func projectionFixture(t *testing.T) (*stores.Stores, *jobs.Pipeline, grub.Searc
 		_, _ = db.Exec("DELETE FROM jobs")
 		_, _ = db.Exec("DELETE FROM documents")
 		_, _ = db.Exec("DELETE FROM collections")
+		_, _ = db.Exec("DELETE FROM asset_folders")
+		_, _ = db.Exec("DELETE FROM asset_stats")
+		_, _ = db.Exec("DELETE FROM asset_stats_daily")
+		_, _ = db.Exec("DELETE FROM asset_bookkeeping")
 		_, _ = db.Exec("DELETE FROM apps")
 		_ = db.Close()
-		deleteIndex(t, addr, "documents")
+		clearDocumentsIndex(t, addr)
 	})
 	st := stores.New(db, astqlpg.New(), provider, testkit.NewBucketProvider())
 	return st, newPipeline(st), provider
@@ -58,7 +59,7 @@ func TestReleaseProjection_AddChangeRemove(t *testing.T) {
 		}
 	}
 
-	app, err := st.Apps.Create(ctx, "site")
+	app, err := st.Apps.Create(ctx, uuid.NewString())
 	if err != nil {
 		t.Fatalf("create app: %v", err)
 	}

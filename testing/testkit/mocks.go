@@ -3,8 +3,12 @@
 package testkit
 
 import (
+	"bytes"
 	"context"
+	"io"
+	"sort"
 	"strings"
+	"time"
 
 	"github.com/zoobz-io/grub"
 	"github.com/zoobz-io/lucene"
@@ -59,15 +63,18 @@ func (*SearchProvider) Refresh(context.Context, string) error                   
 // BucketProvider is an in-memory grub.BucketProvider for unit-testing
 // bucket-backed stores without object storage. Objects are keyed by their full
 // stored name (the store prepends the tenant), so overwrite-on-same-key and
-// tenant isolation by prefix are directly observable.
+// tenant isolation by prefix are directly observable. Listings are returned
+// in key order, and every write stamps LastModified from Now (time.Now by
+// default; set Now to make the stamp deterministic).
 type BucketProvider struct {
 	Objects map[string]BucketObject
+	Now     func() time.Time
 }
 
 // BucketObject is a stored blob and its metadata.
 type BucketObject struct {
-	Data []byte
 	Info grub.ObjectInfo
+	Data []byte
 }
 
 // NewBucketProvider returns a ready-to-use in-memory bucket.
@@ -93,8 +100,57 @@ func (m *BucketProvider) Put(_ context.Context, key string, data []byte, info *g
 	}
 	stored.Key = key
 	stored.Size = int64(len(data))
+	stored.LastModified = m.now()
 	m.Objects[key] = BucketObject{Data: append([]byte(nil), data...), Info: stored}
 	return nil
+}
+
+// PutStream reads r to the end and stores it at key, like Put.
+func (m *BucketProvider) PutStream(ctx context.Context, key string, r io.Reader, info *grub.ObjectInfo) error {
+	data, err := io.ReadAll(r)
+	if err != nil {
+		return err
+	}
+	return m.Put(ctx, key, data, info)
+}
+
+// GetStream returns a reader over the blob at key, or grub.ErrNotFound.
+func (m *BucketProvider) GetStream(ctx context.Context, key string) (io.ReadCloser, *grub.ObjectInfo, error) {
+	data, info, err := m.Get(ctx, key)
+	if err != nil {
+		return nil, nil, err
+	}
+	return io.NopCloser(bytes.NewReader(data)), info, nil
+}
+
+// Stat returns the metadata at key without the bytes, or grub.ErrNotFound.
+func (m *BucketProvider) Stat(_ context.Context, key string) (*grub.ObjectInfo, error) {
+	obj, ok := m.Objects[key]
+	if !ok {
+		return nil, grub.ErrNotFound
+	}
+	info := obj.Info
+	return &info, nil
+}
+
+func (m *BucketProvider) now() time.Time {
+	if m.Now != nil {
+		return m.Now()
+	}
+	return time.Now()
+}
+
+// keysUnder returns the stored keys under prefix, sorted, so listings are
+// deterministic and key-cursor paging is well defined.
+func (m *BucketProvider) keysUnder(prefix string) []string {
+	keys := make([]string, 0, len(m.Objects))
+	for key := range m.Objects {
+		if strings.HasPrefix(key, prefix) {
+			keys = append(keys, key)
+		}
+	}
+	sort.Strings(keys)
+	return keys
 }
 
 // Delete removes the blob at key, or returns grub.ErrNotFound.
@@ -112,17 +168,46 @@ func (m *BucketProvider) Exists(_ context.Context, key string) (bool, error) {
 	return ok, nil
 }
 
-// List returns object info for every key under prefix (limit 0 = no limit).
+// List returns object info for every key under prefix, in key order (limit
+// 0 = no limit).
 func (m *BucketProvider) List(_ context.Context, prefix string, limit int) ([]grub.ObjectInfo, error) {
-	var out []grub.ObjectInfo
-	for key, obj := range m.Objects {
-		if !strings.HasPrefix(key, prefix) {
-			continue
-		}
-		out = append(out, obj.Info)
+	keys := m.keysUnder(prefix)
+	out := make([]grub.ObjectInfo, 0, len(keys))
+	for _, key := range keys {
+		out = append(out, m.Objects[key].Info)
 		if limit > 0 && len(out) >= limit {
 			break
 		}
 	}
 	return out, nil
+}
+
+// ListPage returns one page of keys under prefix in key order. The cursor is
+// the last key of the previous page (start-after), as the minio provider
+// does; limit 0 returns everything in one page.
+func (m *BucketProvider) ListPage(_ context.Context, prefix, cursor string, limit int) ([]grub.ObjectInfo, string, error) {
+	keys := m.keysUnder(prefix)
+	out := make([]grub.ObjectInfo, 0, len(keys))
+	for _, key := range keys {
+		if cursor != "" && key <= cursor {
+			continue
+		}
+		if limit > 0 && len(out) == limit {
+			return out, out[len(out)-1].Key, nil
+		}
+		out = append(out, m.Objects[key].Info)
+	}
+	return out, "", nil
+}
+
+// ListLevel returns the objects and common prefixes directly under prefix,
+// folded from the sorted listing with grub.FoldLevel. The whole level comes
+// back in one page: cursor and limit are accepted but never truncate, and
+// Next is always empty.
+func (m *BucketProvider) ListLevel(ctx context.Context, prefix, delimiter, _ string, _ int) (*grub.Level, error) {
+	infos, err := m.List(ctx, prefix, 0)
+	if err != nil {
+		return nil, err
+	}
+	return grub.FoldLevel(prefix, delimiter, infos), nil
 }

@@ -195,6 +195,157 @@
         ]
       }
     },
+    "/apps/{app_id}/assets/folder": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetFolderResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrUnauthorized"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrForbidden"
+                }
+              }
+            },
+            "description": "Forbidden"
+          }
+        },
+        "summary": "List one folder of the app's assets",
+        "operationId": "get-apps-app_id-assets-folder-ab41ce51",
+        "tags": [
+          "Assets"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "app_id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "path",
+            "in": "query"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": [
+              "documents:read"
+            ]
+          }
+        ]
+      },
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAssetFolderRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetFolderResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrBadRequest"
+                }
+              }
+            },
+            "description": "BadRequest"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrUnauthorized"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrForbidden"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrNotFound"
+                }
+              }
+            },
+            "description": "NotFound"
+          }
+        },
+        "summary": "Create an asset folder",
+        "operationId": "post-apps-app_id-assets-folder-81bc508e",
+        "tags": [
+          "Assets"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "app_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": [
+              "documents:write"
+            ]
+          }
+        ]
+      }
+    },
     "/apps/{app_id}/assets/object": {
       "get": {
         "responses": {
@@ -451,6 +602,169 @@
           {
             "bearerAuth": [
               "documents:write"
+            ]
+          }
+        ]
+      }
+    },
+    "/apps/{app_id}/assets/object/move": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MoveAssetRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrBadRequest"
+                }
+              }
+            },
+            "description": "BadRequest"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrUnauthorized"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrForbidden"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrNotFound"
+                }
+              }
+            },
+            "description": "NotFound"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrConflict"
+                }
+              }
+            },
+            "description": "Conflict"
+          }
+        },
+        "summary": "Move or rename an asset",
+        "operationId": "post-apps-app_id-assets-object-move-6480cc92",
+        "tags": [
+          "Assets"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "app_id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "key",
+            "in": "query"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": [
+              "documents:write"
+            ]
+          }
+        ]
+      }
+    },
+    "/apps/{app_id}/assets/stats": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetStatsResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrUnauthorized"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrForbidden"
+                }
+              }
+            },
+            "description": "Forbidden"
+          }
+        },
+        "summary": "Get the app's asset statistics",
+        "operationId": "get-apps-app_id-assets-stats-ac2e5da9",
+        "tags": [
+          "Assets"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "app_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": [
+              "documents:read"
             ]
           }
         ]
@@ -3127,6 +3441,117 @@
           "name"
         ]
       },
+      "AssetDayStatsResponse": {
+        "properties": {
+          "count": {
+            "type": "integer",
+            "description": "Assets last written that day"
+          },
+          "day": {
+            "example": "2026-09-16",
+            "type": "string",
+            "description": "The UTC calendar day"
+          },
+          "kinds": {
+            "items": {
+              "$ref": "#/components/schemas/AssetKindCountResponse"
+            },
+            "type": "array",
+            "description": "The day's assets by kind"
+          },
+          "size": {
+            "type": "integer",
+            "description": "Their bytes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "day",
+          "kinds",
+          "count",
+          "size"
+        ]
+      },
+      "AssetFolderResponse": {
+        "properties": {
+          "assets": {
+            "items": {
+              "$ref": "#/components/schemas/AssetResponse"
+            },
+            "type": "array",
+            "description": "Assets directly in the folder, by key"
+          },
+          "folders": {
+            "items": {
+              "$ref": "#/components/schemas/AssetSubfolderResponse"
+            },
+            "type": "array",
+            "description": "Direct subfolders, by name"
+          },
+          "path": {
+            "example": "images",
+            "type": "string",
+            "description": "The folder, empty for the root"
+          }
+        },
+        "type": "object",
+        "required": [
+          "path",
+          "folders",
+          "assets"
+        ]
+      },
+      "AssetKindCountResponse": {
+        "properties": {
+          "count": {
+            "type": "integer",
+            "description": "Assets of the kind"
+          },
+          "kind": {
+            "example": "image",
+            "type": "string",
+            "description": "Media family"
+          },
+          "size": {
+            "type": "integer",
+            "description": "Bytes of the kind"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "count",
+          "size"
+        ]
+      },
+      "AssetKindStatsResponse": {
+        "properties": {
+          "count": {
+            "type": "integer",
+            "description": "Assets of the kind"
+          },
+          "kind": {
+            "example": "image",
+            "type": "string",
+            "description": "Media family: image, video, audio, code, spreadsheet, archive, text, or file"
+          },
+          "last_written_at": {
+            "format": "date-time",
+            "type": "string",
+            "description": "When an asset of the kind was last written"
+          },
+          "size": {
+            "type": "integer",
+            "description": "Bytes of the kind"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "count",
+          "size"
+        ]
+      },
       "AssetListResponse": {
         "properties": {
           "assets": {
@@ -3159,6 +3584,16 @@
             "type": "string",
             "description": "Asset key, unique per app"
           },
+          "kind": {
+            "example": "image",
+            "type": "string",
+            "description": "Media family derived from the content type: image, video, audio, code, spreadsheet, archive, text, or file"
+          },
+          "last_modified": {
+            "format": "date-time",
+            "type": "string",
+            "description": "When the object was last written, as object storage reports it; omitted when unknown"
+          },
           "size": {
             "type": "integer",
             "description": "Size in bytes"
@@ -3168,6 +3603,78 @@
         "required": [
           "key",
           "content_type",
+          "kind",
+          "size"
+        ]
+      },
+      "AssetStatsResponse": {
+        "properties": {
+          "computed_at": {
+            "format": "date-time",
+            "type": "string",
+            "description": "When the bookkeeping was last rebuilt from object storage; omitted until the first rebuild"
+          },
+          "count": {
+            "type": "integer",
+            "description": "Total assets"
+          },
+          "days": {
+            "items": {
+              "$ref": "#/components/schemas/AssetDayStatsResponse"
+            },
+            "type": "array",
+            "description": "Assets by the UTC day they were last written, oldest first, up to 90 days back; days without a write are absent"
+          },
+          "kinds": {
+            "items": {
+              "$ref": "#/components/schemas/AssetKindStatsResponse"
+            },
+            "type": "array",
+            "description": "The breakdown by media family, by kind; only kinds with assets appear"
+          },
+          "last_written_at": {
+            "format": "date-time",
+            "type": "string",
+            "description": "When an asset was last written; omitted for an app without assets"
+          },
+          "size": {
+            "type": "integer",
+            "description": "Total bytes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kinds",
+          "days",
+          "count",
+          "size"
+        ]
+      },
+      "AssetSubfolderResponse": {
+        "properties": {
+          "count": {
+            "type": "integer",
+            "description": "Assets anywhere beneath the folder"
+          },
+          "last_written_at": {
+            "format": "date-time",
+            "type": "string",
+            "description": "When an asset beneath the folder was last written; omitted when unknown"
+          },
+          "name": {
+            "example": "images",
+            "type": "string",
+            "description": "Folder name (one key segment)"
+          },
+          "size": {
+            "type": "integer",
+            "description": "Total bytes of the assets beneath the folder"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "count",
           "size"
         ]
       },
@@ -3277,6 +3784,19 @@
         "type": "object",
         "required": [
           "name"
+        ]
+      },
+      "CreateAssetFolderRequest": {
+        "properties": {
+          "path": {
+            "example": "images/icons",
+            "type": "string",
+            "description": "The folder path, segments joined by slashes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "path"
         ]
       },
       "CreateCollectionRequest": {
@@ -3537,6 +4057,19 @@
         "required": [
           "code",
           "message"
+        ]
+      },
+      "MoveAssetRequest": {
+        "properties": {
+          "key": {
+            "example": "images/brand/logo.png",
+            "type": "string",
+            "description": "The new key, segments joined by slashes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key"
         ]
       },
       "MoveCollectionRequest": {

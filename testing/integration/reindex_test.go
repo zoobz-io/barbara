@@ -11,7 +11,6 @@ import (
 
 	"github.com/zoobz-io/barbara/database/models"
 	"github.com/zoobz-io/barbara/database/stores"
-	"github.com/zoobz-io/barbara/internal/boot"
 	"github.com/zoobz-io/barbara/testing/testkit"
 )
 
@@ -23,14 +22,10 @@ func reindexFixture(t *testing.T) (*stores.Stores, *models.App, *models.App) {
 	db := pgDB(t)
 	addr := osAddr(t)
 	provider := osProvider(t)
-	ctx := context.Background()
 
-	deleteIndex(t, addr, "documents")
-	if err := boot.EnsureIndices(ctx, addr); err != nil {
-		t.Fatalf("ensure indices: %v", err)
-	}
+	clearDocumentsIndex(t, addr)
 	t.Cleanup(func() {
-		deleteIndex(t, addr, "documents")
+		clearDocumentsIndex(t, addr)
 		_, _ = db.Exec("UPDATE apps SET current_release_id = NULL")
 		_, _ = db.Exec("DELETE FROM release_entries")
 		_, _ = db.Exec("DELETE FROM releases")
@@ -38,6 +33,10 @@ func reindexFixture(t *testing.T) (*stores.Stores, *models.App, *models.App) {
 		_, _ = db.Exec("DELETE FROM versions")
 		_, _ = db.Exec("DELETE FROM documents")
 		_, _ = db.Exec("DELETE FROM collections")
+		_, _ = db.Exec("DELETE FROM asset_folders")
+		_, _ = db.Exec("DELETE FROM asset_stats")
+		_, _ = db.Exec("DELETE FROM asset_stats_daily")
+		_, _ = db.Exec("DELETE FROM asset_bookkeeping")
 		_, _ = db.Exec("DELETE FROM apps")
 		_ = db.Close()
 	})

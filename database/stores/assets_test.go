@@ -6,12 +6,17 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"reflect"
+	"strings"
 	"testing"
+	"time"
 
 	astqlpg "github.com/zoobz-io/astql/postgres"
+	"github.com/zoobz-io/grub"
 	"github.com/zoobz-io/grub/mockdb"
 	"github.com/zoobz-io/sum"
 
+	"github.com/zoobz-io/barbara/database/models"
 	"github.com/zoobz-io/barbara/internal/auth"
 	"github.com/zoobz-io/barbara/testing/testkit"
 )
@@ -29,7 +34,7 @@ func newAssetsTest(t *testing.T) (*Assets, *mockdb.Config) {
 	sum.Reset()
 	sum.New()
 	db, _, cfg := mockdb.NewWithConfig()
-	return NewAssets(testkit.NewBucketProvider(), NewApps(db, astqlpg.New())), cfg
+	return NewAssets(testkit.NewBucketProvider(), NewApps(db, astqlpg.New()), db, astqlpg.New()), cfg
 }
 
 // The full asset lifecycle: put, get (bytes + content type), list (metadata,
@@ -222,14 +227,238 @@ func TestAssets_ListPrefix(t *testing.T) {
 	}
 }
 
+// folderRows is a queued asset_folders result: one row per (path, count,
+// bytes, explicit) tuple, as the children query would return them.
+func folderRows(rows ...[]any) *mockdb.RowData {
+	return &mockdb.RowData{Columns: []string{"path", "count", "bytes", "explicit"}, Rows: rows}
+}
+
+// ListFolder assembles one level from the bucket's delimiter listing and the
+// folder rows directly beneath it: direct assets by key, subfolders by name
+// carrying their row's rollup, and nothing from other levels. The root and a
+// nested folder are both levels.
+func TestAssets_ListFolder(t *testing.T) {
+	s, cfg := newAssetsTest(t)
+	ctx := assetCtx("tenant-a")
+
+	for _, key := range []string{
+		"README.md",
+		"images/logo.png",
+		"images/icons/menu.svg",
+		"images/icons/close.svg",
+		"docs/spec.pdf",
+	} {
+		cfg.PushRowData(appRow())
+		if _, err := s.Put(ctx, "app-1", key, "", []byte("x")); err != nil {
+			t.Fatalf("put %s: %v", key, err)
+		}
+	}
+
+	cfg.PushRowData(folderRows([]any{"docs", int64(1), int64(1), false}, []any{"images", int64(3), int64(3), false}))
+	root, err := s.ListFolder(ctx, "app-1", "")
+	if err != nil {
+		t.Fatalf("list root: %v", err)
+	}
+	if root.Path != "" {
+		t.Errorf("root path = %q, want empty", root.Path)
+	}
+	if len(root.Assets) != 1 || root.Assets[0].Key != "README.md" {
+		t.Errorf("root assets = %+v, want README.md only", root.Assets)
+	}
+	wantFolders := []models.AssetFolder{{Name: "docs", Count: 1, Size: 1}, {Name: "images", Count: 3, Size: 3}}
+	if !reflect.DeepEqual(root.Folders, wantFolders) {
+		t.Errorf("root folders = %+v, want %+v", root.Folders, wantFolders)
+	}
+
+	// A nested level, addressed with a trailing slash, sees only its own
+	// direct children.
+	cfg.PushRowData(folderRows([]any{"images/icons", int64(2), int64(2), false}))
+	images, err := s.ListFolder(ctx, "app-1", "images/")
+	if err != nil {
+		t.Fatalf("list images: %v", err)
+	}
+	if images.Path != "images" {
+		t.Errorf("images path = %q, want images", images.Path)
+	}
+	if len(images.Assets) != 1 || images.Assets[0].Key != "images/logo.png" {
+		t.Errorf("images assets = %+v, want images/logo.png only", images.Assets)
+	}
+	if !reflect.DeepEqual(images.Folders, []models.AssetFolder{{Name: "icons", Count: 2, Size: 2}}) {
+		t.Errorf("images folders = %+v, want icons(2, 2 B)", images.Folders)
+	}
+
+	// An empty level is empty slices, not nil, so it serializes as [].
+	cfg.PushRowData(folderRows())
+	empty, err := s.ListFolder(ctx, "app-1", "nothing")
+	if err != nil {
+		t.Fatalf("list empty: %v", err)
+	}
+	if empty.Folders == nil || empty.Assets == nil || len(empty.Folders)+len(empty.Assets) != 0 {
+		t.Errorf("empty level = %+v, want empty non-nil slices", empty)
+	}
+}
+
+// The bucket decides which folders exist and the rows decorate them: a
+// prefix the rows have not caught up with lists at a zero rollup, and an
+// explicit row with nothing beneath it lists as an empty folder.
+func TestAssets_ListFolder_RowsAndBucketDisagree(t *testing.T) {
+	s, cfg := newAssetsTest(t)
+	ctx := assetCtx("tenant-a")
+	cfg.PushRowData(appRow())
+	if _, err := s.Put(ctx, "app-1", "images/logo.png", "", []byte("x")); err != nil {
+		t.Fatalf("put: %v", err)
+	}
+
+	cfg.PushRowData(folderRows([]any{"drafts", int64(0), int64(0), true}))
+	root, err := s.ListFolder(ctx, "app-1", "")
+	if err != nil {
+		t.Fatalf("list root: %v", err)
+	}
+	want := []models.AssetFolder{{Name: "drafts"}, {Name: "images"}}
+	if !reflect.DeepEqual(root.Folders, want) {
+		t.Errorf("root folders = %+v, want %+v", root.Folders, want)
+	}
+}
+
+// foldLevel strips the tenant/app scope from stored keys, infers a content
+// type when the listing carries none, and dedupes a prefix the bucket
+// reported on more than one page.
+func TestFoldLevel(t *testing.T) {
+	scope := "t/app/"
+	objects := []grub.ObjectInfo{
+		{Key: scope + "images/b.png", Size: 2},
+		{Key: scope + "images/a.css", Size: 1, ContentType: "text/css"},
+	}
+	prefixes := []string{scope + "images/icons/", scope + "images/icons/", scope + "images/shots/"}
+	written := time.Date(2026, 9, 16, 9, 0, 0, 0, time.UTC)
+	rows := []*models.AssetFolderStat{{Path: "images/shots", Count: 4, Bytes: 40, LastWrittenAt: &written}}
+
+	level := foldLevel("images", scope, objects, prefixes, rows)
+	if level.Path != "images" {
+		t.Errorf("path = %q, want images", level.Path)
+	}
+	if len(level.Assets) != 2 || level.Assets[0].Key != "images/a.css" || level.Assets[0].ContentType != "text/css" ||
+		level.Assets[1].Key != "images/b.png" || level.Assets[1].ContentType != "image/png" {
+		t.Errorf("assets = %+v", level.Assets)
+	}
+	want := []models.AssetFolder{{Name: "icons"}, {Name: "shots", Count: 4, Size: 40, LastWrittenAt: &written}}
+	if !reflect.DeepEqual(level.Folders, want) {
+		t.Errorf("folders = %+v, want %+v", level.Folders, want)
+	}
+}
+
+// RebuildAssets pages through every app and rebuilds each from its own
+// tenant: two apps on a short (last) page is two rebuilds, each stamping its
+// own app. The fallback row answers every RETURNING upsert the rebuilds make.
+func TestStores_RebuildAssets(t *testing.T) {
+	sum.Reset()
+	sum.New()
+	db, capture, cfg := mockdb.NewWithConfig()
+	cfg.SetRowData(&mockdb.RowData{Columns: []string{"id"}, Rows: [][]any{{"row-1"}}})
+	st := New(db, astqlpg.New(), testkit.NewSearchProvider(), testkit.NewBucketProvider())
+
+	cfg.PushRowData(&mockdb.RowData{
+		Columns: []string{"id", "tenant_id", "name"},
+		Rows:    [][]any{{"app-1", "tenant-a", "one"}, {"app-2", "tenant-b", "two"}},
+	})
+	n, err := st.RebuildAssets(context.Background())
+	if err != nil {
+		t.Fatalf("RebuildAssets: %v", err)
+	}
+	if n != 2 {
+		t.Errorf("apps rebuilt = %d, want 2", n)
+	}
+	var stamped []string
+	for _, q := range capture.Queries {
+		if strings.HasPrefix(q.Query, "INSERT") && strings.Contains(q.Query, `"asset_bookkeeping"`) {
+			for _, a := range q.Args {
+				if s, ok := a.(string); ok && strings.HasPrefix(s, "app-") {
+					stamped = append(stamped, s)
+				}
+			}
+		}
+	}
+	if !reflect.DeepEqual(stamped, []string{"app-1", "app-2"}) {
+		t.Errorf("stamped apps = %v, want app-1 then app-2", stamped)
+	}
+}
+
+// Move rewrites the object at the new key with its content type and drops
+// the old one; the source must exist and the destination must be free.
+func TestAssets_Move(t *testing.T) {
+	s, cfg := newAssetsTest(t)
+	ctx := assetCtx("tenant-a")
+	fake, ok := s.bucket.(*testkit.BucketProvider)
+	if !ok {
+		t.Fatal("test store is not over the fake bucket")
+	}
+	for _, key := range []string{"images/logo.png", "images/taken.png"} {
+		cfg.PushRowData(appRow())
+		if _, err := s.Put(ctx, "app-1", key, "image/png", []byte("png")); err != nil {
+			t.Fatalf("put %s: %v", key, err)
+		}
+	}
+
+	moved, err := s.Move(ctx, "app-1", "images/logo.png", "/brand/logo-v2.png/")
+	if err != nil {
+		t.Fatalf("move: %v", err)
+	}
+	if moved.Key != "brand/logo-v2.png" || moved.ContentType != "image/png" || moved.Size != 3 {
+		t.Errorf("moved = %+v, want brand/logo-v2.png image/png 3 B", moved)
+	}
+	if _, ok := fake.Objects["tenant-a/app-1/images/logo.png"]; ok {
+		t.Error("the source object is still in the bucket")
+	}
+	obj, ok := fake.Objects["tenant-a/app-1/brand/logo-v2.png"]
+	if !ok || string(obj.Data) != "png" || obj.Info.ContentType != "image/png" {
+		t.Errorf("destination object = %+v, want the bytes and content type carried over", obj)
+	}
+
+	if _, err := s.Move(ctx, "app-1", "images/nothing.png", "x.png"); !errors.Is(err, ErrNotFound) {
+		t.Errorf("moving a missing key = %v, want ErrNotFound", err)
+	}
+	if _, err := s.Move(ctx, "app-1", "brand/logo-v2.png", "images/taken.png"); !errors.Is(err, ErrAssetExists) {
+		t.Errorf("moving onto a taken key = %v, want ErrAssetExists", err)
+	}
+	if _, err := s.Move(ctx, "app-1", "brand/logo-v2.png", "brand/logo-v2.png"); !errors.Is(err, ErrAssetExists) {
+		t.Errorf("moving onto itself = %v, want ErrAssetExists", err)
+	}
+	for _, bad := range []string{"", "a//b", "../x.png", "images/."} {
+		if _, err := s.Move(ctx, "app-1", "brand/logo-v2.png", bad); !errors.Is(err, ErrInvalidAssetPath) {
+			t.Errorf("moving to %q = %v, want ErrInvalidAssetPath", bad, err)
+		}
+	}
+}
+
+// CreateFolder rejects a path that is not plain segments before touching
+// anything, and otherwise guards the app like a write.
+func TestAssets_CreateFolder_Invalid(t *testing.T) {
+	s, _ := newAssetsTest(t)
+	ctx := assetCtx("tenant-a")
+	for _, p := range []string{"", "/", "a//b", "./a", "a/../b", "a/."} {
+		if _, err := s.CreateFolder(ctx, "app-1", p); !errors.Is(err, ErrInvalidAssetPath) {
+			t.Errorf("CreateFolder(%q) = %v, want ErrInvalidAssetPath", p, err)
+		}
+	}
+	// No app row queued: the guard fails as an absent app.
+	if _, err := s.CreateFolder(ctx, "app-1", "images"); !errors.Is(err, ErrNotFound) {
+		t.Errorf("CreateFolder for an absent app = %v, want ErrNotFound", err)
+	}
+}
+
 // Listing falls back to the key's extension when the bucket listing omits a
 // content type — S3 listings carry none. Only extensions in Go's builtin mime
-// table appear here, so the test is environment-independent.
+// table or the store's own registrations appear here, so the test is
+// environment-independent.
 func TestContentTypeForKey(t *testing.T) {
 	cases := map[string]string{
 		"images/logo.png": "image/png",
 		"styles.css":      "text/css",
 		"docs/spec.pdf":   "application/pdf",
+		"README.md":       "text/markdown",
+		"robots.txt":      "text/plain",
+		"data/prices.csv": "text/csv",
+		"fonts/ui.woff2":  "font/woff2",
 		"blob":            "application/octet-stream",
 	}
 	for key, want := range cases {

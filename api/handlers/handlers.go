@@ -52,6 +52,10 @@ func All() []rocco.Endpoint {
 		UploadAsset,
 		GetAsset,
 		ListAssets,
+		ListAssetFolder,
+		CreateAssetFolder,
+		GetAssetStats,
+		MoveAsset,
 		DeleteAsset,
 		GetPublishedAsset,
 	}

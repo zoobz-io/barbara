@@ -1,6 +1,8 @@
 package events
 
 import (
+	"time"
+
 	"github.com/zoobz-io/capitan"
 	"github.com/zoobz-io/sum"
 )
@@ -265,34 +267,74 @@ var Version = struct {
 
 // --- Asset ---
 
-// AssetWrittenEvent is emitted when an asset is stored (put/overwrite).
+// AssetWrittenEvent is emitted when an asset is stored (put/overwrite). An
+// overwrite carries the previous object's size and last-modified time, so a
+// consumer can move it between buckets rather than count it twice.
 type AssetWrittenEvent struct {
+	// PrevLastModified is when the overwritten object was written (zero
+	// unless Overwrote, or when the bucket did not report it).
+	PrevLastModified time.Time
+	Key              string
+	TenantID         string
+	AppID            string
+	ContentType      string
+	Size             int64
+	// PrevSize is the overwritten object's size (0 unless Overwrote).
+	PrevSize int64
+	// Overwrote is true when the key already held an object.
+	Overwrote bool
+}
+
+// AssetDeletedEvent is emitted when an asset is deleted, with the removed
+// object's metadata.
+type AssetDeletedEvent struct {
+	LastModified time.Time
+	Key          string
+	TenantID     string
+	AppID        string
+	ContentType  string
+	Size         int64
+}
+
+// AssetMovedEvent is emitted when an asset's key changes — moved to another
+// folder, renamed, or both.
+type AssetMovedEvent struct {
 	Key         string
+	NewKey      string
 	TenantID    string
 	AppID       string
 	ContentType string
 	Size        int64
 }
 
-// AssetDeletedEvent is emitted when an asset is deleted.
-type AssetDeletedEvent struct {
+// AssetBookkeepingFailedEvent is emitted when an asset write or delete landed
+// in the bucket but its bookkeeping update did not. The object is the truth
+// and the request succeeds; the rows stay stale until the next rebuild.
+type AssetBookkeepingFailedEvent struct {
+	Err      error
 	Key      string
 	TenantID string
 	AppID    string
 }
 
 var (
-	assetWrittenSignal = capitan.NewSignal("barbara.asset.written", "Asset written to object storage")
-	assetDeletedSignal = capitan.NewSignal("barbara.asset.deleted", "Asset deleted from object storage")
+	assetWrittenSignal           = capitan.NewSignal("barbara.asset.written", "Asset written to object storage")
+	assetDeletedSignal           = capitan.NewSignal("barbara.asset.deleted", "Asset deleted from object storage")
+	assetMovedSignal             = capitan.NewSignal("barbara.asset.moved", "Asset moved to a new key")
+	assetBookkeepingFailedSignal = capitan.NewSignal("barbara.asset.bookkeeping.failed", "Asset bookkeeping update failed after the bucket write")
 )
 
 // Asset groups the asset lifecycle events.
 var Asset = struct {
-	Written sum.Event[AssetWrittenEvent]
-	Deleted sum.Event[AssetDeletedEvent]
+	Written           sum.Event[AssetWrittenEvent]
+	Deleted           sum.Event[AssetDeletedEvent]
+	Moved             sum.Event[AssetMovedEvent]
+	BookkeepingFailed sum.Event[AssetBookkeepingFailedEvent]
 }{
-	Written: sum.NewInfoEvent[AssetWrittenEvent](assetWrittenSignal),
-	Deleted: sum.NewInfoEvent[AssetDeletedEvent](assetDeletedSignal),
+	Written:           sum.NewInfoEvent[AssetWrittenEvent](assetWrittenSignal),
+	Deleted:           sum.NewInfoEvent[AssetDeletedEvent](assetDeletedSignal),
+	Moved:             sum.NewInfoEvent[AssetMovedEvent](assetMovedSignal),
+	BookkeepingFailed: sum.NewErrorEvent[AssetBookkeepingFailedEvent](assetBookkeepingFailedSignal),
 }
 
 // --- Index (jobs pipeline) ---

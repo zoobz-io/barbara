@@ -18,5 +18,28 @@ export default defineNuxtIconSheetsConfig({
     undo: "lucide:undo-2",
     redo: "lucide:redo-2",
     save: "lucide:save",
+    // Top bar section tabs.
+    "file-text": "lucide:file-text",
+    image: "lucide:image",
+    history: "lucide:history",
+    // Top bar user menu.
+    sun: "lucide:sun",
+    moon: "lucide:moon",
+    "log-out": "lucide:log-out",
+    // Asset browser file icons, by media type (plain `file` and `folder`
+    // come from foundation).
+    "file-image": "lucide:file-image",
+    "file-code": "lucide:file-code",
+    "file-spreadsheet": "lucide:file-spreadsheet",
+    "file-archive": "lucide:file-archive",
+    "file-video": "lucide:video",
+    "file-audio": "lucide:file-audio",
+    // Asset folder header actions and the drop zone.
+    upload: "lucide:upload",
+    "folder-plus": "lucide:folder-plus",
+    // Asset row actions.
+    pencil: "lucide:pencil",
+    "folder-input": "lucide:folder-input",
+    "folder-up": "lucide:corner-left-up",
   },
 });

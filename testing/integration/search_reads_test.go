@@ -11,7 +11,6 @@ import (
 
 	"github.com/zoobz-io/barbara/database/stores"
 	"github.com/zoobz-io/barbara/internal/auth"
-	"github.com/zoobz-io/barbara/internal/boot"
 )
 
 // Fixed app ids for the seeded projections. The index has no FK — these only
@@ -32,13 +31,10 @@ func searchReadsFixture(t *testing.T) *stores.Search {
 	sum.Reset() // fresh catalog — NewSearch re-registers "srch://documents"
 	sum.New()
 
-	// Recreate the index with the explicit mapping (keyword key/tags, analyzed
-	// content) so term and full-text queries behave.
-	deleteIndex(t, addr, "documents")
-	if err := boot.EnsureIndices(ctx, addr); err != nil {
-		t.Fatalf("ensure indices: %v", err)
-	}
-	t.Cleanup(func() { deleteIndex(t, addr, "documents") })
+	// The explicit mapping (keyword key/tags, analyzed content) is what makes
+	// term and full-text queries behave; the shared index is emptied, never
+	// recreated.
+	clearDocumentsIndex(t, addr)
 
 	store := stores.NewSearch(provider)
 	tctx := tenantCtx(testTenant)

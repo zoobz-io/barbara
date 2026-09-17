@@ -1,4 +1,4 @@
-.PHONY: build run run-admin test test-unit test-integration test-bench lint lint-fix coverage clean help check ci setup install-tools install-hooks dev dev-api dev-admin dev-observability dev-down dev-logs dev-reset openapi-api openapi-admin web-install web-check web-lint web-test web-build
+.PHONY: build run run-admin seed rebuild-assets test test-unit test-integration test-stack-up test-stack-down test-bench lint lint-fix coverage clean help check ci setup install-tools install-hooks dev dev-api dev-admin dev-observability dev-down dev-logs dev-reset openapi-api openapi-admin web-install web-check web-lint web-test web-build
 
 .DEFAULT_GOAL := help
 
@@ -23,6 +23,12 @@ run: ## Run the public API locally (go run)
 
 run-admin: ## Run the admin API locally (go run)
 	@go run ./cmd/admin
+
+seed: ## Seed a local app with pages, releases, and assets via the public API (APP=<id|name>, API=<url>)
+	@go run ./cmd/seed $(if $(APP),-app "$(APP)") $(if $(API),-api "$(API)")
+
+rebuild-assets: ## Rebuild every app's asset bookkeeping (folder rollups, stats) from object storage
+	@go run ./cmd/rebuild-assets
 
 # =============================================================================
 # Docker Development Environment
@@ -107,8 +113,22 @@ test: ## Run all tests: race detector + coverage profile (coverage.out)
 test-unit: ## Run unit tests only (short mode)
 	@go test -v -race -tags testing -short ./...
 
-test-integration: ## Run integration tests
-	@go test -v -race -tags testing ./testing/integration/...
+# The integration suite wipes tables and empties the search index, so it runs
+# against its own disposable stack (docker-compose.test.yml, offset ports), never
+# the dev stack. The suite's defaults point at those ports; CI overrides them
+# with APP_* env for its own service containers.
+test-integration: ## Run integration tests against a disposable stack (started and torn down here)
+	@trap '$(MAKE) --no-print-directory test-stack-down' EXIT; \
+	$(MAKE) --no-print-directory test-stack-up && \
+	go test -v -race -tags testing ./testing/integration/...
+
+test-stack-up: ## Start the disposable integration stack (Postgres, MinIO, OpenSearch) and migrate it
+	@docker compose -f docker-compose.test.yml up -d --wait postgres minio opensearch
+	@docker compose -f docker-compose.test.yml run --rm migrate up
+	@docker compose -f docker-compose.test.yml run --rm minio-init
+
+test-stack-down: ## Tear down the disposable integration stack
+	@docker compose -f docker-compose.test.yml down -v --remove-orphans
 
 test-bench: ## Run benchmarks
 	@go test -tags testing -bench=. -benchmem -benchtime=1s ./testing/benchmarks/...

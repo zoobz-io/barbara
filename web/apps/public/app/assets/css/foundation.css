@@ -3,6 +3,9 @@
  * but no component CSS; this paints the components the app actually uses —
  * dialogs, dropdown menus, and the data browser — with untheme tokens, so
  * everything follows theme/mode/density/radius/motion switches.
+ *
+ * Stacking: the studio's sticky top bar sits at z-index 20, so every
+ * floating layer here clears it — menus 40, dialogs 50, toasts 60.
  */
 
 /* --- Primitives ----------------------------------------------------------- */
@@ -56,6 +59,7 @@
 .f-dialog-overlay {
   position: fixed;
   inset: 0;
+  z-index: 50;
   background: color-mix(in srgb, var(--scrim) 40%, transparent);
 }
 
@@ -64,6 +68,7 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+  z-index: 50;
   min-width: 22rem;
   max-width: 90vw;
   padding: var(--space-5);
@@ -115,7 +120,7 @@
   color: var(--on-surface);
   box-shadow: var(--elevation-mid);
   font-family: var(--font-sans);
-  z-index: 10;
+  z-index: 40;
 }
 
 .f-dropdown-menu-item {
@@ -197,6 +202,36 @@
   opacity: 0;
 }
 
+/* --- Avatar ------------------------------------------------------------------ */
+
+.f-avatar-root {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  border: 1px solid var(--outline-muted);
+  border-radius: var(--shape-full);
+  background: var(--surface-container-high);
+  color: var(--on-surface-muted);
+  overflow: hidden;
+  transition:
+    background-color var(--transition-base),
+    border-color var(--transition-base);
+}
+
+.f-avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.f-avatar-fallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 /* --- Toasts ----------------------------------------------------------------- */
 
 .f-toast-viewport {
@@ -206,7 +241,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  z-index: 30;
+  z-index: 60;
 }
 
 /* --- Tree -------------------------------------------------------------------- */
@@ -285,110 +320,114 @@
   font-weight: var(--weight-medium);
 }
 
-/* --- Data browser ------------------------------------------------------------ */
+/* --- Breadcrumbs ------------------------------------------------------------ */
 
-.f-data-browser {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
-
-.f-data-browser-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-}
-
-.f-data-browser-breadcrumb .f-ol {
+.crumbs .f-ol {
   display: flex;
   align-items: center;
   gap: var(--space-1);
   margin: 0;
   padding: 0;
+  font-size: var(--label-size);
   list-style: none;
 }
 
-.f-data-browser-breadcrumb .f-li {
+.crumbs .f-li {
   display: flex;
   align-items: center;
   gap: var(--space-1);
 }
 
-.f-data-browser-breadcrumb .f-li + .f-li::before {
-  content: "/";
-  color: var(--on-surface-muted);
-}
-
-.f-data-browser-breadcrumb .f-anchor {
-  color: var(--on-surface-muted);
-}
-
-.f-data-browser-breadcrumb .f-anchor:hover {
-  color: var(--on-surface);
-}
-
-.f-data-browser-breadcrumb .f-span[aria-current="page"] {
-  font-weight: var(--weight-medium);
-}
-
-.f-data-browser-empty {
-  padding: var(--space-4);
-  color: var(--on-surface-muted);
-  font-size: var(--label-size);
-}
-
-.f-data-browser .f-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.f-data-browser .f-td {
-  padding: var(--space-2);
-  border-top: 1px solid var(--outline-muted);
-  text-align: left;
-}
-
-.f-data-browser .f-tbody:first-of-type .f-tr:first-child .f-td {
-  border-top: none;
-}
-
-.f-data-browser-select {
-  width: 2rem;
-}
-
-.f-data-browser-actions {
-  width: 2.5rem;
-  text-align: right;
-}
-
-.f-data-browser-folder-btn {
-  width: 100%;
+/* Crumbs (page headers) are plain text links:
+   ancestors muted, lit on hover, the current folder emphasized. The ancestor crumb is a button and the current one a
+   span; both lay out inline-flex with the same gap and no padding so the
+   root's home icon and label sit in one place whichever it renders as.
+   The separator is the component's own icon, so no text separator here. */
+.crumbs .f-button,
+.crumbs .f-anchor,
+.crumbs .f-span[aria-current="page"] {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
   padding: 0;
-  font-weight: var(--weight-medium);
+  color: var(--on-surface-muted);
 }
 
-.f-data-browser-folder-btn:hover {
+.crumbs .f-button:hover,
+.crumbs .f-anchor:hover {
   background: transparent;
   color: var(--on-surface);
 }
 
-.f-data-browser-folder-count {
-  text-transform: none;
+.crumbs .f-span[aria-current="page"] {
+  color: var(--on-surface);
+  font-weight: var(--weight-medium);
 }
 
-.f-data-browser-bulk-actions {
+.crumbs .f-li > .f-icon {
+  color: var(--on-surface-muted);
+}
+
+/* Select: the same shell as the dropdown menu, with a trigger that reads
+   as a link — the chosen value in the primary color, a chevron after it. */
+.f-select-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--primary);
+  font: inherit;
+  font-size: var(--label-size);
+  cursor: pointer;
+  transition: color var(--transition-base);
+}
+
+.f-select-trigger:hover,
+.f-select-trigger[data-state="open"] {
+  text-decoration: underline;
+}
+
+.f-select-trigger .f-icon {
+  color: var(--on-surface-muted);
+  transition: transform var(--transition-base);
+}
+
+.f-select-trigger[data-state="open"] .f-icon {
+  transform: rotate(180deg);
+}
+
+.f-select-content {
+  min-width: var(--reka-select-trigger-width, 10rem);
+  padding: 0.25rem;
+  border: 1px solid var(--outline-muted);
+  border-radius: var(--shape-md);
+  background: var(--surface-container);
+  color: var(--on-surface);
+  box-shadow: var(--elevation-mid);
+  font-family: var(--font-sans);
+  font-size: var(--label-size);
+  z-index: 40;
+}
+
+.f-select-item {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--outline-muted);
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
   border-radius: var(--shape-sm);
-  background: var(--surface-container-high);
+  cursor: pointer;
+  outline: none;
+  transition:
+    background-color var(--transition-base),
+    color var(--transition-base);
 }
 
-.f-data-browser-bulk-actions-count {
-  color: var(--on-surface-muted);
-  font-size: var(--label-size);
-  margin-right: auto;
+.f-select-item[data-highlighted] {
+  background: var(--state-hover-layer);
+}
+
+.f-select-item[data-state="checked"] {
+  color: var(--primary);
 }

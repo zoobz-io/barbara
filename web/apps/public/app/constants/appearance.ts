@@ -1,4 +1,4 @@
-import type { AppearanceGroup } from "~/types/appearance";
+import type { AppearanceGroup, BrandGroup } from "~/types/appearance";
 
 /**
  * Every untheme axis the theme contract offers, grouped for the settings
@@ -96,6 +96,117 @@ export const APPEARANCE_GROUPS: AppearanceGroup[] = [
           { label: "Normal", context: "default" },
           { label: "Playful", context: "expressive" },
         ],
+      },
+    ],
+  },
+];
+
+/**
+ * Every ramp the brand panel exposes, grouped for the settings page. One
+ * picked color re-seeds the whole ramp, so every role in the family — fill,
+ * text, container, and the contrast and vibrancy channels — follows.
+ */
+export const BRAND_GROUPS: BrandGroup[] = [
+  {
+    label: "Brand",
+    settings: [
+      {
+        ramp: "primary",
+        swatch: {
+          fill: "primary",
+          on: "on-primary",
+          container: "primary-container",
+          onContainer: "on-primary-container",
+        },
+        label: "Primary",
+        description: "Buttons, links, and selected states",
+      },
+      {
+        ramp: "secondary",
+        swatch: {
+          fill: "secondary",
+          on: "on-secondary",
+          container: "secondary-container",
+          onContainer: "on-secondary-container",
+        },
+        label: "Secondary",
+        description: "Supporting accents and badges",
+      },
+      {
+        ramp: "tertiary",
+        swatch: {
+          fill: "tertiary",
+          on: "on-tertiary",
+          container: "tertiary-container",
+          onContainer: "on-tertiary-container",
+        },
+        label: "Tertiary",
+        description: "Highlights and decorative accents",
+      },
+    ],
+  },
+  {
+    label: "Status",
+    settings: [
+      {
+        ramp: "error",
+        swatch: {
+          fill: "error",
+          on: "on-error",
+          container: "error-container",
+          onContainer: "on-error-container",
+        },
+        label: "Error",
+        description: "Destructive actions and failures",
+      },
+      {
+        ramp: "success",
+        swatch: {
+          fill: "success",
+          on: "on-success",
+          container: "success-container",
+          onContainer: "on-success-container",
+        },
+        label: "Success",
+        description: "Confirmations and healthy states",
+      },
+      {
+        ramp: "warning",
+        swatch: {
+          fill: "warning",
+          on: "on-warning",
+          container: "warning-container",
+          onContainer: "on-warning-container",
+        },
+        label: "Warning",
+        description: "Cautions and pending states",
+      },
+    ],
+  },
+  {
+    label: "Surfaces",
+    settings: [
+      {
+        ramp: "neutral",
+        swatch: {
+          fill: "surface-container-high",
+          on: "on-surface",
+          container: "surface",
+          onContainer: "on-surface-muted",
+        },
+        label: "Neutral",
+        description: "Backgrounds and body text",
+      },
+      {
+        ramp: "neutral-variant",
+        swatch: {
+          fill: "outline",
+          on: "surface",
+          container: "outline-muted",
+          onContainer: "on-surface",
+        },
+        label: "Outline",
+        description: "Borders and dividers",
       },
     ],
   },

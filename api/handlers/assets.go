@@ -75,6 +75,88 @@ var ListAssets = rocco.GET("/apps/{app_id}/assets",
 	WithErrors(rocco.ErrForbidden, rocco.ErrUnauthorized).
 	WithAuthentication()
 
+// ListAssetFolder returns one level of the app's asset tree — the folder view
+// the studio browses. The path query parameter is the folder ("images" or
+// "images/icons"); absent means the root. The response carries only that
+// level: its direct subfolders and the assets directly inside it.
+var ListAssetFolder = rocco.GET("/apps/{app_id}/assets/folder",
+	func(req *rocco.Request[rocco.NoBody]) (wire.AssetFolderResponse, error) {
+		assets := sum.MustUse[contracts.Assets](req.Context)
+		ctx := auth.WithPrincipal(req.Context, req.Identity)
+		level, err := assets.ListFolder(ctx, req.Params.Path["app_id"], req.Params.Query["path"])
+		if err != nil {
+			return wire.AssetFolderResponse{}, transformers.ErrorToResponse(err)
+		}
+		return transformers.AssetLevelToFolderResponse(level), nil
+	}).WithPathParams("app_id").
+	WithQueryParams("path").
+	WithSummary("List one folder of the app's assets").
+	WithTags("Assets").
+	WithScopes(auth.ScopeDocumentsRead).
+	WithErrors(rocco.ErrForbidden, rocco.ErrUnauthorized).
+	WithAuthentication()
+
+// CreateAssetFolder makes a folder of the app's assets exist before anything
+// is uploaded into it. Folders are otherwise implied by keys; this one is
+// recorded on purpose and lists empty until it holds something. Ancestors
+// come into being with it. The response is the new folder's level.
+var CreateAssetFolder = rocco.POST("/apps/{app_id}/assets/folder",
+	func(req *rocco.Request[wire.CreateAssetFolderRequest]) (wire.AssetFolderResponse, error) {
+		assets := sum.MustUse[contracts.Assets](req.Context)
+		ctx := auth.WithPrincipal(req.Context, req.Identity)
+		level, err := assets.CreateFolder(ctx, req.Params.Path["app_id"], req.Body.Path)
+		if err != nil {
+			return wire.AssetFolderResponse{}, transformers.ErrorToResponse(err)
+		}
+		return transformers.AssetLevelToFolderResponse(level), nil
+	}).WithPathParams("app_id").
+	WithSummary("Create an asset folder").
+	WithTags("Assets").
+	WithSuccessStatus(201).
+	WithScopes(auth.ScopeDocumentsWrite).
+	WithErrors(rocco.ErrBadRequest, rocco.ErrNotFound, rocco.ErrForbidden, rocco.ErrUnauthorized).
+	WithAuthentication()
+
+// GetAssetStats returns the app-level view of its assets: totals, the
+// breakdown by media family, and the daily write series — the numbers the
+// studio's asset landing page charts. They come from bookkeeping rows kept by
+// every write and delete, not a live count of object storage.
+var GetAssetStats = rocco.GET("/apps/{app_id}/assets/stats",
+	func(req *rocco.Request[rocco.NoBody]) (wire.AssetStatsResponse, error) {
+		assets := sum.MustUse[contracts.Assets](req.Context)
+		ctx := auth.WithPrincipal(req.Context, req.Identity)
+		stats, err := assets.Stats(ctx, req.Params.Path["app_id"])
+		if err != nil {
+			return wire.AssetStatsResponse{}, transformers.ErrorToResponse(err)
+		}
+		return transformers.AssetStatsToResponse(stats), nil
+	}).WithPathParams("app_id").
+	WithSummary("Get the app's asset statistics").
+	WithTags("Assets").
+	WithScopes(auth.ScopeDocumentsRead).
+	WithErrors(rocco.ErrForbidden, rocco.ErrUnauthorized).
+	WithAuthentication()
+
+// MoveAsset changes an asset's key: into another folder, under another
+// name, or both. The destination must be free; nothing is overwritten. The
+// response is the asset at its new key.
+var MoveAsset = rocco.POST("/apps/{app_id}/assets/object/move",
+	func(req *rocco.Request[wire.MoveAssetRequest]) (wire.AssetResponse, error) {
+		assets := sum.MustUse[contracts.Assets](req.Context)
+		ctx := auth.WithPrincipal(req.Context, req.Identity)
+		asset, err := assets.Move(ctx, req.Params.Path["app_id"], req.Params.Query["key"], req.Body.Key)
+		if err != nil {
+			return wire.AssetResponse{}, transformers.ErrorToResponse(err)
+		}
+		return transformers.AssetToResponse(asset), nil
+	}).WithPathParams("app_id").
+	WithQueryParams("key").
+	WithSummary("Move or rename an asset").
+	WithTags("Assets").
+	WithScopes(auth.ScopeDocumentsWrite).
+	WithErrors(rocco.ErrBadRequest, rocco.ErrNotFound, rocco.ErrConflict, rocco.ErrForbidden, rocco.ErrUnauthorized).
+	WithAuthentication()
+
 // DeleteAsset removes an asset by key for the app.
 var DeleteAsset = rocco.DELETE("/apps/{app_id}/assets/object",
 	func(req *rocco.Request[rocco.NoBody]) (wire.AssetResponse, error) {

@@ -78,9 +78,13 @@ export const createApiClient = client({
 
   assets: {
     list: op("get", "/apps/{app_id}/assets"),
+    folder: op("get", "/apps/{app_id}/assets/folder"),
+    createFolder: op("post", "/apps/{app_id}/assets/folder"),
+    stats: op("get", "/apps/{app_id}/assets/stats"),
     upload: op("put", "/apps/{app_id}/assets/object"),
     get: op("get", "/apps/{app_id}/assets/object"),
     delete: op("delete", "/apps/{app_id}/assets/object"),
+    move: op("post", "/apps/{app_id}/assets/object/move"),
   },
 });
 

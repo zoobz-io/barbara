@@ -19,7 +19,10 @@ Barbara provides a production-ready project structure built on [sum](https://git
 Barbara/
 ├── cmd/              # One binary per surface
 │   ├── api/          #   Public API entrypoint
-│   └── admin/        #   Admin API entrypoint
+│   ├── admin/        #   Admin API entrypoint
+│   ├── reindex/      #   Full OpenSearch reindex (operational one-shot)
+│   ├── rebuild-assets/ # Asset bookkeeping rebuild from object storage (operational one-shot)
+│   └── seed/         #   Local-dev seeder: an app with pages, releases, and assets
 ├── api/              # Public API surface: contracts, handlers, wire, transformers
 ├── admin/            # Admin API surface: contracts, handlers, wire, transformers
 ├── database/         # Data layer
@@ -87,9 +90,11 @@ make install-hooks
 | `make setup` | Bootstrap the dev toolchain (idempotent) |
 | `make build` | Build the application binary |
 | `make run` | Run the application |
+| `make seed` | Seed a local app with collections, pages, releases, and assets (`APP=<id\|name>`) |
+| `make rebuild-assets` | Rebuild every app's asset bookkeeping (folder rollups, stats) from object storage |
 | `make test` | Run all tests with race detector |
 | `make test-unit` | Run unit tests only |
-| `make test-integration` | Run integration tests |
+| `make test-integration` | Run integration tests against a disposable stack (`docker-compose.test.yml`), never the dev stack |
 | `make test-bench` | Run benchmarks |
 | `make lint` | Run linters |
 | `make coverage` | Generate coverage report |

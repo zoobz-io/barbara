@@ -22,10 +22,6 @@ const filtered = computed(() => {
 <template>
   <div class="studio-page">
     <h1>Content</h1>
-    <p class="page-description">
-      Every page in this app, by path. Open one to edit it.
-    </p>
-
     <section class="panel">
       <input
         v-model="query"

@@ -5,6 +5,7 @@ package integration
 import (
 	"context"
 	"errors"
+	"github.com/google/uuid"
 	"testing"
 
 	"github.com/zoobz-io/grub"
@@ -52,7 +53,7 @@ type lifeTree struct {
 // readme.md — each with one saved version.
 func lifeApp(t *testing.T, st *stores.Stores, ctx context.Context) lifeTree {
 	t.Helper()
-	app, err := st.Apps.Create(ctx, "site")
+	app, err := st.Apps.Create(ctx, uuid.NewString())
 	if err != nil {
 		t.Fatalf("create app: %v", err)
 	}
@@ -108,7 +109,7 @@ func TestLifecycle_FullPathToSite(t *testing.T) {
 	}
 
 	// App scoping: a different app serves none of it.
-	other, _ := st.Apps.Create(ctx, "other")
+	other := seedApp(t, st, ctx)
 	mustMiss(t, st, ctx, other.ID, "readme.md")
 }
 

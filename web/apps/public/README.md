@@ -61,7 +61,16 @@ cascade is auto-linked by `@untheme/nuxt`.
 - `/apps/:id` — the studio (layout `studio`): top bar with app picker,
   Content/Assets/History/Settings tabs, Review & Publish modal, color-mode
   toggle. Content shows the Pages sidebar (root listing + New folder/file
-  dialogs) beside the editor pane; the other tabs are scaffolds.
+  dialogs) beside the editor pane.
+- `/apps/:id/assets` — the assets landing page: the app's stat tiles and
+  storage meter over the root folder's drop zone and rows.
+- `/apps/:id/assets/*` — one catch-all for the asset tree. A path the
+  parent folder lists as an asset (`…/assets/images/logo.png`) is that
+  asset's page: a preview by media type (image, PDF, video, audio, text)
+  beside its details, with download and delete. Any other listed path is a
+  folder: a drop zone (uploads land in the folder, with progress) over a
+  table of subfolders and files, each a link, and each navigation fetches
+  exactly that level.
 
 ## Scripts
 

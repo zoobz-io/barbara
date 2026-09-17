@@ -39,6 +39,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/apps/{app_id}/assets/folder": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List one folder of the app's assets */
+        get: operations["get-apps-app_id-assets-folder-ab41ce51"];
+        put?: never;
+        /** Create an asset folder */
+        post: operations["post-apps-app_id-assets-folder-81bc508e"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/apps/{app_id}/assets/object": {
         parameters: {
             query?: never;
@@ -53,6 +71,40 @@ export interface paths {
         post?: never;
         /** Delete an asset */
         delete: operations["delete-apps-app_id-assets-object-9e117b54"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/apps/{app_id}/assets/object/move": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Move or rename an asset */
+        post: operations["post-apps-app_id-assets-object-move-6480cc92"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/apps/{app_id}/assets/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get the app's asset statistics */
+        get: operations["get-apps-app_id-assets-stats-ac2e5da9"];
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -535,6 +587,57 @@ export interface components {
              */
             updated_at: string;
         };
+        AssetDayStatsResponse: {
+            /** @description Assets last written that day */
+            count: number;
+            /**
+             * @description The UTC calendar day
+             * @example 2026-09-16
+             */
+            day: string;
+            /** @description The day's assets by kind */
+            kinds: components["schemas"]["AssetKindCountResponse"][];
+            /** @description Their bytes */
+            size: number;
+        };
+        AssetFolderResponse: {
+            /** @description Assets directly in the folder, by key */
+            assets: components["schemas"]["AssetResponse"][];
+            /** @description Direct subfolders, by name */
+            folders: components["schemas"]["AssetSubfolderResponse"][];
+            /**
+             * @description The folder, empty for the root
+             * @example images
+             */
+            path: string;
+        };
+        AssetKindCountResponse: {
+            /** @description Assets of the kind */
+            count: number;
+            /**
+             * @description Media family
+             * @example image
+             */
+            kind: string;
+            /** @description Bytes of the kind */
+            size: number;
+        };
+        AssetKindStatsResponse: {
+            /** @description Assets of the kind */
+            count: number;
+            /**
+             * @description Media family: image, video, audio, code, spreadsheet, archive, text, or file
+             * @example image
+             */
+            kind: string;
+            /**
+             * Format: date-time
+             * @description When an asset of the kind was last written
+             */
+            last_written_at?: string;
+            /** @description Bytes of the kind */
+            size: number;
+        };
         AssetListResponse: {
             /** @description The app's assets */
             assets: components["schemas"]["AssetResponse"][];
@@ -552,7 +655,53 @@ export interface components {
              * @example images/logo.png
              */
             key: string;
+            /**
+             * @description Media family derived from the content type: image, video, audio, code, spreadsheet, archive, text, or file
+             * @example image
+             */
+            kind: string;
+            /**
+             * Format: date-time
+             * @description When the object was last written, as object storage reports it; omitted when unknown
+             */
+            last_modified?: string;
             /** @description Size in bytes */
+            size: number;
+        };
+        AssetStatsResponse: {
+            /**
+             * Format: date-time
+             * @description When the bookkeeping was last rebuilt from object storage; omitted until the first rebuild
+             */
+            computed_at?: string;
+            /** @description Total assets */
+            count: number;
+            /** @description Assets by the UTC day they were last written, oldest first, up to 90 days back; days without a write are absent */
+            days: components["schemas"]["AssetDayStatsResponse"][];
+            /** @description The breakdown by media family, by kind; only kinds with assets appear */
+            kinds: components["schemas"]["AssetKindStatsResponse"][];
+            /**
+             * Format: date-time
+             * @description When an asset was last written; omitted for an app without assets
+             */
+            last_written_at?: string;
+            /** @description Total bytes */
+            size: number;
+        };
+        AssetSubfolderResponse: {
+            /** @description Assets anywhere beneath the folder */
+            count: number;
+            /**
+             * Format: date-time
+             * @description When an asset beneath the folder was last written; omitted when unknown
+             */
+            last_written_at?: string;
+            /**
+             * @description Folder name (one key segment)
+             * @example images
+             */
+            name: string;
+            /** @description Total bytes of the assets beneath the folder */
             size: number;
         };
         CollectionContentsResponse: {
@@ -605,6 +754,13 @@ export interface components {
              * @example docs-site
              */
             name: string;
+        };
+        CreateAssetFolderRequest: {
+            /**
+             * @description The folder path, segments joined by slashes
+             * @example images/icons
+             */
+            path: string;
         };
         CreateCollectionRequest: {
             /**
@@ -729,6 +885,13 @@ export interface components {
             };
             /** @description Human-readable error message */
             message: string;
+        };
+        MoveAssetRequest: {
+            /**
+             * @description The new key, segments joined by slashes
+             * @example images/brand/logo.png
+             */
+            key: string;
         };
         MoveCollectionRequest: {
             /** @description New parent collection ID, or null for the app root */
@@ -1026,6 +1189,110 @@ export interface operations {
             };
         };
     };
+    "get-apps-app_id-assets-folder-ab41ce51": {
+        parameters: {
+            query?: {
+                path?: string;
+            };
+            header?: never;
+            path: {
+                app_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetFolderResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrUnauthorized"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrForbidden"];
+                };
+            };
+        };
+    };
+    "post-apps-app_id-assets-folder-81bc508e": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                app_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateAssetFolderRequest"];
+            };
+        };
+        responses: {
+            /** @description Success */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetFolderResponse"];
+                };
+            };
+            /** @description BadRequest */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrBadRequest"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrUnauthorized"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrForbidden"];
+                };
+            };
+            /** @description NotFound */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrNotFound"];
+                };
+            };
+        };
+    };
     "get-apps-app_id-assets-object-5f10984e": {
         parameters: {
             query?: {
@@ -1191,6 +1458,119 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrNotFound"];
+                };
+            };
+        };
+    };
+    "post-apps-app_id-assets-object-move-6480cc92": {
+        parameters: {
+            query?: {
+                key?: string;
+            };
+            header?: never;
+            path: {
+                app_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MoveAssetRequest"];
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetResponse"];
+                };
+            };
+            /** @description BadRequest */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrBadRequest"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrUnauthorized"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrForbidden"];
+                };
+            };
+            /** @description NotFound */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrNotFound"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrConflict"];
+                };
+            };
+        };
+    };
+    "get-apps-app_id-assets-stats-ac2e5da9": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                app_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetStatsResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrUnauthorized"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrForbidden"];
                 };
             };
         };

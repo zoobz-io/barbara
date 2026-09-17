@@ -2,15 +2,24 @@ import type { MenuGroup } from "@zoobzio/foundation/types/core/menu";
 
 import type { App } from "~/types/apps";
 import type { Tab } from "~/types/studio";
-import { ALL_APPS_LABEL } from "~/constants/studio";
 
 /** The studio tab links for an app. */
 export function appTabs(id: string): Tab[] {
   return [
-    { label: "Content", to: `/apps/${id}`, match: `/apps/${id}/content/` },
-    { label: "Assets", to: `/apps/${id}/assets` },
-    { label: "History", to: `/apps/${id}/history` },
-    { label: "Settings", to: `/apps/${id}/settings` },
+    {
+      icon: "file-text",
+      label: "Content",
+      to: `/apps/${id}`,
+      match: `/apps/${id}/content/`,
+    },
+    {
+      icon: "image",
+      label: "Assets",
+      to: `/apps/${id}/assets`,
+      match: `/apps/${id}/assets/`,
+    },
+    { icon: "history", label: "History", to: `/apps/${id}/history` },
+    { icon: "settings", label: "Settings", to: `/apps/${id}/settings` },
   ];
 }
 
@@ -20,21 +29,18 @@ export function tabActive(tab: Tab, path: string): boolean {
 }
 
 /**
- * The app-picker menu groups: the other apps to switch to, then navigation
- * back to the landing page.
+ * The app-picker menu groups: the other apps to switch to. Navigation back
+ * to the landing page is the top bar's wordmark, not a menu item.
  */
 export function appMenuGroups(apps: App[], currentId: string): MenuGroup[] {
   const others = apps.filter((a) => a.id !== currentId);
   return [
-    ...(others.length
-      ? [
-          {
-            key: "apps",
-            label: "Switch app",
-            items: others.map((a) => ({ label: a.name })),
-          },
-        ]
-      : []),
-    { key: "nav", items: [{ label: ALL_APPS_LABEL }] },
+    {
+      key: "apps",
+      label: "Switch app",
+      items: others.length
+        ? others.map((a) => ({ label: a.name }))
+        : [{ label: "No other apps", disabled: true }],
+    },
   ];
 }

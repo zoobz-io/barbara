@@ -39,6 +39,10 @@ func ErrorToResponse(err error) error {
 		return rocco.ErrConflict.WithMessage("cannot move a collection into itself or a descendant")
 	case errors.Is(err, stores.ErrVersionMismatch):
 		return rocco.ErrBadRequest.WithMessage("version does not belong to the document")
+	case errors.Is(err, stores.ErrInvalidAssetPath):
+		return rocco.ErrBadRequest.WithMessage("path must be one or more plain segments joined by slashes")
+	case errors.Is(err, stores.ErrAssetExists):
+		return rocco.ErrConflict.WithMessage("an asset with that key already exists")
 	case errors.Is(err, auth.ErrNoTenant):
 		return rocco.ErrUnauthorized.WithMessage("request has no tenant")
 	case errors.Is(err, auth.ErrNoUser):
