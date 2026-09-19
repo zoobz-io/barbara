@@ -3,19 +3,18 @@ import Menu from "@zoobzio/foundation/components/core/menu.vue";
 
 import { computed, useRoute } from "#imports";
 
-import { ASSET_ACTIONS } from "~/constants/assets";
+import { ASSET_ACTIONS, DEFAULT_ASSET_SORT } from "~/constants/assets";
+import { assetIcon, assetRoute, sortAssets, sortFolders } from "~/utils/assets";
 import {
-  assetIcon,
-  assetRoute,
-  childPath,
-  folderPath,
-  sortAssets,
-  sortFolders,
-} from "~/utils/assets";
-import { formatBytes, formatDate, formatRelative, keyName } from "~/utils/format";
+  formatBytes,
+  formatDate,
+  formatRelative,
+  keyName,
+} from "~/utils/format";
+import { childPath, folderPath } from "~/utils/path";
 import { useAssetStore } from "~/stores/assets";
 import { useAssetMenu } from "~/composables/asset-menu";
-import { useAssetView } from "~/composables/asset-view";
+import { useFolderView } from "~/composables/folder-view";
 import { useNow } from "~/composables/clock";
 
 /**
@@ -33,7 +32,7 @@ const path = folderPath(route.params.path);
 const store = useAssetStore(id);
 const level = store.level(path);
 const now = useNow();
-const { query, sort } = useAssetView(id, path);
+const { query, sort } = useFolderView("assets", id, path, DEFAULT_ASSET_SORT);
 const folders = computed(() =>
   sortFolders(level.value?.folders ?? [], sort.value, query.value),
 );
@@ -61,16 +60,18 @@ const menu = useAssetMenu(id);
       <tbody>
         <tr v-if="empty">
           <td class="placeholder-cell" colspan="5">
-            {{ searching ? `Nothing matches "${query.trim()}".` : "Empty folder" }}
+            {{
+              searching ? `Nothing matches "${query.trim()}".` : "Empty folder"
+            }}
           </td>
         </tr>
         <tr v-for="folder in folders" :key="`folder:${folder.name}`">
           <td class="col-icon">
-            <Icon class="f-icon asset-icon" fill="currentColor" name="folder" />
+            <Icon class="f-icon row-icon" fill="currentColor" name="folder" />
           </td>
           <td>
             <NuxtLink
-              class="asset-link"
+              class="row-link"
               :to="assetRoute(id, childPath(path, folder.name))"
             >
               {{ folder.name }}
@@ -92,13 +93,13 @@ const menu = useAssetMenu(id);
         <tr v-for="asset in files" :key="asset.key">
           <td class="col-icon">
             <Icon
-              class="f-icon asset-icon"
+              class="f-icon row-icon"
               fill="currentColor"
               :name="assetIcon(asset.kind)"
             />
           </td>
           <td>
-            <NuxtLink class="asset-link" :to="assetRoute(id, asset.key)">
+            <NuxtLink class="row-link" :to="assetRoute(id, asset.key)">
               {{ keyName(asset.key) }}
             </NuxtLink>
           </td>

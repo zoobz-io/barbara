@@ -3,7 +3,7 @@ import Dialog from "@zoobzio/foundation/components/core/dialog.vue";
 
 import { computed, useTemplateRef } from "#imports";
 
-import { childPath } from "~/utils/assets";
+import { childPath } from "~/utils/path";
 import { useAssetStore } from "~/stores/assets";
 import { useAssetUpload } from "~/composables/asset-upload";
 import { useDialogForm } from "~/composables/dialog-form";

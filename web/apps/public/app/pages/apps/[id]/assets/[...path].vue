@@ -3,8 +3,8 @@ import { createError, definePageMeta, useAsyncData, useRoute } from "#imports";
 
 import AssetDetail from "~/components/studio/asset-detail.vue";
 import AssetFolder from "~/components/studio/asset-folder.vue";
-import { folderPath, parentPath } from "~/utils/assets";
 import { keyName } from "~/utils/format";
+import { folderPath, parentPath } from "~/utils/path";
 import { useAssetStore } from "~/stores/assets";
 
 // One catch-all for everything under assets: /apps/:id/assets/images is a

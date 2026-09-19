@@ -3,6 +3,7 @@ import { computed, ref } from "#imports";
 
 import type { Release } from "~/types/releases";
 import { RELEASE_ENTRY_CAP } from "~/constants/history";
+import { contentRoute } from "~/utils/content";
 import { formatDate, shortId } from "~/utils/format";
 import { useReleaseEntries } from "~/stores/releases";
 
@@ -71,7 +72,7 @@ const visible = computed(() =>
               <td>
                 <NuxtLink
                   class="release-path"
-                  :to="`/apps/${appId}/content/${entry.document_id}`"
+                  :to="contentRoute(appId, entry.key)"
                 >
                   <Icon class="f-icon" fill="currentColor" name="file-text" />
                   {{ entry.key }}

@@ -251,6 +251,11 @@ input[type="text"] {
   white-space: nowrap;
 }
 
+.data-table .col-status {
+  width: 1%;
+  white-space: nowrap;
+}
+
 .data-table .col-date {
   width: 1%;
   color: var(--on-surface-muted);

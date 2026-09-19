@@ -5,9 +5,10 @@ import { computed, ref, useRoute, useRouter, watch } from "#imports";
 
 import type { AssetSubfolder } from "~/types/assets";
 import { ASSET_ROOT_LABEL } from "~/constants/assets";
-import { assetRoute, childPath, parentPath } from "~/utils/assets";
+import { assetRoute } from "~/utils/assets";
 import { apiErrorMessage } from "~/utils/errors";
 import { keyName } from "~/utils/format";
+import { childPath, parentPath } from "~/utils/path";
 import { useAssetStore } from "~/stores/assets";
 import { useAssetAction } from "~/composables/asset-action";
 

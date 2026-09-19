@@ -9,7 +9,7 @@ export function appTabs(id: string): Tab[] {
     {
       icon: "file-text",
       label: "Content",
-      to: `/apps/${id}`,
+      to: `/apps/${id}/content`,
       match: `/apps/${id}/content/`,
     },
     {

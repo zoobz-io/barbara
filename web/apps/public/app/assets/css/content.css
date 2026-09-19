@@ -1,43 +1,31 @@
-/* The content landing page: searchable table of contents. */
+/* The content tree pages: the landing header and a page's status badge. */
 
-.toc-search {
-  width: 100%;
+/* The content landing page header: title, then the lede, before the
+   shared rule. */
+.content-header {
+  gap: var(--space-3);
 }
 
-.data-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.data-table th {
-  padding: var(--space-2);
-  text-align: left;
-  font-size: var(--label-size);
-  font-weight: var(--weight-medium);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--on-surface-muted);
-  border-bottom: 1px solid var(--outline-muted);
-}
-
-.data-table td {
-  padding: var(--space-2);
-}
-
-.data-table tbody tr + tr td {
-  border-top: 1px solid var(--outline-muted);
-}
-
-.data-table .muted {
+/* A page's lifecycle status as a small tinted pill: a draft is quiet, a
+   published page reads as settled, and a published page with a newer
+   draft is the one asking for a release. */
+.status {
+  display: inline-block;
+  padding: 0.1em 0.6em;
+  border-radius: var(--shape-full);
+  background: var(--surface-container-high);
   color: var(--on-surface-muted);
   font-size: var(--label-size);
+  white-space: nowrap;
 }
 
-.toc-link {
-  color: var(--on-surface);
-  text-decoration: none;
+.status-published {
+  background: var(--success-container);
+  color: var(--on-success-container);
 }
 
-.toc-link:hover {
-  text-decoration: underline;
+.status-published-with-newer-draft {
+  color: var(--warning);
+  border: 1px solid var(--warning);
+  background: transparent;
 }

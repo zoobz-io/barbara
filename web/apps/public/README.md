@@ -58,10 +58,19 @@ cascade is auto-linked by `@untheme/nuxt`.
 
 - `/` — landing: title/description, create-app link, the tenant's apps.
 - `/apps/create`, `/apps/edit?id=…` — narrow form pages (create, rename).
-- `/apps/:id` — the studio (layout `studio`): top bar with app picker,
-  Content/Assets/History/Settings tabs, Review & Publish modal, color-mode
-  toggle. Content shows the Pages sidebar (root listing + New folder/file
-  dialogs) beside the editor pane.
+- `/apps/:id` — forwards to the app's content root.
+- `/apps/:id/content` — the studio (layout `studio`): top bar with app
+  picker, Content/Assets/History/Settings tabs, color-mode toggle. The
+  content landing page is the root folder of the app's document tree: New
+  folder/New page dialogs over a searchable, sortable table of subfolders
+  and pages with each page's status.
+- `/apps/:id/content/*` — one catch-all for the content tree, mirroring
+  assets. A path the parent level lists as a document
+  (`…/content/guides/install.md`) is that page's editor: the Pages sidebar
+  tree beside the tiptap editor, with Save. Any other listed path is a
+  folder page: crumbs, counts, New folder/New page, and the level's rows.
+  The API addresses a level by collection id, so the store resolves each
+  path through its parent level and caches every level it has seen.
 - `/apps/:id/assets` — the assets landing page: the app's stat tiles and
   storage meter over the root folder's drop zone and rows.
 - `/apps/:id/assets/*` — one catch-all for the asset tree. A path the

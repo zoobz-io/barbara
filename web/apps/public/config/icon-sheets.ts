@@ -34,9 +34,10 @@ export default defineNuxtIconSheetsConfig({
     "file-archive": "lucide:file-archive",
     "file-video": "lucide:video",
     "file-audio": "lucide:file-audio",
-    // Asset folder header actions and the drop zone.
+    // Asset and content folder header actions, and the drop zone.
     upload: "lucide:upload",
     "folder-plus": "lucide:folder-plus",
+    "file-plus": "lucide:file-plus",
     // Asset row actions.
     pencil: "lucide:pencil",
     "folder-input": "lucide:folder-input",

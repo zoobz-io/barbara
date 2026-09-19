@@ -7,7 +7,8 @@ import type {
   AssetUpload,
 } from "~/types/assets";
 import { API_PROXY_PREFIX } from "~~/config/press";
-import { isAssetKind, parentPath } from "~/utils/assets";
+import { isAssetKind } from "~/utils/assets";
+import { parentPath } from "~/utils/path";
 
 /**
  * The asset data layer for one app: every level loaded so far, keyed by

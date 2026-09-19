@@ -2,8 +2,9 @@
 import { computed, useRoute } from "#imports";
 
 import { ASSET_ROOT_LABEL } from "~/constants/assets";
-import { assetCrumbs, folderPath } from "~/utils/assets";
+import { assetCrumbs } from "~/utils/assets";
 import { counted, formatBytes, formatRelative, keyName } from "~/utils/format";
+import { folderPath } from "~/utils/path";
 import { useAssetStore } from "~/stores/assets";
 import { useNow } from "~/composables/clock";
 import AssetActions from "~/components/studio/asset-actions.vue";

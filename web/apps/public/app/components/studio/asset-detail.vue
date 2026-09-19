@@ -8,7 +8,7 @@ import {
   assetCrumbs,
   assetIcon,
   assetPreview,
-  folderPath,
+  kindLabel,
 } from "~/utils/assets";
 import {
   formatBytes,
@@ -16,7 +16,7 @@ import {
   formatRelative,
   keyName,
 } from "~/utils/format";
-import { kindLabel } from "~/utils/assets";
+import { folderPath } from "~/utils/path";
 import { useAssetStore } from "~/stores/assets";
 import { useAssetMenu } from "~/composables/asset-menu";
 import { useNow } from "~/composables/clock";

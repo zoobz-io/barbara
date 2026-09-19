@@ -1,5 +1,5 @@
 import { useAssetStore } from "~/stores/assets";
-import { childPath } from "~/utils/assets";
+import { childPath } from "~/utils/path";
 
 /**
  * Uploading into one folder, shared by the drop zone and the header's

@@ -38,7 +38,7 @@ function onDrop(event: DragEvent) {
         >
           <td class="col-icon">
             <Icon
-              class="f-icon asset-icon"
+              class="f-icon row-icon"
               fill="currentColor"
               :name="assetIcon(upload.kind ?? 'file')"
             />

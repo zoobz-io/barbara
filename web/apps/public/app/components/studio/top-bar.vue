@@ -28,7 +28,7 @@ const tabs = computed(() => appTabs(id.value));
 
 function onMenuSelect(item: MenuItem) {
   const target = apps.value.find((a) => a.name === item.label);
-  if (target) router.push(`/apps/${target.id}`);
+  if (target) router.push(`/apps/${target.id}/content`);
 }
 
 // The user menu: the mode toggle names the mode it switches to.

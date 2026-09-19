@@ -17,52 +17,21 @@ import {
   STORAGE_KIND_SLOTS,
   STORAGE_OTHER_LABEL,
 } from "~/constants/assets";
+import { pathCrumbs, pathRoute } from "~/utils/path";
 
-/** The folder a route's catch-all `path` param names ("" at the root). */
-export function folderPath(param: string | string[] | undefined): string {
-  if (Array.isArray(param)) return param.join("/");
-  return param ?? "";
-}
-
-/**
- * The route for a path under an app's assets — a folder or an asset key,
- * the page tells them apart; "" is the root.
- */
+/** The route for a path under an app's assets — a folder or an asset key,
+ * the page tells them apart; "" is the root. */
 export function assetRoute(appId: string, path: string): string {
-  const base = `/apps/${appId}/assets`;
-  if (path === "") return base;
-  return `${base}/${path.split("/").map(encodeURIComponent).join("/")}`;
+  return pathRoute(`/apps/${appId}/assets`, path);
 }
 
-/** The path of a subfolder beneath a folder ("" for the root). */
-export function childPath(path: string, name: string): string {
-  return path === "" ? name : `${path}/${name}`;
-}
-
-/** The folder an asset key sits in ("" for the root). */
-export function parentPath(key: string): string {
-  const slash = key.lastIndexOf("/");
-  return slash === -1 ? "" : key.slice(0, slash);
-}
-
-/**
- * The breadcrumb trail for a folder: the root, then one crumb per segment,
- * each linking to its own route. The trailing crumb is the current folder;
- * the breadcrumb renders it as the page rather than a link.
- */
+/** The breadcrumb trail for a path under an app's assets. */
 export function assetCrumbs(
   appId: string,
   path: string,
   rootLabel: string,
 ): BreadcrumbItem[] {
-  const segments = path === "" ? [] : path.split("/");
-  return [
-    { key: "", label: rootLabel, link: { to: assetRoute(appId, "") } },
-    ...segments.map((label, i) => {
-      const key = segments.slice(0, i + 1).join("/");
-      return { key, label, link: { to: assetRoute(appId, key) } };
-    }),
-  ];
+  return pathCrumbs(path, rootLabel, (p) => assetRoute(appId, p));
 }
 
 /** The browser icon for each kind; the API classifies, this only maps. */
@@ -146,7 +115,11 @@ export function storageShares(
   const bySize = [...present].sort((a, b) => b.size - a.size);
   const named = bySize
     .slice(0, STORAGE_KIND_SLOTS)
-    .sort((a, b) => KIND_ORDER.indexOf(a.kind as AssetKind) - KIND_ORDER.indexOf(b.kind as AssetKind));
+    .sort(
+      (a, b) =>
+        KIND_ORDER.indexOf(a.kind as AssetKind) -
+        KIND_ORDER.indexOf(b.kind as AssetKind),
+    );
   const rest = bySize.slice(STORAGE_KIND_SLOTS);
   const scale = Math.max(limit, used) || 1;
   const segment = (
@@ -164,7 +137,9 @@ export function storageShares(
     share: size / scale,
     fraction: used ? size / used : 0,
   });
-  const segments = named.map((k, i) => segment(k.kind, kindLabel(k.kind), k.size, i + 1));
+  const segments = named.map((k, i) =>
+    segment(k.kind, kindLabel(k.kind), k.size, i + 1),
+  );
   const restSize = rest.reduce((sum, k) => sum + k.size, 0);
   if (restSize > 0) {
     segments.push(

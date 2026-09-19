@@ -155,18 +155,22 @@
   margin-bottom: 0.75rem;
 }
 
+/* The tree's title is the way back up to the content root. */
 .sidebar-title {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
   margin: 0;
   font-size: var(--label-size);
   font-weight: var(--weight-medium);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--on-surface-muted);
+  text-decoration: none;
 }
 
-.sidebar-actions {
-  display: flex;
-  gap: 0.25rem;
+.sidebar-title:hover {
+  color: var(--on-surface);
 }
 
 .content {
@@ -216,18 +220,18 @@
 }
 
 /* Type icons in the tables, muted like GitHub's file glyphs. */
-.asset-icon {
+.row-icon {
   display: block;
   color: var(--on-surface-muted);
 }
 
-/* A row's name: a link to the folder's or asset's page. */
-.asset-link {
+/* A row's name: a link to the folder's, asset's, or page's route. */
+.row-link {
   color: var(--on-surface);
   text-decoration: none;
 }
 
-.asset-link:hover {
+.row-link:hover {
   color: var(--primary);
   text-decoration: underline;
 }
@@ -734,15 +738,15 @@
   color: var(--error);
 }
 
-/* The folder toolbar between the drop zone and the rows: the search box
-   takes the width, the sort sits at the end. */
-.asset-toolbar {
+/* The folder toolbar above the rows (asset and content folders alike): the
+   search box takes the width, the sort sits at the end. */
+.folder-toolbar {
   display: flex;
   align-items: center;
   gap: var(--space-3);
 }
 
-.asset-search {
+.folder-search {
   display: flex;
   flex: 1 1 auto;
   align-items: center;
@@ -755,11 +759,11 @@
   color: var(--on-surface-muted);
 }
 
-.asset-search:focus-within {
+.folder-search:focus-within {
   border-color: var(--primary);
 }
 
-.asset-search input {
+.folder-search input {
   flex: 1 1 auto;
   min-width: 0;
   padding: 0.45rem 0;
@@ -770,14 +774,14 @@
   outline: none;
 }
 
-.asset-sort {
+.folder-sort {
   display: inline-flex;
   flex-shrink: 0;
   align-items: center;
   gap: var(--space-2);
 }
 
-.asset-sort-label {
+.folder-sort-label {
   color: var(--on-surface-muted);
   font-size: var(--label-size);
 }
