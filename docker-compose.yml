@@ -93,7 +93,7 @@ services:
 
   minio:
     profiles: ["api", "admin"]
-    image: minio/minio:latest
+    image: quay.io/minio/minio:latest
     command: server /data --console-address ":9001"
     environment:
       MINIO_ROOT_USER: Barbara
@@ -113,7 +113,7 @@ services:
   # (boot.Bucket builds the client but does not create the bucket).
   minio-init:
     profiles: ["api", "admin"]
-    image: minio/mc
+    image: quay.io/minio/mc:latest
     depends_on:
       minio:
         condition: service_healthy
