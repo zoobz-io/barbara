@@ -104,10 +104,7 @@ func TestDocuments_TreePlacement(t *testing.T) {
 	t.Cleanup(cleanup)
 	ctx := tenantCtx(testTenant)
 
-	app, err := st.Apps.Create(ctx, "site")
-	if err != nil {
-		t.Fatalf("create app: %v", err)
-	}
+	app := seedApp(t, st, ctx)
 	guides, err := st.Collections.Create(ctx, app.ID, nil, "guides")
 	if err != nil {
 		t.Fatalf("create collection: %v", err)
@@ -158,7 +155,7 @@ func TestDocuments_Move(t *testing.T) {
 	t.Cleanup(cleanup)
 	ctx := tenantCtx(testTenant)
 
-	app, _ := st.Apps.Create(ctx, "site")
+	app := seedApp(t, st, ctx)
 	guides, _ := st.Collections.Create(ctx, app.ID, nil, "guides")
 	manuals, _ := st.Collections.Create(ctx, app.ID, nil, "manuals")
 	doc, err := st.Documents.Create(ctx, app.ID, &guides.ID, "install.md")
@@ -202,7 +199,7 @@ func TestDocuments_DeleteRules(t *testing.T) {
 	t.Cleanup(cleanup)
 	ctx := tenantCtx(testTenant)
 
-	app, _ := st.Apps.Create(ctx, "site")
+	app := seedApp(t, st, ctx)
 
 	// Hard delete: an unreferenced document with a version — the version cascades.
 	hard, _ := st.Documents.Create(ctx, app.ID, nil, "scratch.md")

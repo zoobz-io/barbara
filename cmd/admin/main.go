@@ -71,6 +71,9 @@ func setup(ctx context.Context) (*sum.Service, int, func(), error) {
 	sum.Freeze(rt.K)
 	capitan.Emit(ctx, events.StartupServicesReady)
 
+	// Spec metadata (Info, tags) so /openapi and /docs match what
+	// cmd/adminspec dumps for the SDK generator.
+	handlers.ConfigureOpenAPI(rt.Svc.Engine())
 	rt.Svc.Handle(handlers.All()...)
 
 	// Observability.

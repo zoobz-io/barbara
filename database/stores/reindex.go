@@ -87,3 +87,40 @@ func (s *Stores) Reindex(ctx context.Context) (int, error) {
 		}
 	}
 }
+
+// RebuildAssets rebuilds every app's asset bookkeeping from object storage —
+// the backfill for apps whose objects predate the bookkeeping, and the repair
+// when the rows drifted from the bucket. It walks every app across all
+// tenants, keyset-paged, and replaces each one's rows from a full listing of
+// its objects. It returns the number of apps rebuilt; on an error it returns
+// the count so far, so a re-run resumes safely.
+//
+// Tenant-agnostic operational machinery, like Reindex: it runs outside any
+// tenant context and is not exposed on any tenant-facing surface.
+func (s *Stores) RebuildAssets(ctx context.Context) (int, error) {
+	total := 0
+	afterID := zeroUUID
+	for {
+		apps, err := s.Apps.Query().
+			Where("id", ">", "after_id").
+			OrderBy("id", "asc").
+			Limit(reindexBatch).
+			Exec(ctx, map[string]any{"after_id": afterID})
+		if err != nil {
+			return total, fmt.Errorf("enumerating apps: %w", err)
+		}
+		if len(apps) == 0 {
+			return total, nil
+		}
+		for _, app := range apps {
+			if err := s.Assets.rebuildApp(ctx, app.TenantID, app.ID); err != nil {
+				return total, fmt.Errorf("rebuilding assets of app %s: %w", app.ID, err)
+			}
+			total++
+		}
+		if len(apps) < reindexBatch {
+			return total, nil // a short page is the last one
+		}
+		afterID = apps[len(apps)-1].ID
+	}
+}

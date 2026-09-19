@@ -1,0 +1,40 @@
+/* Narrow single-form pages (/apps/create, /apps/edit). */
+
+.form-page {
+  max-width: 26rem;
+  margin: 0 auto;
+  padding: 4rem 1.5rem;
+}
+
+.form-page h1 {
+  margin: 0 0 0.5rem;
+  font-size: var(--title-size);
+}
+
+.form-page .hint {
+  margin: 0 0 2rem;
+  color: var(--on-surface-muted);
+}
+
+.form-page form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-page label {
+  font-size: var(--label-size);
+  font-weight: var(--weight-medium);
+  color: var(--on-surface-muted);
+}
+
+.form-page .actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.form-page .cancel {
+  color: var(--on-surface-muted);
+}

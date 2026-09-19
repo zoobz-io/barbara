@@ -1,0 +1,20 @@
+pnpm-lock.yaml
+dist
+.dist
+.nuxt
+.output
+.data
+.coverage
+*.gen.ts
+
+# Generated openapi-typescript client types (regenerated on build from the spec).
+packages/*/src/schema.ts
+
+# Local editor/agent settings.
+**/.claude
+
+# Generated OpenAPI spec dumps.
+**/data/*.json
+
+# The Nuxt apps carry their own nuxi/vue tooling.
+apps

@@ -1,0 +1,183 @@
+/* The studio settings page: stacked panels for general metadata, appearance
+   switches, and the danger zone. */
+
+.settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.field label {
+  font-size: var(--label-size);
+  font-weight: var(--weight-medium);
+  color: var(--on-surface-muted);
+}
+
+.field-hint {
+  margin: 0;
+  color: var(--on-surface-muted);
+  font-size: var(--label-size);
+}
+
+.appearance-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.appearance-group h3 {
+  margin: 0;
+  font-size: var(--label-size);
+  font-weight: var(--weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--on-surface-muted);
+}
+
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.setting-label {
+  margin: 0;
+  font-weight: var(--weight-medium);
+}
+
+.setting-description {
+  margin: 0;
+  color: var(--on-surface-muted);
+  font-size: var(--label-size);
+}
+
+.segmented {
+  display: inline-flex;
+  flex-shrink: 0;
+  border: 1px solid var(--outline-muted);
+  border-radius: var(--shape-sm);
+  overflow: hidden;
+}
+
+.segment {
+  padding: 0.35rem 0.8rem;
+  border: none;
+  background: transparent;
+  color: var(--on-surface-muted);
+  font-size: var(--label-size);
+  cursor: pointer;
+}
+
+.segment + .segment {
+  border-left: 1px solid var(--outline-muted);
+}
+
+.segment:hover {
+  color: var(--on-surface);
+  background: var(--state-hover-layer);
+}
+
+.segment.active {
+  color: var(--on-surface);
+  background: var(--surface-container-high);
+  font-weight: var(--weight-medium);
+}
+
+/* --- Brand pickers ---------------------------------------------------------- */
+
+.panel-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.panel-description {
+  margin: 0;
+  color: var(--on-surface-muted);
+  font-size: var(--label-size);
+}
+
+.brand-control {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.brand-swatches {
+  display: inline-flex;
+  border-radius: var(--shape-sm);
+  overflow: hidden;
+  border: 1px solid var(--outline-muted);
+}
+
+.brand-swatch {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 1.75rem;
+  font-size: var(--label-size);
+  font-weight: var(--weight-medium);
+  transition:
+    background-color var(--transition-base),
+    color var(--transition-base);
+}
+
+.brand-picker {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0.2rem 0.5rem 0.2rem 0.2rem;
+  border: 1px solid var(--outline-muted);
+  border-radius: var(--shape-sm);
+  background: var(--surface-container);
+  cursor: pointer;
+  transition:
+    background-color var(--transition-base),
+    border-color var(--transition-base);
+}
+
+.brand-picker:focus-within {
+  border-color: var(--border-focus, var(--outline));
+  background: var(--surface);
+}
+
+.brand-picker input[type="color"] {
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  border: none;
+  border-radius: var(--shape-sm);
+  background: transparent;
+  cursor: pointer;
+}
+
+.brand-picker input[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.brand-picker input[type="color"]::-webkit-color-swatch,
+.brand-picker input[type="color"]::-moz-color-swatch {
+  border: none;
+  border-radius: var(--shape-sm);
+}
+
+.brand-picker code {
+  font-family: var(--font-mono);
+  font-size: var(--label-size);
+  color: var(--on-surface-muted);
+}
+
+.brand-clear {
+  padding: 0.2rem 0.5rem;
+  line-height: 1;
+}

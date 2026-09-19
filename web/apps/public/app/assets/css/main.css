@@ -1,0 +1,320 @@
+/*
+ * Base + shared chrome, painted with untheme tokens. The static cascade
+ * (#build/untheme.css) is linked into the bundle by @untheme/nuxt; every
+ * var() here resolves from foundation's theme, so the app follows theme,
+ * color-mode, contrast, radius (--shape-*), density (--space-*), and motion
+ * (--transition-*) switches for free.
+ */
+
+@import "./foundation.css";
+@import "./landing.css";
+@import "./form-page.css";
+@import "./studio.css";
+@import "./settings.css";
+@import "./history.css";
+@import "./content.css";
+@import "./editor.css";
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--body-size);
+  line-height: var(--body-line-height);
+  background: var(--surface);
+  color: var(--on-surface);
+}
+
+/* Hover state layer from the theme's scalar, tinted by the element's own
+   text color. */
+/* The studio page column and the footer that lines up under it. */
+:root {
+  --page-width: 72rem;
+}
+
+/* Shim: foundation's app shell colors NuxtLoadingIndicator with
+   --sys-primary, a token the theme does not define, which leaves the bar
+   transparent. Alias it to the theme's primary until foundation's app.vue
+   reads var(--primary) directly. */
+:root {
+  --sys-primary: var(--primary);
+}
+
+:root {
+  --state-hover-layer: color-mix(
+    in srgb,
+    currentColor calc(var(--state-hover) * 100%),
+    transparent
+  );
+}
+
+button {
+  font: inherit;
+}
+
+/* The plain page shell: content grows, the footer holds the bottom edge. */
+.page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.page-body {
+  flex: 1;
+}
+
+/* The site footer: one line of links in flow at the end of every page,
+   its inner container matching the studio page width. */
+.site-footer {
+  color: var(--on-surface-muted);
+  font-size: var(--label-size);
+}
+
+.site-footer-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-4);
+  max-width: var(--page-width);
+  margin: 0 auto;
+  padding: var(--space-4) 1.5rem;
+}
+
+.site-footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+.site-footer a {
+  color: var(--on-surface-muted);
+  text-decoration: none;
+  transition: color var(--transition-base);
+}
+
+.site-footer a:hover {
+  color: var(--on-surface);
+}
+
+/* Interactive chrome follows the motion axis (f-* transitions live in
+   foundation.css). */
+.primary,
+.danger,
+.ghost,
+.tab,
+.segment,
+.app-item {
+  transition:
+    background-color var(--transition-base),
+    color var(--transition-base),
+    border-color var(--transition-base);
+}
+
+.primary {
+  display: inline-block;
+  padding: 0.4rem 0.9rem;
+  border: none;
+  border-radius: var(--shape-sm);
+  background: var(--primary);
+  color: var(--on-primary);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.primary:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.danger {
+  display: inline-block;
+  padding: 0.4rem 0.9rem;
+  border: none;
+  border-radius: var(--shape-sm);
+  background: var(--error);
+  color: var(--on-error);
+  font: inherit;
+  cursor: pointer;
+}
+
+.danger:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.ghost {
+  padding: 0.4rem 0.6rem;
+  border: none;
+  border-radius: var(--shape-sm);
+  background: transparent;
+  color: var(--on-surface-muted);
+  font-size: var(--label-size);
+  cursor: pointer;
+}
+
+.ghost:hover {
+  color: var(--on-surface);
+  background: var(--state-hover-layer);
+}
+
+.ghost:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.ghost:disabled:hover {
+  color: var(--on-surface-muted);
+  background: transparent;
+}
+
+/* A titled content box (settings sections, history results). Cards share
+   the page surface and are outlined only; the container tint is reserved
+   for inputs, so the two never compete. */
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  border: 1px solid var(--outline-muted);
+  border-radius: var(--shape-md);
+  background: var(--surface);
+}
+
+.panel h2 {
+  margin: 0;
+  font-size: var(--title-size);
+}
+
+.panel-danger {
+  border-color: var(--error-muted);
+}
+
+/* A panel whose content runs to its border: a header strip and table
+   rows, GitHub file-list style. Overflow clips the strip to the radius. */
+.panel-flush {
+  padding: 0;
+  gap: 0;
+  overflow: hidden;
+}
+
+/* Inputs are the tinted element: the container tint at rest, lifting to
+   the page surface on focus. */
+input[type="text"] {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--outline-muted);
+  border-radius: var(--shape-sm);
+  font: inherit;
+  background: var(--surface-container);
+  color: var(--on-surface);
+  transition:
+    background-color var(--transition-base),
+    border-color var(--transition-base);
+}
+
+/* A row table in a flush panel: a contrast header row, ruled rows, the
+   leading icon column and trailing action column held to their content. */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-table th,
+.data-table td {
+  padding: var(--space-2) var(--space-3);
+  text-align: left;
+}
+
+.data-table th {
+  border-bottom: 1px solid var(--outline-muted);
+  background: var(--surface-container);
+  color: var(--on-surface-muted);
+  font-size: var(--label-size);
+  font-weight: var(--weight-medium);
+}
+
+.data-table td {
+  border-top: 1px solid var(--outline-muted);
+}
+
+.data-table tbody tr:first-child td {
+  border-top: none;
+}
+
+.data-table .col-icon {
+  width: 1.1em;
+  padding-right: 0;
+}
+
+.data-table .col-size {
+  width: 1%;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.data-table .col-status {
+  width: 1%;
+  white-space: nowrap;
+}
+
+.data-table .col-date {
+  width: 1%;
+  color: var(--on-surface-muted);
+  white-space: nowrap;
+}
+
+.data-table .col-actions {
+  width: 1%;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.data-table .placeholder-cell {
+  padding: var(--space-4) var(--space-3);
+  color: var(--on-surface-muted);
+  text-align: center;
+}
+
+/* Visually hidden, read by assistive tech. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+input[type="text"]:focus-visible {
+  outline: none;
+  border-color: var(--border-focus, var(--outline));
+  background: var(--surface);
+}
+
+.error {
+  margin: 0;
+  color: var(--error);
+  font-size: var(--label-size);
+}
+
+.placeholder {
+  margin: 0;
+  color: var(--on-surface-muted);
+  font-size: var(--label-size);
+}
+
+.dialog-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.dialog-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+

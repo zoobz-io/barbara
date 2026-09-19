@@ -57,7 +57,7 @@ func New(db *sqlx.DB, renderer astql.Renderer, search grub.SearchProvider, bucke
 		Releases:    releases,
 		Jobs:        jobs,
 		Search:      NewSearch(search),
-		Assets:      NewAssets(bucket, apps),
+		Assets:      NewAssets(bucket, apps, db, renderer),
 		db:          db,
 	}
 }

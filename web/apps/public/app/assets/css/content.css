@@ -1,0 +1,31 @@
+/* The content tree pages: the landing header and a page's status badge. */
+
+/* The content landing page header: title, then the lede, before the
+   shared rule. */
+.content-header {
+  gap: var(--space-3);
+}
+
+/* A page's lifecycle status as a small tinted pill: a draft is quiet, a
+   published page reads as settled, and a published page with a newer
+   draft is the one asking for a release. */
+.status {
+  display: inline-block;
+  padding: 0.1em 0.6em;
+  border-radius: var(--shape-full);
+  background: var(--surface-container-high);
+  color: var(--on-surface-muted);
+  font-size: var(--label-size);
+  white-space: nowrap;
+}
+
+.status-published {
+  background: var(--success-container);
+  color: var(--on-success-container);
+}
+
+.status-published-with-newer-draft {
+  color: var(--warning);
+  border: 1px solid var(--warning);
+  background: transparent;
+}

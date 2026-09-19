@@ -8,7 +8,7 @@ import (
 // CreateDocumentRequest is the body for creating a document in the tree.
 // collection_id is null (or omitted) to place at the app root.
 type CreateDocumentRequest struct {
-	CollectionID *string `json:"collection_id" description:"Parent collection ID, or null for the app root"`
+	CollectionID *string `json:"collection_id,omitempty" description:"Parent collection ID, or omitted for the app root"`
 	Name         string  `json:"name" description:"Document name, unique among siblings" example:"install.md"`
 }
 

@@ -1,0 +1,278 @@
+{
+  "paths": {
+    "/search": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchResultsResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrBadRequest"
+                }
+              }
+            },
+            "description": "BadRequest"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrUnauthorized"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrForbidden"
+                }
+              }
+            },
+            "description": "Forbidden"
+          }
+        },
+        "summary": "Search published documents across all tenants",
+        "operationId": "get-search-82dab022",
+        "tags": [
+          "Admin"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "q",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "offset",
+            "in": "query"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": null
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ErrBadRequest": {
+        "properties": {
+          "code": {
+            "const": "BAD_REQUEST",
+            "type": "string",
+            "description": "Machine-readable error code"
+          },
+          "details": {
+            "properties": {
+              "reason": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "message": {
+            "type": "string",
+            "description": "Human-readable error message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "message"
+        ]
+      },
+      "ErrForbidden": {
+        "properties": {
+          "code": {
+            "const": "FORBIDDEN",
+            "type": "string",
+            "description": "Machine-readable error code"
+          },
+          "details": {
+            "properties": {
+              "reason": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "message": {
+            "type": "string",
+            "description": "Human-readable error message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "message"
+        ]
+      },
+      "ErrUnauthorized": {
+        "properties": {
+          "code": {
+            "const": "UNAUTHORIZED",
+            "type": "string",
+            "description": "Machine-readable error code"
+          },
+          "details": {
+            "properties": {
+              "reason": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "message": {
+            "type": "string",
+            "description": "Human-readable error message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "message"
+        ]
+      },
+      "SearchResultResponse": {
+        "properties": {
+          "content": {
+            "type": "string",
+            "description": "Published content"
+          },
+          "created_at": {
+            "format": "date-time",
+            "type": "string",
+            "description": "When the document was created"
+          },
+          "document_id": {
+            "type": "string",
+            "description": "Document ID"
+          },
+          "key": {
+            "example": "guides/install.md",
+            "type": "string",
+            "description": "Document key"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "description": "Organizational tags"
+          },
+          "tenant_id": {
+            "type": "string",
+            "description": "Owning tenant"
+          },
+          "version_number": {
+            "type": "integer",
+            "description": "Published version number"
+          }
+        },
+        "type": "object",
+        "required": [
+          "created_at",
+          "document_id",
+          "tenant_id",
+          "key",
+          "content",
+          "tags",
+          "version_number"
+        ]
+      },
+      "SearchResultsResponse": {
+        "properties": {
+          "limit": {
+            "type": "integer",
+            "description": "Page size"
+          },
+          "offset": {
+            "type": "integer",
+            "description": "Page offset"
+          },
+          "results": {
+            "items": {
+              "$ref": "#/components/schemas/SearchResultResponse"
+            },
+            "type": "array",
+            "description": "The page of cross-tenant matches"
+          },
+          "total": {
+            "type": "integer",
+            "description": "Total number of matches across all pages"
+          }
+        },
+        "type": "object",
+        "required": [
+          "results",
+          "total",
+          "limit",
+          "offset"
+        ]
+      },
+      "ValidationFieldError": {
+        "properties": {
+          "field": {
+            "type": "string",
+            "description": "The field that failed validation"
+          },
+          "message": {
+            "type": "string",
+            "description": "Description of the validation failure"
+          }
+        },
+        "type": "object",
+        "required": [
+          "field",
+          "message"
+        ]
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "description": "Bearer token authentication",
+        "scheme": "bearer"
+      }
+    }
+  },
+  "info": {
+    "title": "Barbara Admin API",
+    "description": "Internal platform API for Barbara operators: tenant-agnostic capabilities gated behind an admin entitlement. Cross-tenant search is the surface seeded here.",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "tags": [
+    {
+      "name": "Admin",
+      "description": "Cross-tenant platform operations."
+    }
+  ]
+}

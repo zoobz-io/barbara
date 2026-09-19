@@ -4,6 +4,7 @@ package integration
 
 import (
 	"errors"
+	"github.com/google/uuid"
 	"testing"
 
 	"github.com/jmoiron/sqlx"
@@ -61,7 +62,7 @@ func TestCollections_TreeRewriteAndGuards(t *testing.T) {
 	cols := stores.NewCollections(db, renderer, documents, apps)
 	ctx := tenantCtx(testTenant)
 
-	app, err := apps.Create(ctx, "site")
+	app, err := apps.Create(ctx, uuid.NewString())
 	if err != nil {
 		t.Fatalf("create app: %v", err)
 	}
@@ -139,7 +140,7 @@ func TestCollections_ListContents(t *testing.T) {
 	cols := stores.NewCollections(db, renderer, documents, apps)
 	ctx := tenantCtx(testTenant)
 
-	app, err := apps.Create(ctx, "site")
+	app, err := apps.Create(ctx, uuid.NewString())
 	if err != nil {
 		t.Fatalf("create app: %v", err)
 	}
@@ -147,7 +148,7 @@ func TestCollections_ListContents(t *testing.T) {
 	if err != nil {
 		t.Fatalf("create guides: %v", err)
 	}
-	_ = placeDoc(t, db, app.ID, "", "readme.md", "readme.md")     // root document
+	_ = placeDoc(t, db, app.ID, "", "readme.md", "readme.md") // root document
 	_ = placeDoc(t, db, app.ID, guides.ID, "intro.md", "guides/intro.md")
 
 	root, err := cols.ListContents(ctx, app.ID, nil)

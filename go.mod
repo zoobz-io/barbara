@@ -13,10 +13,11 @@ require (
 	github.com/zoobz-io/aperture v1.0.3
 	github.com/zoobz-io/astql v1.0.11
 	github.com/zoobz-io/capitan v1.0.2
-	github.com/zoobz-io/grub v1.0.20
-	github.com/zoobz-io/grub/minio v1.0.18
+	github.com/zoobz-io/grub v1.0.21
+	github.com/zoobz-io/grub/minio v1.0.21
 	github.com/zoobz-io/grub/opensearch v0.1.11
 	github.com/zoobz-io/lucene v0.0.4
+	github.com/zoobz-io/openapi v1.0.2
 	github.com/zoobz-io/pipz v1.0.7
 	github.com/zoobz-io/rocco v0.1.23
 	github.com/zoobz-io/soy v1.0.9
@@ -54,7 +55,6 @@ require (
 	github.com/zoobz-io/dbml v1.0.1 // indirect
 	github.com/zoobz-io/edamame v1.0.2 // indirect
 	github.com/zoobz-io/fig v0.0.3 // indirect
-	github.com/zoobz-io/openapi v1.0.2 // indirect
 	github.com/zoobz-io/scio v0.0.5 // indirect
 	github.com/zoobz-io/sentinel v1.0.4 // indirect
 	github.com/zoobz-io/slush v0.0.3 // indirect

@@ -1,0 +1,29 @@
+{
+  "name": "@barbara/public",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "nuxi build",
+    "dev": "nuxi dev",
+    "generate": "nuxi generate",
+    "preview": "nuxi preview",
+    "postinstall": "nuxi prepare",
+    "typecheck": "nuxi typecheck"
+  },
+  "dependencies": {
+    "@barbara/api-sdk": "workspace:*",
+    "@openapi-press/nuxt": "0.1.1",
+    "@tiptap/markdown": "^3.31.3",
+    "@tiptap/starter-kit": "^3.31.3",
+    "@tiptap/vue-3": "^3.31.3",
+    "@zoobzio/foundation": "1.0.0",
+    "nuxt": "4.4.8",
+    "vue": "3.5.24"
+  },
+  "devDependencies": {
+    "@icon-sheets/nuxt": "^0.0.4",
+    "typescript": "5.9.3",
+    "vue-tsc": "3.3.9"
+  }
+}

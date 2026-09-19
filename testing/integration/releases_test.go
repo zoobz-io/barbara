@@ -3,6 +3,7 @@
 package integration
 
 import (
+	"github.com/google/uuid"
 	"testing"
 
 	"github.com/jmoiron/sqlx"
@@ -28,7 +29,7 @@ func TestReleases_Lifecycle(t *testing.T) {
 	t.Cleanup(cleanup)
 	ctx := tenantCtx(testTenant)
 
-	app, err := st.Apps.Create(ctx, "site")
+	app, err := st.Apps.Create(ctx, uuid.NewString())
 	if err != nil {
 		t.Fatalf("create app: %v", err)
 	}

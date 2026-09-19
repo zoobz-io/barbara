@@ -1,0 +1,837 @@
+/* The app studio shell (/apps/[id]): top bar, sidebar, content pane. */
+
+/* The shell flows with the document: the bar sticks, the content grows to
+   at least the viewport, and the footer follows in flow. */
+.studio {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem 1rem 0;
+  border-bottom: 1px solid var(--outline-muted);
+  background: var(--surface);
+}
+
+/* The identity row: wordmark, app switcher, account menu. */
+.topbar-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* The account menu trigger: a bare avatar. */
+.user-menu {
+  display: inline-flex;
+  padding: 2px;
+  border: none;
+  border-radius: var(--shape-full);
+  background: transparent;
+  cursor: pointer;
+}
+
+.user-menu:hover .f-avatar-root,
+.user-menu[data-state="open"] .f-avatar-root {
+  border-color: var(--outline);
+  background: var(--state-hover-layer);
+}
+
+.user-menu:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+}
+
+/* The wordmark: home link back to the landing page. */
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding-right: var(--space-3);
+  border-right: 1px solid var(--outline-muted);
+  color: var(--on-surface);
+  text-decoration: none;
+}
+
+.brand-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: var(--shape-sm);
+  background: var(--primary);
+  color: var(--on-primary);
+  font-size: var(--label-size);
+  font-weight: var(--weight-bold);
+  line-height: 1;
+}
+
+.brand-name {
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.01em;
+}
+
+.brand:hover .brand-name {
+  color: var(--primary);
+}
+
+/* The app switcher: current app name with a dropdown chevron. */
+.app-switcher {
+  gap: var(--space-1);
+  font-weight: var(--weight-medium);
+}
+
+.app-switcher .f-icon {
+  color: var(--on-surface-muted);
+  transition: transform var(--transition-base);
+}
+
+.app-switcher[data-state="open"] .f-icon {
+  transform: rotate(180deg);
+}
+
+/* The section row: tabs underline into the bar's bottom border. */
+.tabs {
+  display: flex;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+}
+
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0.5rem 0.75rem;
+  border-bottom: 2px solid transparent;
+  color: var(--on-surface-muted);
+  text-decoration: none;
+  transition:
+    color var(--transition-base),
+    border-color var(--transition-base);
+}
+
+.tab .f-icon {
+  width: 1em;
+  height: 1em;
+  opacity: 0.8;
+}
+
+.tab:hover {
+  color: var(--on-surface);
+}
+
+.tab.active {
+  color: var(--on-surface);
+  border-bottom-color: var(--primary);
+  font-weight: var(--weight-medium);
+}
+
+.spacer {
+  flex: 1;
+}
+
+/* The Content page: file tree beside the editor. */
+.content-grid {
+  display: grid;
+  grid-template-columns: 16rem 1fr;
+}
+
+.sidebar {
+  border-right: 1px solid var(--outline-muted);
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+/* The tree's title is the way back up to the content root. */
+.sidebar-title {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin: 0;
+  font-size: var(--label-size);
+  font-weight: var(--weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--on-surface-muted);
+  text-decoration: none;
+}
+
+.sidebar-title:hover {
+  color: var(--on-surface);
+}
+
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Each page fills the pane so short pages still push the footer down. */
+.content > * {
+  flex: 1;
+}
+
+/* A centered studio page: title, description, panels. */
+/* width: 100% keeps the column at its max even when a page's content is
+   narrower — auto margins would otherwise shrink-wrap it. */
+.studio-page {
+  width: 100%;
+  max-width: var(--page-width);
+  box-sizing: border-box;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.studio-page h1 {
+  margin: 0;
+  font-size: var(--headline-size);
+}
+
+.editor {
+  overflow-y: auto;
+}
+
+.pane-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--on-surface-muted);
+}
+
+.pane-empty a {
+  color: var(--on-surface);
+}
+
+/* Type icons in the tables, muted like GitHub's file glyphs. */
+.row-icon {
+  display: block;
+  color: var(--on-surface-muted);
+}
+
+/* A row's name: a link to the folder's, asset's, or page's route. */
+.row-link {
+  color: var(--on-surface);
+  text-decoration: none;
+}
+
+.row-link:hover {
+  color: var(--primary);
+  text-decoration: underline;
+}
+
+/* The page header: crumbs, then the title beside its actions, then a
+   dotted line of metadata. */
+.page-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--outline-muted);
+}
+
+.page-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.page-title-row h1 {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.page-meta {
+  margin: 0;
+  color: var(--on-surface-muted);
+  font-size: var(--label-size);
+}
+
+.page-meta-dot {
+  margin: 0 var(--space-2);
+}
+
+/* The app's name inside the assets landing title: the app switcher, with
+   the title's own type as its trigger. */
+.page-title-row .app-name {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-1);
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--primary);
+  font: inherit;
+  font-weight: var(--weight-bold);
+  cursor: pointer;
+}
+
+.page-title-row .app-name:hover,
+.page-title-row .app-name[data-state="open"] {
+  text-decoration: underline;
+}
+
+.page-title-row .app-name .f-icon {
+  align-self: center;
+  font-size: 0.6em;
+  color: var(--on-surface-muted);
+  transition: transform var(--transition-base);
+}
+
+.page-title-row .app-name[data-state="open"] .f-icon {
+  transform: rotate(180deg);
+}
+
+/* The one-line description beneath a page title. */
+.page-lede {
+  max-width: 64ch;
+  margin: 0;
+  color: var(--on-surface-muted);
+}
+
+/* The assets landing page header: title, lede, the stat tiles, the storage
+   meter — each block breathing on its own before the shared rule. */
+.assets-header {
+  gap: var(--space-4);
+}
+
+/* Stat tiles: a row of headline numbers, each label over its value. The
+   value wears proportional figures — tabular digits look loose at this
+   size. */
+.stat-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stat-tile {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--outline-muted);
+  border-radius: var(--shape-md);
+  background: var(--surface-container);
+}
+
+.stat-label {
+  color: var(--on-surface-muted);
+  font-size: var(--label-size);
+}
+
+.stat-value {
+  font-size: var(--title-size);
+  font-weight: var(--weight-medium);
+  line-height: 1.2;
+}
+
+.stat-note {
+  color: var(--on-surface-muted);
+  font-size: var(--label-size);
+}
+
+/* The storage meter: one thin bar of flush segments over a same-ramp track,
+   and a legend that names every segment. Slot hues are the three accent ramps at their 600
+   stop (validated against both surfaces); the folded tail is neutral. */
+.storage {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.storage-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.storage-head h2 {
+  margin: 0;
+  font-size: var(--label-size);
+  font-weight: var(--weight-medium);
+  color: var(--on-surface-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.storage-summary {
+  color: var(--on-surface-muted);
+  font-size: var(--label-size);
+}
+
+.storage-summary.warn {
+  color: var(--warning);
+}
+
+.storage-bar {
+  display: flex;
+  height: 10px;
+  border-radius: var(--shape-full);
+  overflow: hidden;
+  background: var(--surface-container-high);
+}
+
+/* A kind keeps its share of the width but never shrinks below a tick; the
+   free track takes whatever is left. */
+.storage-segment {
+  display: block;
+  flex: 0 0 auto;
+  min-width: 6px;
+  height: 100%;
+}
+
+.storage-segment.slot-free {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.slot-1 {
+  background: var(--primary-600);
+}
+
+.slot-2 {
+  background: var(--secondary-600);
+}
+
+.slot-3 {
+  background: var(--tertiary-600);
+}
+
+.slot-0 {
+  background: var(--neutral-400);
+}
+
+.slot-free {
+  background: var(--surface-container-high);
+}
+
+.storage-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.75rem;
+}
+
+.storage-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.legend-swatch {
+  width: 0.5em;
+  height: 0.5em;
+  border-radius: var(--shape-full);
+}
+
+.legend-label {
+  color: var(--on-surface);
+}
+
+.legend-value,
+.legend-empty {
+  color: var(--on-surface-muted);
+}
+
+.page-actions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.page-actions .ghost,
+.page-actions .primary.with-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  text-decoration: none;
+}
+
+/* The asset page body: the preview beside a details column. */
+.asset-detail {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 20rem;
+  gap: var(--space-4);
+  align-items: start;
+}
+
+.asset-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 20rem;
+  background: var(--surface-container);
+}
+
+.asset-preview img,
+.asset-preview video {
+  display: block;
+  max-width: 100%;
+  max-height: 70vh;
+}
+
+.asset-preview iframe {
+  width: 100%;
+  height: 70vh;
+  border: none;
+}
+
+.asset-preview audio {
+  width: calc(100% - var(--space-5) * 2);
+}
+
+/* Text and code fill the panel edge to edge and scroll within it. */
+.asset-code {
+  align-self: stretch;
+  width: 100%;
+  max-height: 70vh;
+  box-sizing: border-box;
+  margin: 0;
+  padding: var(--space-4);
+  overflow: auto;
+  background: var(--surface);
+  font-family: var(--font-mono);
+  font-size: var(--label-size);
+  line-height: 1.6;
+}
+
+.asset-no-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-5);
+  color: var(--on-surface-muted);
+}
+
+.asset-no-preview .f-icon {
+  width: 2rem;
+  height: 2rem;
+}
+
+/* The asset page's side column: the public URL box over the details
+   table, each its own panel. */
+.asset-side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+/* Section titles in the side column are labels, not headings: the panel's
+   title-size h2 is overridden with the extra class to outrank it. */
+.asset-side .panel h2 {
+  margin: 0;
+  font-size: var(--label-size);
+  font-weight: var(--weight-medium);
+  color: var(--on-surface-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.asset-side .panel {
+  gap: var(--space-3);
+  padding: var(--space-4);
+}
+
+/* The URL in a read-only input, its copy and download buttons flush on
+   the right. */
+.asset-url-row {
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-1);
+}
+
+.asset-url-row input {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: var(--label-size);
+  text-overflow: ellipsis;
+}
+
+.asset-url-row .f-button {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--space-2);
+  border: 1px solid var(--outline-muted);
+  border-radius: var(--shape-sm);
+  background: var(--surface-container);
+  color: var(--on-surface-muted);
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    color var(--transition-base),
+    background-color var(--transition-base);
+}
+
+.asset-url-row .f-button:hover {
+  color: var(--on-surface);
+  background: var(--state-hover-layer);
+}
+
+/* The details table: labels on the left in the muted label style, values
+   on the right, wrapping anywhere so a long key never widens the column. */
+.facts-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--label-size);
+}
+
+.facts-table th,
+.facts-table td {
+  padding: var(--space-1) 0;
+  vertical-align: top;
+  text-align: left;
+}
+
+.facts-table th {
+  width: 5.5rem;
+  padding-right: var(--space-3);
+  color: var(--on-surface-muted);
+  font-weight: var(--weight-medium);
+  white-space: nowrap;
+}
+
+.facts-table td {
+  overflow-wrap: anywhere;
+}
+
+.asset-facts code {
+  font-family: var(--font-mono);
+  font-size: var(--label-size);
+}
+
+/* The folder's upload section: a plain dashed drop zone inset in its
+   panel, the upload glyph over a one-line hint (browsing is the header button),
+   and the uploads list ruled off beneath it, one row per upload with its
+   bar. */
+.dropzone {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  align-items: center;
+  justify-content: center;
+  min-height: 7rem;
+  margin: var(--space-3);
+  border: 1px dashed var(--outline);
+  border-radius: var(--shape-sm);
+  color: var(--on-surface-muted);
+  text-align: center;
+}
+
+.dropzone-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.dropzone .upload-hint {
+  margin: 0;
+  font-size: var(--label-size);
+}
+
+
+/* The upload table shares the browser's row styling; its columns are
+   icon, name, size, progress (bar on a full-length track plus the
+   percentage — red when the upload failed), close. The name column takes
+   the width. */
+.upload-table {
+  border-top: 1px solid var(--outline-muted);
+}
+
+.upload-table td {
+  white-space: nowrap;
+}
+
+.upload-name {
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 0;
+}
+
+.upload-size {
+  color: var(--on-surface-muted);
+}
+
+.upload-progress {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.upload-bar {
+  flex: none;
+  width: 8rem;
+  height: 6px;
+  border: none;
+  border-radius: var(--shape-full);
+  background: var(--outline-muted);
+  overflow: hidden;
+  accent-color: var(--primary);
+}
+
+.upload-bar::-webkit-progress-bar {
+  background: var(--outline-muted);
+}
+
+.upload-bar::-webkit-progress-value {
+  background: var(--primary);
+  transition: width var(--transition-base);
+}
+
+.upload-bar::-moz-progress-bar {
+  background: var(--primary);
+}
+
+.upload-row.error .upload-bar::-webkit-progress-value,
+.upload-row.error .upload-bar::-moz-progress-bar {
+  background: var(--error);
+}
+
+/* Sized to "100%" so the row holds still as the number counts up. */
+.upload-percent {
+  display: inline-block;
+  width: 4ch;
+  color: var(--on-surface-muted);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.upload-close {
+  padding: var(--space-1);
+  color: var(--on-surface-muted);
+}
+
+.upload-row.uploading .upload-close {
+  visibility: hidden;
+}
+
+.upload-row.error .upload-percent {
+  color: var(--error);
+}
+
+/* The folder toolbar above the rows (asset and content folders alike): the
+   search box takes the width, the sort sits at the end. */
+.folder-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.folder-search {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--outline-muted);
+  border-radius: var(--shape-sm);
+  background: var(--surface-container);
+  color: var(--on-surface-muted);
+}
+
+.folder-search:focus-within {
+  border-color: var(--primary);
+}
+
+.folder-search input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0.45rem 0;
+  border: none;
+  background: transparent;
+  color: var(--on-surface);
+  font: inherit;
+  outline: none;
+}
+
+.folder-sort {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.folder-sort-label {
+  color: var(--on-surface-muted);
+  font-size: var(--label-size);
+}
+
+/* The move dialog's folder picker: the path being looked at, then one
+   button row per folder in it, in the dialog's own panel tint. */
+.picker-path {
+  margin: 0;
+  color: var(--on-surface-muted);
+  font-size: var(--label-size);
+}
+
+.picker-sep {
+  margin: 0 var(--space-1);
+}
+
+.picker-list {
+  max-height: 16rem;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+  border: 1px solid var(--outline-muted);
+  border-radius: var(--shape-sm);
+}
+
+.picker-row {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: none;
+  background: transparent;
+  color: var(--on-surface);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.picker-row:hover {
+  background: var(--state-hover-layer);
+}
+
+.picker-row .f-icon {
+  color: var(--on-surface-muted);
+}
+
+.picker-empty {
+  padding: var(--space-3);
+  color: var(--on-surface-muted);
+  font-size: var(--label-size);
+}
