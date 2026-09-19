@@ -56,3 +56,47 @@ func TestDumpAdminSpec(t *testing.T) {
 		t.Error("spec has no paths")
 	}
 }
+
+// Dump fails when the output directory cannot be created (a regular file is
+// in the way) or the spec cannot be written (the path is a directory).
+func TestDump_OutputErrors(t *testing.T) {
+	dir := t.TempDir()
+	blocker := filepath.Join(dir, "file")
+	if err := os.WriteFile(blocker, []byte("x"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := Dump(apihandlers.ConfigureOpenAPI, apihandlers.All(), filepath.Join(blocker, "openapi.json")); err == nil {
+		t.Error("Dump beneath a regular file succeeded")
+	}
+	if err := Dump(apihandlers.ConfigureOpenAPI, apihandlers.All(), dir); err == nil {
+		t.Error("Dump onto a directory succeeded")
+	}
+}
+
+// patch backfills ValidationFieldError only when there is a schema map to
+// put it in and nothing already defines it.
+func TestPatch(t *testing.T) {
+	patch(&openapi.OpenAPI{}) // no components: nothing to do
+
+	spec := &openapi.OpenAPI{Components: &openapi.Components{}}
+	patch(spec)
+	if spec.Components.Schemas != nil {
+		t.Errorf("patch invented a schema map: %v", spec.Components.Schemas)
+	}
+
+	existing := &openapi.Schema{Description: "already defined"}
+	spec = &openapi.OpenAPI{Components: &openapi.Components{
+		Schemas: map[string]*openapi.Schema{"ValidationFieldError": existing},
+	}}
+	patch(spec)
+	if spec.Components.Schemas["ValidationFieldError"] != existing {
+		t.Error("patch replaced an existing ValidationFieldError schema")
+	}
+
+	spec = &openapi.OpenAPI{Components: &openapi.Components{Schemas: map[string]*openapi.Schema{}}}
+	patch(spec)
+	got := spec.Components.Schemas["ValidationFieldError"]
+	if got == nil || len(got.Required) != 2 || got.Properties["field"] == nil || got.Properties["message"] == nil {
+		t.Errorf("backfilled schema = %+v", got)
+	}
+}

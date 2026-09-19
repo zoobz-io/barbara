@@ -44,3 +44,8 @@ tmp
 /rebuild-assets
 /reindex
 /seed
+
+# Those binary names are also source directories: keep the directories tracked.
+!/api/
+!/admin/
+!/seed/

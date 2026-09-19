@@ -736,3 +736,132 @@ func TestPDFDocument_XrefOffsetsAreExact(t *testing.T) {
 		t.Errorf("xref lists %d objects, want 7", objects)
 	}
 }
+
+// run parses the flags, seeds, and reports; an unknown flag is an error.
+func TestRun(t *testing.T) {
+	srv := httptest.NewServer(newFakeAPI(app{ID: "app-1", Name: "docs-site"}))
+	defer srv.Close()
+
+	if err := run([]string{"-api", srv.URL, "-app", "docs-site"}); err != nil {
+		t.Fatalf("run: %v", err)
+	}
+	if err := run([]string{"-not-a-flag"}); err == nil {
+		t.Error("run accepted an unknown flag")
+	}
+}
+
+// faultyAPI fronts a fakeAPI and breaks one route: a request that matches
+// fail gets the configured status and body; everything else passes through.
+type faultyAPI struct {
+	inner  http.Handler
+	fail   func(r *http.Request) bool
+	body   string
+	status int
+}
+
+func (f *faultyAPI) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if f.fail(r) {
+		w.WriteHeader(f.status)
+		_, _ = io.WriteString(w, f.body)
+		return
+	}
+	f.inner.ServeHTTP(w, r)
+}
+
+func route(method, suffix string) func(*http.Request) bool {
+	return func(r *http.Request) bool {
+		return r.Method == method && strings.HasSuffix(r.URL.Path, suffix)
+	}
+}
+
+// Every API call the seeder makes surfaces a failure with the step it was
+// on, carrying the API's envelope when it sent one, the bare status when it
+// did not, and a decode failure when the body is not the JSON expected. An
+// empty success body is not an error.
+func TestSeed_FailsAtEachStep(t *testing.T) {
+	const envelope = `{"code":"TEAPOT","message":"short and stout"}`
+	cases := []struct {
+		name   string
+		fail   func(*http.Request) bool
+		body   string
+		want   []string // substrings of the error; empty means success
+		status int
+	}{
+		{name: "listing apps", fail: route(http.MethodGet, "/apps"), status: 500, body: envelope,
+			want: []string{"listing apps", "short and stout", "TEAPOT"}},
+		{name: "status without envelope", fail: route(http.MethodGet, "/apps"), status: 502, body: "bad gateway",
+			want: []string{"unexpected status 502"}},
+		{name: "undecodable body", fail: route(http.MethodGet, "/apps"), status: 200, body: "{not json",
+			want: []string{"decoding response"}},
+		{name: "listing the root", status: 500, body: envelope,
+			fail: func(r *http.Request) bool { return r.Method == http.MethodGet && r.URL.Path == "/apps/app-1/contents" },
+			want: []string{`listing "/"`}},
+		{name: "listing a folder", status: 500, body: envelope,
+			fail: func(r *http.Request) bool {
+				return r.Method == http.MethodGet && strings.Contains(r.URL.Path, "/collections/") && strings.HasSuffix(r.URL.Path, "/contents")
+			},
+			want: []string{`listing "guides"`}},
+		{name: "creating a folder", fail: route(http.MethodPost, "/collections"), status: 500, body: envelope,
+			want: []string{`creating folder "guides"`}},
+		{name: "creating a document", fail: route(http.MethodPost, "/documents"), status: 500, body: envelope,
+			want: []string{`creating document "index.md"`}},
+		{name: "tagging", fail: route(http.MethodPost, "/tags"), status: 500, body: envelope,
+			want: []string{`tagging "index.md"`}},
+		{name: "saving a version", fail: route(http.MethodPost, "/versions"), status: 500, body: envelope,
+			want: []string{`saving "index.md"`}},
+		{name: "cutting a release", fail: route(http.MethodPost, "/releases"), status: 500, body: envelope,
+			want: []string{"cutting release"}},
+		{name: "uploading an asset", fail: route(http.MethodPut, "/assets/object"), status: 500, body: envelope,
+			want: []string{"uploading", "TEAPOT"}},
+		{name: "empty success body", fail: route(http.MethodPost, "/tags"), status: 200, body: ""},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			api := newFakeAPI(app{ID: "app-1", Name: "docs-site"})
+			srv := httptest.NewServer(&faultyAPI{inner: api, fail: tc.fail, status: tc.status, body: tc.body})
+			defer srv.Close()
+
+			_, err := seed(context.Background(), options{api: srv.URL})
+			if len(tc.want) == 0 {
+				if err != nil {
+					t.Fatalf("seed: %v", err)
+				}
+				return
+			}
+			if err == nil {
+				t.Fatal("seed succeeded, want a failure")
+			}
+			for _, want := range tc.want {
+				if !strings.Contains(err.Error(), want) {
+					t.Errorf("error %q does not mention %q", err, want)
+				}
+			}
+		})
+	}
+}
+
+// Creating the default app can fail too, and a replay that cannot read a
+// document's head reports which one.
+func TestSeed_FailsResolvingAndReplaying(t *testing.T) {
+	const envelope = `{"code":"TEAPOT","message":"short and stout"}`
+
+	srv := httptest.NewServer(&faultyAPI{inner: newFakeAPI(), fail: route(http.MethodPost, "/apps"), status: 500, body: envelope})
+	defer srv.Close()
+	_, err := seed(context.Background(), options{api: srv.URL})
+	if err == nil || !strings.Contains(err.Error(), `creating app "seed-site"`) {
+		t.Errorf("create-app failure = %v", err)
+	}
+
+	api := newFakeAPI(app{ID: "app-1", Name: "docs-site"})
+	good := httptest.NewServer(api)
+	defer good.Close()
+	if _, err := seed(context.Background(), options{api: good.URL}); err != nil {
+		t.Fatalf("first seed: %v", err)
+	}
+	replay := httptest.NewServer(&faultyAPI{inner: api, fail: route(http.MethodGet, "/content"), status: 500, body: envelope})
+	defer replay.Close()
+	_, err = seed(context.Background(), options{api: replay.URL})
+	if err == nil || !strings.Contains(err.Error(), `reading "index.md"`) {
+		t.Errorf("replay failure = %v", err)
+	}
+}

@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strings"
 	"testing"
@@ -419,5 +420,23 @@ func TestGetPublishedAsset_NotFound(t *testing.T) {
 		http.MethodGet, "/published/apps/app-1/assets/object?key=missing", "", nil)
 	if w.Code != http.StatusNotFound {
 		t.Fatalf("status = %d, want 404; body=%s", w.Code, w.Body.String())
+	}
+}
+
+// A store failure on the folder and stats reads goes through the error
+// transformer: an unrecognized error renders as a 500.
+func TestListAssetFolder_Error(t *testing.T) {
+	w := assetDriver(t, &mockAssets{err: errors.New("bucket down")}).RequestRaw(t, testkit.DefaultTenant,
+		http.MethodGet, "/apps/app-1/assets/folder?path=images", "", nil)
+	if w.Code != http.StatusInternalServerError {
+		t.Fatalf("status = %d, want 500; body=%s", w.Code, w.Body.String())
+	}
+}
+
+func TestGetAssetStats_Error(t *testing.T) {
+	w := assetDriver(t, &mockAssets{err: errors.New("db down")}).RequestRaw(t, testkit.DefaultTenant,
+		http.MethodGet, "/apps/app-1/assets/stats", "", nil)
+	if w.Code != http.StatusInternalServerError {
+		t.Fatalf("status = %d, want 500; body=%s", w.Code, w.Body.String())
 	}
 }
