@@ -29,3 +29,46 @@
   border: 1px solid var(--warning);
   background: transparent;
 }
+
+/* The editor panel: the formatting toolbar is its header strip and the
+   document runs beneath, tall enough to read as a page at rest. */
+.document-editor {
+  min-height: 32rem;
+}
+
+/* The versions panel: one row per version, newest first — the number,
+   who saved it, and when — with the latest one marked. */
+.version-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--label-size);
+}
+
+.version-list li {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.version-number {
+  font-family: var(--font-mono);
+  font-weight: var(--weight-medium);
+}
+
+.version-list li.head .version-number {
+  color: var(--primary);
+}
+
+.version-by,
+.version-list time {
+  color: var(--on-surface-muted);
+}
+
+.version-list time {
+  margin-left: auto;
+  white-space: nowrap;
+}

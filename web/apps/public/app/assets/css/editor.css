@@ -1,32 +1,9 @@
-/* The content editor: document bar, formatting toolbar, centered tiptap. */
+/* The content editor: formatting toolbar, then the centered tiptap. */
 
 .editor-pane {
   display: flex;
   flex-direction: column;
   min-height: 100%;
-}
-
-.doc-bar {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-2) var(--space-4);
-  border-bottom: 1px solid var(--outline-muted);
-}
-
-.doc-title {
-  margin: 0;
-  font-weight: var(--weight-medium);
-}
-
-.doc-meta {
-  margin: 0;
-  color: var(--on-surface-muted);
-  font-size: var(--label-size);
-}
-
-.doc-status {
-  text-transform: capitalize;
 }
 
 .editor-toolbar {

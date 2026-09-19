@@ -24,3 +24,6 @@ export const CONTENT_SORT_OPTIONS: (Option & { value: ContentSort })[] = [
 
 /** The sort a folder opens with. */
 export const DEFAULT_CONTENT_SORT: ContentSort = "name";
+
+/** Versions the editor's side panel lists, newest first. */
+export const VERSION_PANEL_CAP = 10;

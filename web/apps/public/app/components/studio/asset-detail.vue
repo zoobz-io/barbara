@@ -34,16 +34,6 @@ const now = useNow();
 
 const name = keyName(key);
 const crumbs = assetCrumbs(id, key, ASSET_ROOT_LABEL);
-const meta = computed(() => {
-  const pieces = [
-    asset.value?.content_type ?? "",
-    formatBytes(asset.value?.size ?? 0),
-  ];
-  if (asset.value?.last_modified) {
-    pieces.push(`Modified ${formatRelative(asset.value.last_modified, now.value)}`);
-  }
-  return pieces;
-});
 const preview = computed(() =>
   assetPreview(asset.value?.kind ?? "", asset.value?.content_type ?? ""),
 );
@@ -93,7 +83,7 @@ const { data: text, status: textStatus } = useLazyAsyncData(
 
 <template>
   <div class="studio-page">
-    <PageHeader :crumbs="crumbs" :title="name" :meta="meta">
+    <PageHeader :crumbs="crumbs" :title="name">
       <template #actions>
         <Menu
           :groups="ASSET_ACTIONS"
@@ -107,7 +97,7 @@ const { data: text, status: textStatus } = useLazyAsyncData(
       </template>
     </PageHeader>
 
-    <div class="asset-detail">
+    <div class="detail-grid">
       <section class="panel panel-flush asset-preview">
         <img v-if="preview === 'image'" :src="url" :alt="name" />
         <iframe v-else-if="preview === 'pdf'" :src="url" :title="name" />
@@ -132,7 +122,7 @@ const { data: text, status: textStatus } = useLazyAsyncData(
         </div>
       </section>
 
-      <aside class="asset-side">
+      <aside class="detail-side">
         <section class="panel asset-url">
           <h2>Public URL</h2>
           <div class="asset-url-row">

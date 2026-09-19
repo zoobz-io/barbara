@@ -125,3 +125,30 @@ export function sortDocuments(
       ),
     );
 }
+
+/**
+ * The keys of the folders on the way to a path: every folder node whose
+ * path is a strict prefix of it, top down. Expanding these makes the node
+ * at the path visible in the sidebar tree.
+ */
+export function ancestorKeys(nodes: ContentNode[], path: string): string[] {
+  const keys: string[] = [];
+  for (const node of nodes) {
+    if (node.kind !== "folder" || !path.startsWith(`${node.path}/`)) continue;
+    keys.push(node.key, ...ancestorKeys(node.children ?? [], path));
+  }
+  return keys;
+}
+
+/** The node at a path, searched depth-first; undefined when none is. */
+export function findNode(
+  nodes: ContentNode[],
+  path: string,
+): ContentNode | undefined {
+  for (const node of nodes) {
+    if (node.path === path) return node;
+    const hit = findNode(node.children ?? [], path);
+    if (hit) return hit;
+  }
+  return undefined;
+}

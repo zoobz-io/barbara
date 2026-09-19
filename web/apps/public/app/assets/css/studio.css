@@ -3,6 +3,7 @@
 /* The shell flows with the document: the bar sticks, the content grows to
    at least the viewport, and the footer follows in flow. */
 .studio {
+  --topbar-height: 5.75rem; /* a fallback; the layout measures the real bar */
   display: flex;
   flex-direction: column;
   min-height: 100vh;
@@ -136,42 +137,51 @@
   flex: 1;
 }
 
-/* The Content page: file tree beside the editor. */
+/* The Content page: the pages tree beside the page. The page column is
+   laid out as on every other studio page — centered on the viewport — and
+   the tree is a fixed column pinned to the left edge beneath the top bar,
+   running to the bottom of the viewport and layered over the footer. It
+   needs the page's left gutter to be at least its own width, so it hides
+   on narrower screens rather than overlap the page. */
 .content-grid {
-  display: grid;
-  grid-template-columns: 16rem 1fr;
+  display: flex;
+  flex-direction: column;
 }
 
 .sidebar {
+  position: fixed;
+  top: var(--topbar-height);
+  bottom: 0;
+  left: 0;
+  z-index: 10;
+  width: 16rem;
   border-right: 1px solid var(--outline-muted);
+  background: var(--surface);
+}
+
+.sidebar-scroll {
+  height: 100%;
   padding: 1rem;
   overflow-y: auto;
 }
 
-.sidebar-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 0.75rem;
+/* The gutter beside the page column is (viewport - page width) / 2; under
+   the tree's width the tree goes. A media query cannot read a custom
+   property, so this is --page-width (72rem) plus twice the tree's 16rem. */
+@media (max-width: 104rem) {
+  .sidebar {
+    display: none;
+  }
 }
 
-/* The tree's title is the way back up to the content root. */
-.sidebar-title {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  margin: 0;
-  font-size: var(--label-size);
-  font-weight: var(--weight-medium);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--on-surface-muted);
-  text-decoration: none;
+/* The page at the route is the selection, shown through its active link.
+   A folder click toggles the folder and, in the tree's own state, selects
+   it too; that highlight is suppressed so the page keeps the only one. */
+.sidebar .f-tree-item[data-selected]:not(:has(.f-anchor)) {
+  background: transparent;
+  font-weight: inherit;
 }
 
-.sidebar-title:hover {
-  color: var(--on-surface);
-}
 
 .content {
   flex: 1;
@@ -203,21 +213,6 @@
   font-size: var(--headline-size);
 }
 
-.editor {
-  overflow-y: auto;
-}
-
-.pane-empty {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  color: var(--on-surface-muted);
-}
-
-.pane-empty a {
-  color: var(--on-surface);
-}
 
 /* Type icons in the tables, muted like GitHub's file glyphs. */
 .row-icon {
@@ -473,7 +468,7 @@
 }
 
 /* The asset page body: the preview beside a details column. */
-.asset-detail {
+.detail-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 20rem;
   gap: var(--space-4);
@@ -536,7 +531,7 @@
 
 /* The asset page's side column: the public URL box over the details
    table, each its own panel. */
-.asset-side {
+.detail-side {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
@@ -545,7 +540,7 @@
 
 /* Section titles in the side column are labels, not headings: the panel's
    title-size h2 is overridden with the extra class to outrank it. */
-.asset-side .panel h2 {
+.detail-side .panel h2 {
   margin: 0;
   font-size: var(--label-size);
   font-weight: var(--weight-medium);
@@ -554,7 +549,7 @@
   letter-spacing: 0.04em;
 }
 
-.asset-side .panel {
+.detail-side .panel {
   gap: var(--space-3);
   padding: var(--space-4);
 }
@@ -624,7 +619,7 @@
   overflow-wrap: anywhere;
 }
 
-.asset-facts code {
+.facts-table code {
   font-family: var(--font-mono);
   font-size: var(--label-size);
 }

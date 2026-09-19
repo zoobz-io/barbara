@@ -10,11 +10,11 @@ import { ref } from "#imports";
 import type { DocumentContent } from "~/types/documents";
 import { EDITOR_TOOLBAR } from "~/constants/editor";
 import { apiErrorMessage } from "~/utils/errors";
-import { formatDate, keyName } from "~/utils/format";
 import { useDocumentStore } from "~/stores/documents";
 
 // The page owns the document fetch (blocking useAsyncData) and remounts
-// this component per document; the editor only edits and saves.
+// this component per document; the editor only edits and saves. Save is
+// the page header's button: the state and the action are exposed to it.
 const props = defineProps<{
   documentId: string;
   doc: DocumentContent | null;
@@ -106,37 +106,12 @@ function isToolActive(key: string): boolean {
   void tick.value;
   return editor.value ? (activeChecks[key]?.(editor.value) ?? false) : false;
 }
+
+defineExpose({ dirty, saving, error, save });
 </script>
 
 <template>
   <div class="editor-pane">
-    <header class="doc-bar">
-      <div class="doc-copy">
-        <p class="doc-title">
-          {{ doc ? keyName(doc.document.key) : "…" }}
-        </p>
-        <p class="doc-meta">
-          <span class="doc-status">{{ doc?.document.status ?? "…" }}</span>
-          <template v-if="doc?.content">
-            · v{{ doc.content.version_number }} · saved
-            {{ formatDate(doc.content.created_at) }}
-          </template>
-          <template v-else-if="doc">· no versions yet</template>
-        </p>
-      </div>
-      <span class="spacer" />
-      <p v-if="error" class="error" role="alert">{{ error }}</p>
-      <button
-        type="button"
-        class="primary"
-        :disabled="!dirty || saving"
-        @click="save"
-      >
-        <Icon class="f-icon" fill="currentColor" name="save" />
-        {{ saving ? "Saving…" : "Save" }}
-      </button>
-    </header>
-
     <div class="editor-toolbar" role="toolbar" aria-label="Formatting">
       <template v-for="(group, i) in EDITOR_TOOLBAR" :key="i">
         <span v-if="i > 0" class="toolbar-sep" />
