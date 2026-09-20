@@ -1608,6 +1608,16 @@
         ]
       },
       "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CutReleaseRequest"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "201": {
             "content": {
@@ -1648,6 +1658,16 @@
               }
             },
             "description": "NotFound"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrValidationFailed"
+                }
+              }
+            },
+            "description": "UnprocessableEntity"
           }
         },
         "summary": "Cut a release",
@@ -1750,8 +1770,94 @@
         ]
       }
     },
+    "/apps/{app_id}/releases/{id}/changes": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReleaseChangesResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrUnauthorized"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrForbidden"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrNotFound"
+                }
+              }
+            },
+            "description": "NotFound"
+          }
+        },
+        "summary": "Get a release's changes against the previous release",
+        "operationId": "get-apps-app_id-releases-id-changes-e5ecb389",
+        "tags": [
+          "Releases"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "app_id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": [
+              "documents:read"
+            ]
+          }
+        ]
+      }
+    },
     "/apps/{app_id}/releases/{id}/rollback": {
       "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CutReleaseRequest"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "201": {
             "content": {
@@ -1792,6 +1898,16 @@
               }
             },
             "description": "NotFound"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrValidationFailed"
+                }
+              }
+            },
+            "description": "UnprocessableEntity"
           }
         },
         "summary": "Roll back to a release",
@@ -3833,6 +3949,16 @@
           "name"
         ]
       },
+      "CutReleaseRequest": {
+        "properties": {
+          "label": {
+            "example": "Launch of the 2.3 docs",
+            "type": "string",
+            "description": "Optional short label for the release, fixed at cut time"
+          }
+        },
+        "type": "object"
+      },
       "DocumentContentResponse": {
         "properties": {
           "content": {
@@ -4059,6 +4185,38 @@
           "message"
         ]
       },
+      "ErrValidationFailed": {
+        "properties": {
+          "code": {
+            "const": "VALIDATION_FAILED",
+            "type": "string",
+            "description": "Machine-readable error code"
+          },
+          "details": {
+            "properties": {
+              "fields": {
+                "items": {
+                  "$ref": "#/components/schemas/ValidationFieldError"
+                },
+                "type": "array"
+              }
+            },
+            "type": "object",
+            "required": [
+              "fields"
+            ]
+          },
+          "message": {
+            "type": "string",
+            "description": "Human-readable error message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "message"
+        ]
+      },
       "MoveAssetRequest": {
         "properties": {
           "key": {
@@ -4194,6 +4352,68 @@
           "version_number"
         ]
       },
+      "ReleaseChangeResponse": {
+        "properties": {
+          "change": {
+            "example": "changed",
+            "type": "string",
+            "description": "added, changed, removed, or moved"
+          },
+          "document_id": {
+            "type": "string",
+            "description": "The document"
+          },
+          "key": {
+            "type": "string",
+            "description": "The path as of this release (for a removal, the path that went away)"
+          },
+          "prev_key": {
+            "type": "string",
+            "description": "For a move, the path before this release"
+          },
+          "prev_version_id": {
+            "type": "string",
+            "description": "The version served before this release, absent for an addition"
+          },
+          "prev_version_number": {
+            "type": "integer",
+            "description": "Number of the version served before, absent for an addition"
+          },
+          "version_id": {
+            "type": "string",
+            "description": "The version this release serves, absent for a removal"
+          },
+          "version_number": {
+            "type": "integer",
+            "description": "Number of the version this release serves, absent for a removal"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "document_id",
+          "change"
+        ]
+      },
+      "ReleaseChangesResponse": {
+        "properties": {
+          "changes": {
+            "items": {
+              "$ref": "#/components/schemas/ReleaseChangeResponse"
+            },
+            "type": "array",
+            "description": "What differs from the previous release, by key"
+          },
+          "release": {
+            "$ref": "#/components/schemas/ReleaseResponse"
+          }
+        },
+        "type": "object",
+        "required": [
+          "release",
+          "changes"
+        ]
+      },
       "ReleaseEntryResponse": {
         "properties": {
           "document_id": {
@@ -4207,13 +4427,18 @@
           "version_id": {
             "type": "string",
             "description": "Version served"
+          },
+          "version_number": {
+            "type": "integer",
+            "description": "The served version's number within its document"
           }
         },
         "type": "object",
         "required": [
           "key",
           "document_id",
-          "version_id"
+          "version_id",
+          "version_number"
         ]
       },
       "ReleaseListResponse": {
@@ -4235,7 +4460,7 @@
           },
           "total": {
             "type": "integer",
-            "description": "Number of releases returned"
+            "description": "Total releases in the app, across all pages"
           }
         },
         "type": "object",
@@ -4248,9 +4473,17 @@
       },
       "ReleaseResponse": {
         "properties": {
+          "added": {
+            "type": "integer",
+            "description": "Paths added since the previous release"
+          },
           "app_id": {
             "type": "string",
             "description": "Owning app"
+          },
+          "changed": {
+            "type": "integer",
+            "description": "Paths at a new version since the previous release"
           },
           "created_at": {
             "format": "date-time",
@@ -4261,13 +4494,42 @@
             "type": "string",
             "description": "User who cut the release"
           },
+          "entry_count": {
+            "type": "integer",
+            "description": "Live paths in the release"
+          },
           "id": {
             "type": "string",
             "description": "Release ID"
           },
+          "kind": {
+            "example": "cut",
+            "type": "string",
+            "description": "What cut the release: cut (full tree), publish, unpublish, or rollback"
+          },
+          "label": {
+            "type": "string",
+            "description": "The label given at cut time, if any"
+          },
+          "moved": {
+            "type": "integer",
+            "description": "Documents at a new path since the previous release"
+          },
           "number": {
             "type": "integer",
             "description": "Monotonic release number within the app"
+          },
+          "removed": {
+            "type": "integer",
+            "description": "Paths removed since the previous release"
+          },
+          "source_release_id": {
+            "type": "string",
+            "description": "For a rollback, the release whose entries were copied forward"
+          },
+          "subject_document_id": {
+            "type": "string",
+            "description": "For a publish or unpublish, the document the release was about"
           },
           "tenant_id": {
             "type": "string",
@@ -4281,7 +4543,13 @@
           "app_id",
           "tenant_id",
           "created_by",
-          "number"
+          "kind",
+          "number",
+          "entry_count",
+          "added",
+          "changed",
+          "removed",
+          "moved"
         ]
       },
       "ReleaseWithEntriesResponse": {

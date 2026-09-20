@@ -29,6 +29,7 @@ func All() []rocco.Endpoint {
 		CutRelease,
 		ListReleases,
 		GetRelease,
+		GetReleaseChanges,
 		RollbackRelease,
 		// Documents authoring.
 		CreateDocument,

@@ -22,6 +22,7 @@ Barbara/
 │   ├── admin/        #   Admin API entrypoint
 │   ├── reindex/      #   Full OpenSearch reindex (operational one-shot)
 │   ├── rebuild-assets/ # Asset bookkeeping rebuild from object storage (operational one-shot)
+│   ├── rebuild-releases/ # Release change rows and counts rebuilt from entries (operational one-shot)
 │   └── seed/         #   Local-dev seeder: an app with pages, releases, and assets
 ├── api/              # Public API surface: contracts, handlers, wire, transformers
 ├── admin/            # Admin API surface: contracts, handlers, wire, transformers
@@ -92,6 +93,7 @@ make install-hooks
 | `make run` | Run the application |
 | `make seed` | Seed a local app with collections, pages, releases, and assets (`APP=<id\|name>`) |
 | `make rebuild-assets` | Rebuild every app's asset bookkeeping (folder rollups, stats) from object storage |
+| `make rebuild-releases` | Rebuild every release's change rows and counts from its entries |
 | `make test` | Run all tests with race detector |
 | `make test-unit` | Run unit tests only |
 | `make test-integration` | Run integration tests against a disposable stack (`docker-compose.test.yml`), never the dev stack |

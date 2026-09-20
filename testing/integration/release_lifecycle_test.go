@@ -84,7 +84,7 @@ func TestLifecycle_FullPathToSite(t *testing.T) {
 	tree := lifeApp(t, st, ctx)
 	appID := tree.appID
 
-	if _, err := st.Releases.Cut(ctx, appID); err != nil {
+	if _, err := st.Releases.Cut(ctx, appID, ""); err != nil {
 		t.Fatalf("cut r1: %v", err)
 	}
 	drainAndRefresh(t, st, pipeline, provider)
@@ -122,7 +122,7 @@ func TestLifecycle_AuthoringMoveIsNotLiveUntilRecut(t *testing.T) {
 	tree := lifeApp(t, st, ctx)
 	appID, refID := tree.appID, tree.refID
 
-	if _, err := st.Releases.Cut(ctx, appID); err != nil {
+	if _, err := st.Releases.Cut(ctx, appID, ""); err != nil {
 		t.Fatalf("cut r1: %v", err)
 	}
 	drainAndRefresh(t, st, pipeline, provider)
@@ -139,7 +139,7 @@ func TestLifecycle_AuthoringMoveIsNotLiveUntilRecut(t *testing.T) {
 	mustMiss(t, st, ctx, appID, "guides/ref.md")
 
 	// Cut a new release: now the site follows the move — new path live, old gone.
-	if _, err := st.Releases.Cut(ctx, appID); err != nil {
+	if _, err := st.Releases.Cut(ctx, appID, ""); err != nil {
 		t.Fatalf("cut r2: %v", err)
 	}
 	drainAndRefresh(t, st, pipeline, provider)
@@ -155,21 +155,21 @@ func TestLifecycle_RollbackRevertsSite(t *testing.T) {
 	tree := lifeApp(t, st, ctx)
 	appID, refID := tree.appID, tree.refID
 
-	r1, _ := st.Releases.Cut(ctx, appID)
+	r1, _ := st.Releases.Cut(ctx, appID, "")
 	drainAndRefresh(t, st, pipeline, provider)
 
 	// Move ref.md and cut r2 — the site now serves the new path.
 	if _, err := st.Documents.Move(ctx, appID, refID, &tree.guides, "ref.md"); err != nil {
 		t.Fatalf("move: %v", err)
 	}
-	if _, err := st.Releases.Cut(ctx, appID); err != nil {
+	if _, err := st.Releases.Cut(ctx, appID, ""); err != nil {
 		t.Fatalf("cut r2: %v", err)
 	}
 	drainAndRefresh(t, st, pipeline, provider)
 	mustGet(t, st, ctx, appID, "guides/ref.md")
 
 	// Roll back to r1: a new forward release restores the old path.
-	r3, err := st.Releases.Rollback(ctx, appID, r1.ID)
+	r3, err := st.Releases.Rollback(ctx, appID, r1.ID, "")
 	if err != nil {
 		t.Fatalf("rollback: %v", err)
 	}
@@ -197,7 +197,7 @@ func TestLifecycle_UnpublishThenDelete(t *testing.T) {
 	tree := lifeApp(t, st, ctx)
 	appID, refID := tree.appID, tree.refID
 
-	if _, err := st.Releases.Cut(ctx, appID); err != nil {
+	if _, err := st.Releases.Cut(ctx, appID, ""); err != nil {
 		t.Fatalf("cut r1: %v", err)
 	}
 	drainAndRefresh(t, st, pipeline, provider)

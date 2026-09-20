@@ -195,6 +195,39 @@ non-decisions-made-decisions:
   with today's images. Accepted deliberately — the version game is not played
   with binaries.
 
+## Release metadata (amended 2026-09-20)
+
+The studio's release timeline needs to read at a glance, and the release row
+alone could not answer it: every release looked the same, the list carried no
+counts, and showing a served version number meant a versions fetch per entry.
+The answer keeps the model's stance — a release row is written once, in the
+cut transaction, and never edited — and adds to what that write records:
+
+- **Kind and provenance on the row.** `kind` is the operation that cut the
+  release: `cut` (full tree), `publish`, `unpublish`, or `rollback`. A
+  rollback records `source_release_id`; a publish or unpublish records
+  `subject_document_id`. Neither carries a foreign key — they are provenance,
+  and the delete rules should not have to reason about them.
+- **A label, fixed at cut time.** Optional, short, supplied with the cut. It
+  is part of the immutable row: no edit endpoint, by design. Release notes
+  (longer, editable) stay deferred.
+- **Counts against the previous release.** `entry_count`, `added`,
+  `changed` (same path, new version), `removed`, and `moved` (same document,
+  new path), from the same diff that drives the index projection.
+- **`version_number` on entries**, beside `version_id`, so a manifest reads
+  "v4" without the versions table. Integers, no joins.
+- **`release_changes`**, the materialized diff: one row per document that
+  differs from the previous release, with both sides' version ids and
+  numbers and the previous key for a move. Entries stay the pure manifest;
+  this table is a projection of two adjacent manifests and is recomputable
+  from them (`cmd/rebuild-releases`, the release counterpart of the asset
+  bookkeeping rebuild). Keyed by document, not path, because one cut can
+  free a key and retake it with another document.
+
+The list endpoint's `total` becomes the app's true release count rather than
+the page size; the change is scoped to releases. Cut and rollback take an
+optional `{label}` body; `GET .../releases/{id}/changes` serves the diff.
+
 ## Non-goals
 
 - **No branching, no merging, no three-way anything.** Linear release history
@@ -212,8 +245,9 @@ non-decisions-made-decisions:
   requirements name them.
 - Redirects for moved/renamed paths — old releases hold the data; a redirect
   layer can be derived later without schema work.
-- Release labels/notes, retention policy — releases are kept forever in v1,
-  same stance as versions.
+- Release notes (editable, longer than a label) and retention policy —
+  releases are kept forever in v1, same stance as versions. Labels landed in
+  the metadata amendment above.
 - Collection metadata (titles, ordering for nav) — pure namespace until a
   real nav requirement lands.
 - Everything 001 already deferred (frontmatter extraction, asset versioning,
