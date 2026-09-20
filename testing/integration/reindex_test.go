@@ -55,7 +55,7 @@ func reindexFixture(t *testing.T) (*stores.Stores, *models.App, *models.App) {
 	if err != nil {
 		t.Fatalf("save a version: %v", err)
 	}
-	if _, err := st.Releases.Cut(t1, app1.ID); err != nil {
+	if _, err := st.Releases.Cut(t1, app1.ID, ""); err != nil {
 		t.Fatalf("cut r1 for app1: %v", err)
 	}
 	// Rename a AFTER the cut: the authoring key moves to renamed.md, but the
@@ -84,7 +84,7 @@ func reindexFixture(t *testing.T) (*stores.Stores, *models.App, *models.App) {
 	if err != nil {
 		t.Fatalf("save b version: %v", err)
 	}
-	if _, err := st.Releases.Cut(t2, app2.ID); err != nil {
+	if _, err := st.Releases.Cut(t2, app2.ID, ""); err != nil {
 		t.Fatalf("cut r1 for app2: %v", err)
 	}
 

@@ -12,6 +12,7 @@ import (
 
 	"github.com/zoobz-io/grub"
 
+	"github.com/zoobz-io/barbara/database/models"
 	"github.com/zoobz-io/barbara/database/stores"
 	"github.com/zoobz-io/barbara/internal/jobs"
 	"github.com/zoobz-io/barbara/testing/testkit"
@@ -71,7 +72,7 @@ func TestReleaseProjection_AddChangeRemove(t *testing.T) {
 
 	// Cut r1 → a is ADDED. Drain the outbox and confirm it landed with the
 	// materialized fields.
-	if _, err := st.Releases.Cut(ctx, app.ID); err != nil {
+	if _, err := st.Releases.Cut(ctx, app.ID, ""); err != nil {
 		t.Fatalf("cut r1: %v", err)
 	}
 	drain()
@@ -92,7 +93,7 @@ func TestReleaseProjection_AddChangeRemove(t *testing.T) {
 	if _, err := st.Versions.Save(ctx, a.ID, "a two", 1); err != nil {
 		t.Fatalf("save a v2: %v", err)
 	}
-	if _, err := st.Releases.Cut(ctx, app.ID); err != nil {
+	if _, err := st.Releases.Cut(ctx, app.ID, ""); err != nil {
 		t.Fatalf("cut r2: %v", err)
 	}
 	drain()
@@ -107,8 +108,8 @@ func TestReleaseProjection_AddChangeRemove(t *testing.T) {
 	// Cut r3 explicitly WITHOUT b (the unpublish shape) → b REMOVED.
 	aHead, _ := st.Versions.Save(ctx, a.ID, "a two", 2) // keep a live at its head
 	if _, err := st.Releases.CutWith(ctx, app.ID, []stores.ReleaseEntrySpec{
-		{Key: "guides/a.md", DocumentID: a.ID, VersionID: aHead.ID},
-	}); err != nil {
+		{Key: "guides/a.md", DocumentID: a.ID, VersionID: aHead.ID, VersionNumber: aHead.VersionNumber},
+	}, stores.CutMeta{Kind: models.ReleaseKindUnpublish, SubjectDocumentID: &b.ID}); err != nil {
 		t.Fatalf("cut r3: %v", err)
 	}
 	drain()

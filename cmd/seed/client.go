@@ -205,9 +205,13 @@ func (c *client) saveVersion(ctx context.Context, documentID, content string, ba
 	return out.VersionNumber, nil
 }
 
-func (c *client) cutRelease(ctx context.Context, appID string) (release, error) {
+func (c *client) cutRelease(ctx context.Context, appID, label string) (release, error) {
+	body, err := json.Marshal(map[string]string{"label": label})
+	if err != nil {
+		return release{}, err
+	}
 	var out release
-	if err := c.do(ctx, http.MethodPost, "/apps/"+url.PathEscape(appID)+"/releases", "", nil, &out); err != nil {
+	if err := c.do(ctx, http.MethodPost, "/apps/"+url.PathEscape(appID)+"/releases", "application/json", body, &out); err != nil {
 		return release{}, err
 	}
 	return out, nil

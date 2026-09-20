@@ -346,7 +346,7 @@ func TestScenario_TerminalOSFailure_ReindexReconciles(t *testing.T) {
 	if _, err := st.Versions.Save(ctx, doc.ID, "must survive a bad write", 0); err != nil {
 		t.Fatalf("save: %v", err)
 	}
-	if _, err := st.Releases.Cut(ctx, app.ID); err != nil {
+	if _, err := st.Releases.Cut(ctx, app.ID, ""); err != nil {
 		t.Fatalf("cut: %v", err)
 	}
 

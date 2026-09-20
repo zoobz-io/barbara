@@ -67,10 +67,11 @@ func (s *Stores) cutForDocument(ctx context.Context, documentID string, versionI
 	}
 	appID := doc.AppID
 
+	var version *models.Version
 	if versionID != nil {
-		version, verr := s.Versions.Get(ctx, *versionID)
-		if verr != nil {
-			return nil, verr // ErrNotFound when the version is absent
+		version, err = s.Versions.Get(ctx, *versionID)
+		if err != nil {
+			return nil, err // ErrNotFound when the version is absent
 		}
 		if version.DocumentID != documentID {
 			return nil, ErrVersionMismatch
@@ -88,13 +89,15 @@ func (s *Stores) cutForDocument(ctx context.Context, documentID string, versionI
 		if e.DocumentID == documentID {
 			continue
 		}
-		specs = append(specs, ReleaseEntrySpec{Key: e.Key, DocumentID: e.DocumentID, VersionID: e.VersionID})
+		specs = append(specs, ReleaseEntrySpec{Key: e.Key, DocumentID: e.DocumentID, VersionID: e.VersionID, VersionNumber: e.VersionNumber})
 	}
-	if versionID != nil {
-		specs = append(specs, ReleaseEntrySpec{Key: doc.Key, DocumentID: documentID, VersionID: *versionID})
+	meta := CutMeta{Kind: models.ReleaseKindUnpublish, SubjectDocumentID: &documentID}
+	if version != nil {
+		specs = append(specs, ReleaseEntrySpec{Key: doc.Key, DocumentID: documentID, VersionID: version.ID, VersionNumber: version.VersionNumber})
+		meta.Kind = models.ReleaseKindPublish
 	}
 
-	if _, err := s.Releases.CutWith(ctx, appID, specs); err != nil {
+	if _, err := s.Releases.CutWith(ctx, appID, specs, meta); err != nil {
 		return nil, err
 	}
 	return doc, nil

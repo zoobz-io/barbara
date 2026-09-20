@@ -3,6 +3,7 @@
 package integration
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"testing"
@@ -152,5 +153,57 @@ func TestPublish_RejectsForeignVersion(t *testing.T) {
 	}
 	if _, err := st.Publish(ctx, docID, "44444444-0000-0000-0000-000000000004"); !errors.Is(err, stores.ErrNotFound) {
 		t.Errorf("publish missing version = %v, want ErrNotFound", err)
+	}
+}
+
+// currentRelease loads the app's current release row.
+func currentRelease(t *testing.T, st *stores.Stores, ctx context.Context, appID string) *models.Release {
+	t.Helper()
+	app, err := st.Apps.Get(ctx, appID)
+	if err != nil || app.CurrentReleaseID == nil {
+		t.Fatalf("app %s has no current release: %v", appID, err)
+	}
+	r, _, err := st.Releases.Get(ctx, appID, *app.CurrentReleaseID)
+	if err != nil {
+		t.Fatalf("current release: %v", err)
+	}
+	return r
+}
+
+// The publish sugar records what it was: a publish or unpublish release about
+// the document, with the one-path diff counted.
+func TestPublish_RecordsKindAndSubject(t *testing.T) {
+	st, docID, versionID := publishFixture(t)
+	ctx := tenantCtx(testTenant)
+
+	doc, err := st.Publish(ctx, docID, versionID)
+	if err != nil {
+		t.Fatalf("publish: %v", err)
+	}
+	pub := currentRelease(t, st, ctx, doc.AppID)
+	if pub.Kind != models.ReleaseKindPublish || pub.SubjectDocumentID == nil || *pub.SubjectDocumentID != docID || pub.Label != nil {
+		t.Errorf("publish release = kind %q subject %v label %v; want publish about the document, unlabelled", pub.Kind, pub.SubjectDocumentID, pub.Label)
+	}
+	if pub.EntryCount != 1 || pub.Added != 1 || pub.Changed+pub.Removed+pub.Moved != 0 {
+		t.Errorf("publish release counts = %+v, want one entry, one addition", pub)
+	}
+	_, entries, _ := st.Releases.Get(ctx, doc.AppID, pub.ID)
+	if len(entries) != 1 || entries[0].VersionNumber != 1 {
+		t.Errorf("publish release entries = %+v, want the page at version number 1", entries)
+	}
+
+	if _, err := st.Unpublish(ctx, docID); err != nil {
+		t.Fatalf("unpublish: %v", err)
+	}
+	unpub := currentRelease(t, st, ctx, doc.AppID)
+	if unpub.Kind != models.ReleaseKindUnpublish || unpub.SubjectDocumentID == nil || *unpub.SubjectDocumentID != docID {
+		t.Errorf("unpublish release = kind %q subject %v; want unpublish about the document", unpub.Kind, unpub.SubjectDocumentID)
+	}
+	if unpub.EntryCount != 0 || unpub.Removed != 1 {
+		t.Errorf("unpublish release counts = %+v, want no entries, one removal", unpub)
+	}
+	_, changes, _ := st.Releases.Changes(ctx, doc.AppID, unpub.ID)
+	if len(changes) != 1 || changes[0].Change != models.ChangeRemoved || changes[0].DocumentID != docID || changes[0].VersionID != nil {
+		t.Errorf("unpublish changes = %+v, want the one removal", changes)
 	}
 }

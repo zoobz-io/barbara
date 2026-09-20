@@ -266,6 +266,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/apps/{app_id}/releases/{id}/changes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a release's changes against the previous release */
+        get: operations["get-apps-app_id-releases-id-changes-e5ecb389"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/apps/{app_id}/releases/{id}/rollback": {
         parameters: {
             query?: never;
@@ -780,6 +797,13 @@ export interface components {
              */
             name: string;
         };
+        CutReleaseRequest: {
+            /**
+             * @description Optional short label for the release, fixed at cut time
+             * @example Launch of the 2.3 docs
+             */
+            label?: string;
+        };
         DocumentContentResponse: {
             /** @description The head version's content, or null if the document has no versions */
             content: components["schemas"]["ContentBlock"];
@@ -886,6 +910,18 @@ export interface components {
             /** @description Human-readable error message */
             message: string;
         };
+        ErrValidationFailed: {
+            /**
+             * @description Machine-readable error code
+             * @constant
+             */
+            code: "VALIDATION_FAILED";
+            details?: {
+                fields: components["schemas"]["ValidationFieldError"][];
+            };
+            /** @description Human-readable error message */
+            message: string;
+        };
         MoveAssetRequest: {
             /**
              * @description The new key, segments joined by slashes
@@ -951,6 +987,32 @@ export interface components {
              */
             version_number: number;
         };
+        ReleaseChangeResponse: {
+            /**
+             * @description added, changed, removed, or moved
+             * @example changed
+             */
+            change: string;
+            /** @description The document */
+            document_id: string;
+            /** @description The path as of this release (for a removal, the path that went away) */
+            key: string;
+            /** @description For a move, the path before this release */
+            prev_key?: string;
+            /** @description The version served before this release, absent for an addition */
+            prev_version_id?: string;
+            /** @description Number of the version served before, absent for an addition */
+            prev_version_number?: number;
+            /** @description The version this release serves, absent for a removal */
+            version_id?: string;
+            /** @description Number of the version this release serves, absent for a removal */
+            version_number?: number;
+        };
+        ReleaseChangesResponse: {
+            /** @description What differs from the previous release, by key */
+            changes: components["schemas"]["ReleaseChangeResponse"][];
+            release: components["schemas"]["ReleaseResponse"];
+        };
         ReleaseEntryResponse: {
             /** @description Document served at the path */
             document_id: string;
@@ -958,6 +1020,8 @@ export interface components {
             key: string;
             /** @description Version served */
             version_id: string;
+            /** @description The served version's number within its document */
+            version_number: number;
         };
         ReleaseListResponse: {
             /** @description Page size */
@@ -966,12 +1030,16 @@ export interface components {
             offset: number;
             /** @description The app's releases, newest first */
             releases: components["schemas"]["ReleaseResponse"][];
-            /** @description Number of releases returned */
+            /** @description Total releases in the app, across all pages */
             total: number;
         };
         ReleaseResponse: {
+            /** @description Paths added since the previous release */
+            added: number;
             /** @description Owning app */
             app_id: string;
+            /** @description Paths at a new version since the previous release */
+            changed: number;
             /**
              * Format: date-time
              * @description When the release was cut
@@ -979,10 +1047,27 @@ export interface components {
             created_at: string;
             /** @description User who cut the release */
             created_by: string;
+            /** @description Live paths in the release */
+            entry_count: number;
             /** @description Release ID */
             id: string;
+            /**
+             * @description What cut the release: cut (full tree), publish, unpublish, or rollback
+             * @example cut
+             */
+            kind: string;
+            /** @description The label given at cut time, if any */
+            label?: string;
+            /** @description Documents at a new path since the previous release */
+            moved: number;
             /** @description Monotonic release number within the app */
             number: number;
+            /** @description Paths removed since the previous release */
+            removed: number;
+            /** @description For a rollback, the release whose entries were copied forward */
+            source_release_id?: string;
+            /** @description For a publish or unpublish, the document the release was about */
+            subject_document_id?: string;
             /** @description Owning tenant */
             tenant_id: string;
         };
@@ -2148,7 +2233,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CutReleaseRequest"];
+            };
+        };
         responses: {
             /** @description Success */
             201: {
@@ -2184,6 +2273,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrNotFound"];
+                };
+            };
+            /** @description UnprocessableEntity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrValidationFailed"];
                 };
             };
         };
@@ -2238,7 +2336,7 @@ export interface operations {
             };
         };
     };
-    "post-apps-app_id-releases-id-rollback-c3947693": {
+    "get-apps-app_id-releases-id-changes-e5ecb389": {
         parameters: {
             query?: never;
             header?: never;
@@ -2249,6 +2347,60 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReleaseChangesResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrUnauthorized"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrForbidden"];
+                };
+            };
+            /** @description NotFound */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrNotFound"];
+                };
+            };
+        };
+    };
+    "post-apps-app_id-releases-id-rollback-c3947693": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                app_id: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CutReleaseRequest"];
+            };
+        };
         responses: {
             /** @description Success */
             201: {
@@ -2284,6 +2436,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrNotFound"];
+                };
+            };
+            /** @description UnprocessableEntity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrValidationFailed"];
                 };
             };
         };

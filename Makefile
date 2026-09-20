@@ -1,4 +1,4 @@
-.PHONY: build run run-admin seed rebuild-assets test test-unit test-integration test-stack-up test-stack-down test-bench lint lint-fix coverage clean help check ci setup install-tools install-hooks dev dev-api dev-admin dev-observability dev-down dev-logs dev-reset openapi-api openapi-admin web-install web-check web-lint web-test web-build
+.PHONY: build run run-admin seed rebuild-assets rebuild-releases test test-unit test-integration test-stack-up test-stack-down test-bench lint lint-fix coverage clean help check ci setup install-tools install-hooks dev dev-api dev-admin dev-observability dev-down dev-logs dev-reset openapi-api openapi-admin web-install web-check web-lint web-test web-build
 
 .DEFAULT_GOAL := help
 
@@ -29,6 +29,9 @@ seed: ## Seed a local app with pages, releases, and assets via the public API (A
 
 rebuild-assets: ## Rebuild every app's asset bookkeeping (folder rollups, stats) from object storage
 	@go run ./cmd/rebuild-assets
+
+rebuild-releases: ## Rebuild every release's change rows and counts from its entries
+	@go run ./cmd/rebuild-releases
 
 # =============================================================================
 # Docker Development Environment

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -18,22 +19,36 @@ import (
 )
 
 // ReleaseEntrySpec is one live path to write into a release: a key, the document
-// it resolves to, and the version served. It is the cut input, decoupled from
-// the stored ReleaseEntry (which also carries the surrogate and release ids).
+// it resolves to, and the version served (id and number). It is the cut input,
+// decoupled from the stored ReleaseEntry (which also carries the surrogate and
+// release ids).
 type ReleaseEntrySpec struct {
-	Key        string
-	DocumentID string
-	VersionID  string
+	Key           string
+	DocumentID    string
+	VersionID     string
+	VersionNumber int
+}
+
+// CutMeta is what a cut records about itself beyond its entries: the kind of
+// operation, an optional label, and — for a rollback or a single-document
+// publish — the release copied or the document concerned.
+type CutMeta struct {
+	SourceReleaseID   *string
+	SubjectDocumentID *string
+	Kind              string
+	Label             string
 }
 
 // Releases is the data-access layer for releases — the immutable, append-only
 // snapshots that are the only publish mechanism. It owns the release_entries
-// table, and holds the app store (to lock the app row and move its pointer), the
-// documents and versions stores (to snapshot the live tree), and the connection.
+// and release_changes tables, and holds the app store (to lock the app row and
+// move its pointer), the documents and versions stores (to snapshot the live
+// tree), and the connection.
 type Releases struct {
 	*sum.Database[models.Release]
 	db        *sqlx.DB
 	entries   *sum.Database[models.ReleaseEntry]
+	changes   *sum.Database[models.ReleaseChange]
 	apps      *Apps
 	documents *Documents
 	versions  *Versions
@@ -41,12 +56,13 @@ type Releases struct {
 }
 
 // NewReleases creates a releases store. It is the sole registrant of the
-// release_entries table.
+// release_entries and release_changes tables.
 func NewReleases(db *sqlx.DB, renderer astql.Renderer, apps *Apps, documents *Documents, versions *Versions, jobs *Jobs) *Releases {
 	return &Releases{
 		Database:  sum.NewDatabase[models.Release](db, "releases", renderer),
 		db:        db,
 		entries:   sum.NewDatabase[models.ReleaseEntry](db, "release_entries", renderer),
+		changes:   sum.NewDatabase[models.ReleaseChange](db, "release_changes", renderer),
 		apps:      apps,
 		documents: documents,
 		versions:  versions,
@@ -55,21 +71,27 @@ func NewReleases(db *sqlx.DB, renderer astql.Renderer, apps *Apps, documents *Do
 }
 
 // Cut snapshots the whole live tree: every non-deleted document with a head
-// version becomes an entry at its key. The release row, its entries, and the
-// app's moved pointer commit in one transaction.
-func (s *Releases) Cut(ctx context.Context, appID string) (*models.Release, error) {
-	return s.cutMode(ctx, appID, nil)
+// version becomes an entry at its key. The release row, its entries, its
+// changes against the previous release, and the app's moved pointer commit in
+// one transaction. label is optional ("" for none).
+func (s *Releases) Cut(ctx context.Context, appID, label string) (*models.Release, error) {
+	return s.cutMode(ctx, appID, nil, CutMeta{Kind: models.ReleaseKindCut, Label: label})
 }
 
 // CutWith cuts a release from an explicit entry set rather than a full-tree
-// snapshot — the primitive the per-document publish sugar builds on.
-func (s *Releases) CutWith(ctx context.Context, appID string, specs []ReleaseEntrySpec) (*models.Release, error) {
-	return s.cutMode(ctx, appID, specs)
+// snapshot — the primitive the per-document publish sugar builds on. The meta
+// records what the cut was.
+func (s *Releases) CutWith(ctx context.Context, appID string, specs []ReleaseEntrySpec, meta CutMeta) (*models.Release, error) {
+	if specs == nil {
+		specs = []ReleaseEntrySpec{} // an explicit empty set, not a full-tree cut
+	}
+	return s.cutMode(ctx, appID, specs, meta)
 }
 
 // Rollback cuts a NEW release copying an old release's entries forward. The
-// pointer never moves backward; release numbers stay a straight line.
-func (s *Releases) Rollback(ctx context.Context, appID, releaseID string) (*models.Release, error) {
+// pointer never moves backward; release numbers stay a straight line. The new
+// release records the old one as its source. label is optional.
+func (s *Releases) Rollback(ctx context.Context, appID, releaseID, label string) (*models.Release, error) {
 	tenantID, err := auth.RequireTenant(ctx)
 	if err != nil {
 		return nil, err
@@ -85,12 +107,12 @@ func (s *Releases) Rollback(ctx context.Context, appID, releaseID string) (*mode
 		if gerr != nil {
 			return gerr // ErrNotFound when the release is not the app's
 		}
-		_ = old
 		specs := make([]ReleaseEntrySpec, len(oldEntries))
 		for i, e := range oldEntries {
-			specs[i] = ReleaseEntrySpec{Key: e.Key, DocumentID: e.DocumentID, VersionID: e.VersionID}
+			specs[i] = ReleaseEntrySpec{Key: e.Key, DocumentID: e.DocumentID, VersionID: e.VersionID, VersionNumber: e.VersionNumber}
 		}
-		release, err = s.cut(ctx, tx, appID, tenantID, createdBy, specs)
+		meta := CutMeta{Kind: models.ReleaseKindRollback, Label: label, SourceReleaseID: &old.ID}
+		release, err = s.cut(ctx, tx, appID, tenantID, createdBy, specs, meta)
 		return err
 	})
 	if err != nil {
@@ -121,6 +143,23 @@ func (s *Releases) List(ctx context.Context, appID string, limit, offset int) ([
 	return releases, nil
 }
 
+// Total returns how many releases the app has — the list's true total. (Count
+// is the embedded builder, which the apps delete guard uses directly.)
+func (s *Releases) Total(ctx context.Context, appID string) (int64, error) {
+	tenantID, err := auth.RequireTenant(ctx)
+	if err != nil {
+		return 0, err
+	}
+	n, err := s.Database.Count().
+		Where("app_id", "=", "app_id").
+		Where("tenant_id", "=", "tenant_id").
+		Exec(ctx, map[string]any{"app_id": appID, "tenant_id": tenantID})
+	if err != nil {
+		return 0, fmt.Errorf("counting releases: %w", err)
+	}
+	return int64(n), nil
+}
+
 // Get returns a release with its entries, scoped to the app and tenant.
 func (s *Releases) Get(ctx context.Context, appID, releaseID string) (*models.Release, []*models.ReleaseEntry, error) {
 	tenantID, err := auth.RequireTenant(ctx)
@@ -128,6 +167,27 @@ func (s *Releases) Get(ctx context.Context, appID, releaseID string) (*models.Re
 		return nil, nil, err
 	}
 	return s.getTx(ctx, nil, appID, tenantID, releaseID)
+}
+
+// Changes returns a release with its changes against the previous release,
+// by key, scoped to the app and tenant.
+func (s *Releases) Changes(ctx context.Context, appID, releaseID string) (*models.Release, []*models.ReleaseChange, error) {
+	tenantID, err := auth.RequireTenant(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+	release, err := s.releaseTx(ctx, nil, appID, tenantID, releaseID)
+	if err != nil {
+		return nil, nil, err
+	}
+	changes, err := s.changes.Query().
+		Where("release_id", "=", "release_id").
+		OrderBy("key", "asc").
+		Exec(ctx, map[string]any{"release_id": releaseID})
+	if err != nil {
+		return nil, nil, fmt.Errorf("loading release changes: %w", err)
+	}
+	return release, changes, nil
 }
 
 // CurrentEntries returns the entries of the app's current release, or an empty
@@ -188,10 +248,74 @@ func (s *Releases) Contains(ctx context.Context, releaseID, documentID string) (
 	return n > 0, nil
 }
 
+// --- the diff ---
+
+// releaseDiff is a release's entry set compared with the previous release's:
+// the change rows (release id unset until written) and their counts. Keyed by
+// document, so a document at a new key is a move, not a removal plus an
+// addition. Deterministic in its input order: the new entries first, then the
+// documents that went away, in the previous release's order.
+type releaseDiff struct {
+	changes []*models.ReleaseChange
+	added   int
+	changed int
+	removed int
+	moved   int
+}
+
+// diffEntries compares the next entry set with the previous release's entries.
+func diffEntries(prev []*models.ReleaseEntry, next []ReleaseEntrySpec) releaseDiff {
+	var d releaseDiff
+	oldByDoc := make(map[string]*models.ReleaseEntry, len(prev))
+	for _, e := range prev {
+		oldByDoc[e.DocumentID] = e
+	}
+	newByDoc := make(map[string]bool, len(next))
+	for _, spec := range next {
+		newByDoc[spec.DocumentID] = true
+		versionID, versionNumber := spec.VersionID, spec.VersionNumber
+		change := &models.ReleaseChange{
+			Key: spec.Key, DocumentID: spec.DocumentID,
+			VersionID: &versionID, VersionNumber: &versionNumber,
+		}
+		old, ok := oldByDoc[spec.DocumentID]
+		switch {
+		case !ok:
+			change.Change = models.ChangeAdded
+			d.added++
+		case old.Key != spec.Key:
+			prevKey, prevID, prevNumber := old.Key, old.VersionID, old.VersionNumber
+			change.Change = models.ChangeMoved
+			change.PrevKey, change.PrevVersionID, change.PrevVersionNumber = &prevKey, &prevID, &prevNumber
+			d.moved++
+		case old.VersionID != spec.VersionID:
+			prevID, prevNumber := old.VersionID, old.VersionNumber
+			change.Change = models.ChangeChanged
+			change.PrevVersionID, change.PrevVersionNumber = &prevID, &prevNumber
+			d.changed++
+		default:
+			continue // unchanged path — no row
+		}
+		d.changes = append(d.changes, change)
+	}
+	for _, e := range prev {
+		if newByDoc[e.DocumentID] {
+			continue
+		}
+		prevID, prevNumber := e.VersionID, e.VersionNumber
+		d.changes = append(d.changes, &models.ReleaseChange{
+			Key: e.Key, DocumentID: e.DocumentID, Change: models.ChangeRemoved,
+			PrevVersionID: &prevID, PrevVersionNumber: &prevNumber,
+		})
+		d.removed++
+	}
+	return d
+}
+
 // --- internals ---
 
 // cutMode runs a full-tree (specs nil) or explicit-entry cut in one transaction.
-func (s *Releases) cutMode(ctx context.Context, appID string, specs []ReleaseEntrySpec) (*models.Release, error) {
+func (s *Releases) cutMode(ctx context.Context, appID string, specs []ReleaseEntrySpec, meta CutMeta) (*models.Release, error) {
 	tenantID, err := auth.RequireTenant(ctx)
 	if err != nil {
 		return nil, err
@@ -209,7 +333,7 @@ func (s *Releases) cutMode(ctx context.Context, appID string, specs []ReleaseEnt
 				return err
 			}
 		}
-		release, err = s.cut(ctx, tx, appID, tenantID, createdBy, specs)
+		release, err = s.cut(ctx, tx, appID, tenantID, createdBy, specs, meta)
 		return err
 	})
 	if err != nil {
@@ -222,10 +346,11 @@ func (s *Releases) cutMode(ctx context.Context, appID string, specs []ReleaseEnt
 }
 
 // cut is the shared write: lock the app (existence + cut serialization), assign
-// the next monotonic number, write the release row and its entries, and move the
-// app's pointer forward. The app-row lock plus the unique (app_id, number) index
-// keep the number monotonic under concurrent cuts.
-func (s *Releases) cut(ctx context.Context, tx *sqlx.Tx, appID, tenantID, createdBy string, specs []ReleaseEntrySpec) (*models.Release, error) {
+// the next monotonic number, diff the entry set against the current release,
+// write the release row with its counts, its entries, and its change rows, and
+// move the app's pointer forward. The app-row lock plus the unique (app_id,
+// number) index keep the number monotonic under concurrent cuts.
+func (s *Releases) cut(ctx context.Context, tx *sqlx.Tx, appID, tenantID, createdBy string, specs []ReleaseEntrySpec, meta CutMeta) (*models.Release, error) {
 	app, err := s.apps.Select().
 		Where("id", "=", "id").
 		Where("tenant_id", "=", "tenant_id").
@@ -234,19 +359,31 @@ func (s *Releases) cut(ctx context.Context, tx *sqlx.Tx, appID, tenantID, create
 	if err != nil {
 		return nil, err // ErrNotFound when the app is not the tenant's
 	}
-	prevReleaseID := app.CurrentReleaseID
 
-	count, err := s.Count().
+	count, err := s.Database.Count().
 		Where("app_id", "=", "app_id").
 		ExecTx(ctx, tx, map[string]any{"app_id": appID})
 	if err != nil {
 		return nil, fmt.Errorf("counting releases: %w", err)
 	}
 
+	var prev []*models.ReleaseEntry
+	if app.CurrentReleaseID != nil {
+		prev, err = s.entriesTx(ctx, tx, *app.CurrentReleaseID)
+		if err != nil {
+			return nil, err
+		}
+	}
+	diff := diffEntries(prev, specs)
+
 	now := time.Now()
 	release, err := s.Insert().ExecTx(ctx, tx, &models.Release{
 		AppID: appID, TenantID: tenantID, Number: int(count) + 1,
 		CreatedBy: createdBy, CreatedAt: now,
+		Kind: meta.Kind, Label: optionalText(meta.Label),
+		SourceReleaseID: meta.SourceReleaseID, SubjectDocumentID: meta.SubjectDocumentID,
+		EntryCount: len(specs),
+		Added:      diff.added, Changed: diff.changed, Removed: diff.removed, Moved: diff.moved,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("writing release: %w", err)
@@ -254,10 +391,13 @@ func (s *Releases) cut(ctx context.Context, tx *sqlx.Tx, appID, tenantID, create
 	for _, spec := range specs {
 		if _, err := s.entries.Insert().ExecTx(ctx, tx, &models.ReleaseEntry{
 			ReleaseID: release.ID, Key: spec.Key,
-			DocumentID: spec.DocumentID, VersionID: spec.VersionID,
+			DocumentID: spec.DocumentID, VersionID: spec.VersionID, VersionNumber: spec.VersionNumber,
 		}); err != nil {
 			return nil, fmt.Errorf("writing release entry %q: %w", spec.Key, err)
 		}
+	}
+	if err := s.writeChanges(ctx, tx, release.ID, diff); err != nil {
+		return nil, err
 	}
 	if _, err := s.apps.Modify().
 		Set("current_release_id", "current_release_id").
@@ -270,53 +410,47 @@ func (s *Releases) cut(ctx context.Context, tx *sqlx.Tx, appID, tenantID, create
 		}); err != nil {
 		return nil, fmt.Errorf("moving app pointer: %w", err)
 	}
-	// Project the diff against the previous release into the outbox, in the same
-	// transaction — Postgres commits first, the index write follows via the jobs
-	// pipeline (serving lags by seconds).
-	if err := s.enqueueProjection(ctx, tx, tenantID, prevReleaseID, specs); err != nil {
+	// Project the diff into the outbox, in the same transaction — Postgres
+	// commits first, the index write follows via the jobs pipeline (serving
+	// lags by seconds).
+	if err := s.enqueueProjection(ctx, tx, tenantID, diff); err != nil {
 		return nil, err
 	}
 	return release, nil
 }
 
-// enqueueProjection diffs the new entry set against the previous release and
-// enqueues one index job per added/changed path and one delete job per removed
-// path — keyed by document id, so a moved document (new key, same id) re-indexes
-// rather than orphaning the old path. Commits with the cut; the pipeline lands
-// the OpenSearch writes.
-func (s *Releases) enqueueProjection(ctx context.Context, tx *sqlx.Tx, tenantID string, prevReleaseID *string, newSpecs []ReleaseEntrySpec) error {
-	oldByDoc := map[string]ReleaseEntrySpec{}
-	if prevReleaseID != nil {
-		olds, err := s.entries.Query().
-			Where("release_id", "=", "release_id").
-			ExecTx(ctx, tx, map[string]any{"release_id": *prevReleaseID})
-		if err != nil {
-			return fmt.Errorf("loading previous entries: %w", err)
-		}
-		for _, e := range olds {
-			oldByDoc[e.DocumentID] = ReleaseEntrySpec{Key: e.Key, DocumentID: e.DocumentID, VersionID: e.VersionID}
+// writeChanges inserts a diff's change rows for the release.
+func (s *Releases) writeChanges(ctx context.Context, tx *sqlx.Tx, releaseID string, diff releaseDiff) error {
+	for _, c := range diff.changes {
+		row := c.Clone()
+		row.ReleaseID = releaseID
+		if _, err := s.changes.Insert().ExecTx(ctx, tx, &row); err != nil {
+			return fmt.Errorf("writing release change %q: %w", c.Key, err)
 		}
 	}
+	return nil
+}
 
-	newByDoc := make(map[string]bool, len(newSpecs))
-	for _, spec := range newSpecs {
-		newByDoc[spec.DocumentID] = true
-		if old, ok := oldByDoc[spec.DocumentID]; ok && old.VersionID == spec.VersionID && old.Key == spec.Key {
-			continue // unchanged path — nothing to re-index
+// enqueueProjection turns the diff into outbox jobs: one index job per added,
+// changed, or moved path and one delete job per removed path — keyed by
+// document id, so a moved document (new key, same id) re-indexes rather than
+// orphaning the old path. Commits with the cut; the pipeline lands the
+// OpenSearch writes.
+func (s *Releases) enqueueProjection(ctx context.Context, tx *sqlx.Tx, tenantID string, diff releaseDiff) error {
+	for _, c := range diff.changes {
+		if c.Change == models.ChangeRemoved {
+			if err := s.jobs.Enqueue(ctx, tx, newJob(tenantID, c.DocumentID, models.JobDelete, nil)); err != nil {
+				return err
+			}
+			continue
 		}
+		spec := ReleaseEntrySpec{Key: c.Key, DocumentID: c.DocumentID, VersionID: *c.VersionID}
 		payload, err := s.projectionPayload(ctx, tx, tenantID, spec)
 		if err != nil {
 			return err
 		}
-		if err := s.jobs.Enqueue(ctx, tx, newJob(tenantID, spec.DocumentID, models.JobIndex, payload)); err != nil {
+		if err := s.jobs.Enqueue(ctx, tx, newJob(tenantID, c.DocumentID, models.JobIndex, payload)); err != nil {
 			return err
-		}
-	}
-	for docID := range oldByDoc {
-		if !newByDoc[docID] {
-			if err := s.jobs.Enqueue(ctx, tx, newJob(tenantID, docID, models.JobDelete, nil)); err != nil {
-				return err
-			}
 		}
 	}
 	return nil
@@ -360,6 +494,16 @@ func newJob(tenantID, documentID, operation string, payload []byte) *models.Job 
 	}
 }
 
+// optionalText trims a label and returns nil for an empty one, so the column
+// holds NULL rather than "".
+func optionalText(s string) *string {
+	s = strings.TrimSpace(s)
+	if s == "" {
+		return nil
+	}
+	return &s
+}
+
 // snapshotHeads builds the full-tree entry set: every non-deleted document in the
 // app that has a head version, keyed by its materialized key.
 func (s *Releases) snapshotHeads(ctx context.Context, tx *sqlx.Tx, appID, tenantID string) ([]ReleaseEntrySpec, error) {
@@ -385,44 +529,59 @@ func (s *Releases) snapshotHeads(ctx context.Context, tx *sqlx.Tx, appID, tenant
 		if len(heads) == 0 {
 			continue // a document with no versions has nothing to publish
 		}
-		specs = append(specs, ReleaseEntrySpec{Key: doc.Key, DocumentID: doc.ID, VersionID: heads[0].ID})
+		specs = append(specs, ReleaseEntrySpec{
+			Key: doc.Key, DocumentID: doc.ID,
+			VersionID: heads[0].ID, VersionNumber: heads[0].VersionNumber,
+		})
 	}
 	return specs, nil
+}
+
+// releaseTx loads a release scoped to app and tenant. tx may be nil for a
+// non-transactional read.
+func (s *Releases) releaseTx(ctx context.Context, tx *sqlx.Tx, appID, tenantID, releaseID string) (*models.Release, error) {
+	q := s.Select().
+		Where("id", "=", "id").
+		Where("app_id", "=", "app_id").
+		Where("tenant_id", "=", "tenant_id")
+	args := map[string]any{"id": releaseID, "app_id": appID, "tenant_id": tenantID}
+	if tx != nil {
+		return q.ExecTx(ctx, tx, args) // ErrNotFound when the release is not the app's
+	}
+	return q.Exec(ctx, args)
+}
+
+// entriesTx loads a release's entries by key. tx may be nil.
+func (s *Releases) entriesTx(ctx context.Context, tx *sqlx.Tx, releaseID string) ([]*models.ReleaseEntry, error) {
+	q := s.entries.Query().
+		Where("release_id", "=", "release_id").
+		OrderBy("key", "asc")
+	args := map[string]any{"release_id": releaseID}
+	var (
+		entries []*models.ReleaseEntry
+		err     error
+	)
+	if tx != nil {
+		entries, err = q.ExecTx(ctx, tx, args)
+	} else {
+		entries, err = q.Exec(ctx, args)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("loading release entries: %w", err)
+	}
+	return entries, nil
 }
 
 // getTx loads a release and its entries, scoped to app and tenant. tx may be nil
 // for a non-transactional read.
 func (s *Releases) getTx(ctx context.Context, tx *sqlx.Tx, appID, tenantID, releaseID string) (*models.Release, []*models.ReleaseEntry, error) {
-	relQ := s.Select().
-		Where("id", "=", "id").
-		Where("app_id", "=", "app_id").
-		Where("tenant_id", "=", "tenant_id")
-	entryQ := s.entries.Query().
-		Where("release_id", "=", "release_id").
-		OrderBy("key", "asc")
-	relArgs := map[string]any{"id": releaseID, "app_id": appID, "tenant_id": tenantID}
-	entryArgs := map[string]any{"release_id": releaseID}
-
-	var (
-		release *models.Release
-		entries []*models.ReleaseEntry
-		err     error
-	)
-	if tx != nil {
-		release, err = relQ.ExecTx(ctx, tx, relArgs)
-	} else {
-		release, err = relQ.Exec(ctx, relArgs)
-	}
+	release, err := s.releaseTx(ctx, tx, appID, tenantID, releaseID)
 	if err != nil {
-		return nil, nil, err // ErrNotFound when the release is not the app's
+		return nil, nil, err
 	}
-	if tx != nil {
-		entries, err = entryQ.ExecTx(ctx, tx, entryArgs)
-	} else {
-		entries, err = entryQ.Exec(ctx, entryArgs)
-	}
+	entries, err := s.entriesTx(ctx, tx, releaseID)
 	if err != nil {
-		return nil, nil, fmt.Errorf("loading release entries: %w", err)
+		return nil, nil, err
 	}
 	return release, entries, nil
 }

@@ -29,6 +29,7 @@ import (
 type step struct {
 	path    string   // collection path for folder; document path for write
 	content string   // write only
+	label   string   // cut only: the release's label
 	tags    []string // write only, applied when the document is created
 	kind    stepKind
 }
@@ -47,7 +48,7 @@ func write(path, content string, tags ...string) step {
 	return step{kind: stepWrite, path: path, content: content, tags: tags}
 }
 
-func cut() step { return step{kind: stepCut} }
+func cut(label string) step { return step{kind: stepCut, label: label} }
 
 // site is the script for the seed app: a small product documentation site.
 func site() []step {
@@ -65,13 +66,13 @@ func site() []step {
 		write("reference/api.md", apiV1, "reference"),
 		write("reference/cli.md", cliV1, "reference"),
 		write("blog/hello-world.md", helloWorldV1, "blog"),
-		cut(),
+		cut("Initial site"),
 
 		// Release 2: two pages revised, one page added.
 		write("guides/getting-started.md", gettingStartedV2),
 		write("reference/api.md", apiV2),
 		write("blog/release-notes.md", releaseNotesV1, "blog", "changelog"),
-		cut(),
+		cut("2.3 docs: revised guides, release notes"),
 
 		// Work in progress after the second release, never cut: the landing
 		// page has a newer draft over its published version, a new guide is
@@ -125,7 +126,7 @@ func seedSite(ctx context.Context, c *client, appID string, steps []step) (siteR
 			if !dirty {
 				continue
 			}
-			rel, err := c.cutRelease(ctx, appID)
+			rel, err := c.cutRelease(ctx, appID, s.label)
 			if err != nil {
 				return res, fmt.Errorf("cutting release: %w", err)
 			}
