@@ -45,6 +45,16 @@ normalizes it to match remark:
 - Backslash escapes and HTML character references are resolved in text and
   titles (but not in code or raw HTML), mirroring goldmark's own renderer.
 
+## OpenAPI and the SDK
+
+The published document lookup can return a page as an mdast tree
+(`GET /published/apps/{app_id}/lookup?key=…&format=mdast`). The node types carry
+rocco schema tags (a const `type`, a discriminated `children` union), so the
+OpenAPI spec and the generated TypeScript SDK describe the tree as a typed,
+discriminated union — the Go structs are the single source of truth. A test in
+`api/handlers` validates every fixture against the generated schema, so the
+structs and the schema cannot drift apart.
+
 ## Frontmatter
 
 A YAML frontmatter block — `---`-fenced, at the very top of the document — is
