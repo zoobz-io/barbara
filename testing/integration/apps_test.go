@@ -37,8 +37,12 @@ func TestApps_DeleteCascades(t *testing.T) {
 
 	count := func(table, appID string) int {
 		t.Helper()
+		col := "app_id"
+		if table == "apps" {
+			col = "id"
+		}
 		var n int
-		if err := db.QueryRowx("SELECT count(*) FROM "+table+" WHERE app_id = $1", appID).Scan(&n); err != nil {
+		if err := db.QueryRowx("SELECT count(*) FROM "+table+" WHERE "+col+" = $1", appID).Scan(&n); err != nil {
 			t.Fatalf("counting %s: %v", table, err)
 		}
 		return n
