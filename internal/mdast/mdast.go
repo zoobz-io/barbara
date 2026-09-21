@@ -13,66 +13,114 @@ import (
 )
 
 // parser is a goldmark parser with the GFM extension (tables, strikethrough,
-// task lists, and autolinks). It is built once and reused; goldmark parsers are
-// safe for concurrent use.
-var parser = goldmark.New(goldmark.WithExtensions(extension.GFM)).Parser()
+// task lists, autolinks) and footnotes. It is built once and reused; goldmark
+// parsers are safe for concurrent use.
+var parser = goldmark.New(goldmark.WithExtensions(extension.GFM, extension.Footnote)).Parser()
 
 // Parse parses Markdown into an mdast tree.
 func Parse(src []byte) (*Root, error) {
 	doc := parser.Parse(text.NewReader(src))
-	return &Root{Type: "root", Children: convertBlocks(doc, src)}, nil
+	c := &conv{src: src, footnotes: footnoteLabels(doc)}
+	return &Root{Type: "root", Children: c.blocks(doc)}, nil
 }
 
-// convertBlocks converts the block-level children of a container.
-func convertBlocks(parent ast.Node, src []byte) []Node {
-	var out []Node
-	for c := parent.FirstChild(); c != nil; c = c.NextSibling() {
-		if n := convertBlock(c, src); n != nil {
+// conv carries per-parse state through the walk.
+type conv struct {
+	// footnotes maps a footnote's index to its label. goldmark identifies an
+	// inline footnote reference by index; mdast identifies it by label.
+	footnotes map[int]string
+	src       []byte
+}
+
+// footnoteLabels reads the index-to-label map from the footnote list goldmark
+// appends at the end of a document.
+func footnoteLabels(doc ast.Node) map[int]string {
+	labels := map[int]string{}
+	for c := doc.FirstChild(); c != nil; c = c.NextSibling() {
+		list, ok := c.(*east.FootnoteList)
+		if !ok {
+			continue
+		}
+		for f := list.FirstChild(); f != nil; f = f.NextSibling() {
+			if fn, ok := f.(*east.Footnote); ok {
+				labels[fn.Index] = string(fn.Ref)
+			}
+		}
+	}
+	return labels
+}
+
+// blocks converts the block-level children of a container. A children slice is
+// always non-nil so it marshals as [] and never null.
+func (c *conv) blocks(parent ast.Node) []Node {
+	out := []Node{}
+	for ch := parent.FirstChild(); ch != nil; ch = ch.NextSibling() {
+		if list, ok := ch.(*east.FootnoteList); ok {
+			// goldmark collects footnote definitions into a list at the end of
+			// the document; mdast keeps each as a root-level footnoteDefinition.
+			for f := list.FirstChild(); f != nil; f = f.NextSibling() {
+				if fn, ok := f.(*east.Footnote); ok {
+					out = append(out, c.footnoteDefinition(fn))
+				}
+			}
+			continue
+		}
+		if n := c.block(ch); n != nil {
 			out = append(out, n)
 		}
 	}
 	return out
 }
 
-// convertBlock converts one block-level node.
-func convertBlock(n ast.Node, src []byte) Node {
+// block converts one block-level node.
+func (c *conv) block(n ast.Node) Node {
 	switch b := n.(type) {
 	case *ast.Paragraph:
-		return &Paragraph{Type: "paragraph", Children: convertInline(b, src)}
+		return &Paragraph{Type: "paragraph", Children: c.inline(b)}
 	case *ast.TextBlock:
 		// A tight list item's content. mdast still wraps it in a paragraph.
-		return &Paragraph{Type: "paragraph", Children: convertInline(b, src)}
+		return &Paragraph{Type: "paragraph", Children: c.inline(b)}
 	case *ast.Heading:
-		return &Heading{Type: "heading", Depth: b.Level, Children: convertInline(b, src)}
+		return &Heading{Type: "heading", Depth: b.Level, Children: c.inline(b)}
 	case *ast.ThematicBreak:
 		return &ThematicBreak{Type: "thematicBreak"}
 	case *ast.Blockquote:
-		return &Blockquote{Type: "blockquote", Children: convertBlocks(b, src)}
+		return &Blockquote{Type: "blockquote", Children: c.blocks(b)}
 	case *ast.List:
-		return convertList(b, src)
+		return c.list(b)
 	case *ast.ListItem:
-		return convertListItem(b, src)
+		return c.listItem(b)
 	case *ast.FencedCodeBlock:
-		return convertFencedCode(b, src)
+		return c.fencedCode(b)
 	case *ast.CodeBlock:
-		value := linesValue(b.Lines(), src)
-		return &Code{Type: "code", Lang: nil, Meta: nil, Value: value}
+		return &Code{Type: "code", Lang: nil, Meta: nil, Value: linesValue(b.Lines(), c.src)}
 	case *ast.HTMLBlock:
-		value := linesValue(b.Lines(), src)
+		value := linesValue(b.Lines(), c.src)
 		if b.HasClosure() {
-			value += string(b.ClosureLine.Value(src))
+			value += string(b.ClosureLine.Value(c.src))
 		}
 		return &HTML{Type: "html", Value: strings.TrimSuffix(value, "\n")}
 	case *ast.LinkReferenceDefinition:
 		return convertDefinition(b)
 	case *east.Table:
-		return convertTable(b, src)
+		return c.table(b)
 	}
 	return nil
 }
 
-// convertList converts a list and its items.
-func convertList(l *ast.List, src []byte) *List {
+// footnoteDefinition converts a goldmark footnote to an mdast footnoteDefinition.
+func (c *conv) footnoteDefinition(fn *east.Footnote) *FootnoteDefinition {
+	label := string(fn.Ref)
+	return &FootnoteDefinition{
+		Type:       "footnoteDefinition",
+		Identifier: normalizeIdentifier(label),
+		Label:      label,
+		Children:   c.blocks(fn),
+	}
+}
+
+// list converts a list and its items.
+func (c *conv) list(l *ast.List) *List {
 	var start *int
 	if l.IsOrdered() {
 		s := l.Start
@@ -83,32 +131,32 @@ func convertList(l *ast.List, src []byte) *List {
 		Ordered:  l.IsOrdered(),
 		Start:    start,
 		Spread:   !l.IsTight,
-		Children: convertBlocks(l, src),
+		Children: c.blocks(l),
 	}
 }
 
-// convertListItem converts a list item, lifting a leading GFM task checkbox out
-// of its content and onto the item's Checked field.
-func convertListItem(item *ast.ListItem, src []byte) *ListItem {
+// listItem converts a list item, lifting a leading GFM task checkbox out of its
+// content and onto the item's Checked field.
+func (c *conv) listItem(item *ast.ListItem) *ListItem {
 	return &ListItem{
 		Type:     "listItem",
-		Spread:   itemSpread(item, src),
+		Spread:   c.itemSpread(item),
 		Checked:  taskChecked(item),
-		Children: convertBlocks(item, src),
+		Children: c.blocks(item),
 	}
 }
 
 // itemSpread reports whether a list item is spread: whether a blank line
 // separates two of its block children. This is the remark rule — a list item's
 // own looseness — and is independent of the list's looseness.
-func itemSpread(item *ast.ListItem, src []byte) bool {
+func (c *conv) itemSpread(item *ast.ListItem) bool {
 	prevStop := -1
-	for c := item.FirstChild(); c != nil; c = c.NextSibling() {
-		if start := nodeStart(c); prevStop >= 0 && start >= prevStop &&
-			bytes.Count(src[prevStop:start], []byte{'\n'}) >= 2 {
+	for ch := item.FirstChild(); ch != nil; ch = ch.NextSibling() {
+		if start := nodeStart(ch); prevStop >= 0 && start >= prevStop &&
+			bytes.Count(c.src[prevStop:start], []byte{'\n'}) >= 2 {
 			return true
 		}
-		prevStop = nodeStop(c)
+		prevStop = nodeStop(ch)
 	}
 	return false
 }
@@ -176,41 +224,48 @@ func taskChecked(item *ast.ListItem) *bool {
 	return nil
 }
 
-// convertFencedCode converts a fenced code block, splitting the info string
-// into a language and the trailing meta.
-func convertFencedCode(b *ast.FencedCodeBlock, src []byte) *Code {
-	value := linesValue(b.Lines(), src)
+// fencedCode converts a fenced code block, splitting the info string into a
+// language and the trailing meta. The info string is trimmed, the language is
+// the text up to the first whitespace, and the meta is the remainder with its
+// leading whitespace dropped — matching remark.
+func (c *conv) fencedCode(b *ast.FencedCodeBlock) *Code {
+	value := linesValue(b.Lines(), c.src)
 	var lang, meta *string
 	if b.Info != nil {
-		info := string(b.Info.Segment.Value(src))
-		if head, tail, found := strings.Cut(info, " "); found {
-			lang, meta = &head, &tail
-		} else if info != "" {
-			lang = &info
+		info := strings.TrimSpace(string(b.Info.Segment.Value(c.src)))
+		if info != "" {
+			head := info
+			if i := strings.IndexAny(info, " \t"); i >= 0 {
+				head = info[:i]
+				if tail := strings.TrimLeft(info[i:], " \t"); tail != "" {
+					meta = &tail
+				}
+			}
+			lang = &head
 		}
 	}
 	return &Code{Type: "code", Lang: lang, Meta: meta, Value: value}
 }
 
-// convertTable converts a GFM table. goldmark models the header as a distinct
-// node; mdast represents it as an ordinary row, so both map to a table row.
-func convertTable(t *east.Table, src []byte) *Table {
+// table converts a GFM table. goldmark models the header as a distinct node;
+// mdast represents it as an ordinary row, so both map to a table row.
+func (c *conv) table(t *east.Table) *Table {
 	align := make([]*string, len(t.Alignments))
 	for i, a := range t.Alignments {
 		align[i] = alignString(a)
 	}
-	var rows []Node
-	for c := t.FirstChild(); c != nil; c = c.NextSibling() {
-		rows = append(rows, &TableRow{Type: "tableRow", Children: convertCells(c, src)})
+	rows := []Node{}
+	for ch := t.FirstChild(); ch != nil; ch = ch.NextSibling() {
+		rows = append(rows, &TableRow{Type: "tableRow", Children: c.cells(ch)})
 	}
 	return &Table{Type: "table", Align: align, Children: rows}
 }
 
-// convertCells converts the cells of a table row.
-func convertCells(row ast.Node, src []byte) []Node {
-	var cells []Node
-	for c := row.FirstChild(); c != nil; c = c.NextSibling() {
-		cells = append(cells, &TableCell{Type: "tableCell", Children: convertInline(c, src)})
+// cells converts the cells of a table row.
+func (c *conv) cells(row ast.Node) []Node {
+	cells := []Node{}
+	for ch := row.FirstChild(); ch != nil; ch = ch.NextSibling() {
+		cells = append(cells, &TableCell{Type: "tableCell", Children: c.inline(ch)})
 	}
 	return cells
 }
@@ -227,12 +282,13 @@ func convertDefinition(d *ast.LinkReferenceDefinition) *Definition {
 	}
 }
 
-// convertInline converts the inline children of a container into mdast nodes,
-// merging adjacent text runs. goldmark splits text at every inline boundary and
-// line; mdast keeps one text node per run. A soft line break becomes "\n"
-// inside the text value; a hard line break becomes a break node.
-func convertInline(parent ast.Node, src []byte) []Node {
-	var out []Node
+// inline converts the inline children of a container into mdast nodes, merging
+// adjacent text runs. goldmark splits text at every inline boundary and line;
+// mdast keeps one text node per run. A soft line break becomes "\n" inside the
+// text value; a hard line break becomes a break node. The slice is always
+// non-nil so it marshals as [] and never null.
+func (c *conv) inline(parent ast.Node) []Node {
+	out := []Node{}
 	var buf strings.Builder
 	flush := func() {
 		if buf.Len() > 0 {
@@ -240,10 +296,10 @@ func convertInline(parent ast.Node, src []byte) []Node {
 			buf.Reset()
 		}
 	}
-	for c := parent.FirstChild(); c != nil; c = c.NextSibling() {
-		switch t := c.(type) {
+	for ch := parent.FirstChild(); ch != nil; ch = ch.NextSibling() {
+		switch t := ch.(type) {
 		case *ast.Text:
-			buf.Write([]byte(decodeText(t.Segment.Value(src))))
+			buf.WriteString(decodeText(t.Segment.Value(c.src)))
 			if t.SoftLineBreak() {
 				buf.WriteByte('\n')
 			}
@@ -257,7 +313,7 @@ func convertInline(parent ast.Node, src []byte) []Node {
 			// Lifted onto the list item; it contributes no inline content.
 		default:
 			flush()
-			if n := convertInlineNode(c, src); n != nil {
+			if n := c.inlineNode(ch); n != nil {
 				out = append(out, n)
 			}
 		}
@@ -266,33 +322,42 @@ func convertInline(parent ast.Node, src []byte) []Node {
 	return out
 }
 
-// convertInlineNode converts one non-text inline node.
-func convertInlineNode(n ast.Node, src []byte) Node {
+// inlineNode converts one non-text inline node. A goldmark footnote backlink —
+// the return arrow goldmark adds to a definition — has no case and is dropped,
+// which is right: mdast carries no backlink.
+func (c *conv) inlineNode(n ast.Node) Node {
 	switch i := n.(type) {
 	case *ast.Emphasis:
 		if i.Level == 2 {
-			return &Strong{Type: "strong", Children: convertInline(i, src)}
+			return &Strong{Type: "strong", Children: c.inline(i)}
 		}
-		return &Emphasis{Type: "emphasis", Children: convertInline(i, src)}
+		return &Emphasis{Type: "emphasis", Children: c.inline(i)}
 	case *east.Strikethrough:
-		return &Delete{Type: "delete", Children: convertInline(i, src)}
+		return &Delete{Type: "delete", Children: c.inline(i)}
 	case *ast.CodeSpan:
-		return &InlineCode{Type: "inlineCode", Value: codeSpanValue(i, src)}
+		return &InlineCode{Type: "inlineCode", Value: codeSpanValue(i, c.src)}
 	case *ast.Link:
-		return convertLink(i, src)
+		return c.link(i)
 	case *ast.AutoLink:
-		return convertAutoLink(i, src)
+		return c.autoLink(i)
 	case *ast.Image:
-		return convertImage(i, src)
+		return c.image(i)
 	case *ast.RawHTML:
-		return &HTML{Type: "html", Value: rawHTMLValue(i, src)}
+		return &HTML{Type: "html", Value: rawHTMLValue(i, c.src)}
+	case *east.FootnoteLink:
+		label := c.footnotes[i.Index]
+		return &FootnoteReference{
+			Type:       "footnoteReference",
+			Identifier: normalizeIdentifier(label),
+			Label:      label,
+		}
 	}
 	return nil
 }
 
-// convertLink converts an inline link, or a reference link when it resolves to
-// a definition.
-func convertLink(l *ast.Link, src []byte) Node {
+// link converts an inline link, or a reference link when it resolves to a
+// definition.
+func (c *conv) link(l *ast.Link) Node {
 	if l.Reference != nil {
 		label := string(l.Reference.Value)
 		return &LinkReference{
@@ -300,33 +365,37 @@ func convertLink(l *ast.Link, src []byte) Node {
 			Identifier:    normalizeIdentifier(label),
 			Label:         label,
 			ReferenceType: refType(l.Reference.Type),
-			Children:      convertInline(l, src),
+			Children:      c.inline(l),
 		}
 	}
 	return &Link{
 		Type:     "link",
 		URL:      string(l.Destination),
 		Title:    optString(l.Title),
-		Children: convertInline(l, src),
+		Children: c.inline(l),
 	}
 }
 
-// convertAutoLink converts an autolink (an angle-bracket link or a GFM bare
-// URL) into a link whose single text child is the shown URL.
-func convertAutoLink(a *ast.AutoLink, src []byte) Node {
-	label := string(a.Label(src))
+// autoLink converts an autolink (an angle-bracket link or a GFM bare URL) into a
+// link whose single text child is the shown URL. An email autolink gets the
+// mailto: scheme, which goldmark leaves off the URL.
+func (c *conv) autoLink(a *ast.AutoLink) Node {
+	url := string(a.URL(c.src))
+	if a.AutoLinkType == ast.AutoLinkEmail {
+		url = "mailto:" + url
+	}
 	return &Link{
 		Type:     "link",
-		URL:      string(a.URL(src)),
+		URL:      url,
 		Title:    nil,
-		Children: []Node{&Text{Type: "text", Value: label}},
+		Children: []Node{&Text{Type: "text", Value: string(a.Label(c.src))}},
 	}
 }
 
-// convertImage converts an inline image, or an image reference when it resolves
-// to a definition.
-func convertImage(img *ast.Image, src []byte) Node {
-	alt := textContent(img, src)
+// image converts an inline image, or an image reference when it resolves to a
+// definition.
+func (c *conv) image(img *ast.Image) Node {
+	alt := textContent(img, c.src)
 	if img.Reference != nil {
 		label := string(img.Reference.Value)
 		return &ImageReference{

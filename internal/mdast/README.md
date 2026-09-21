@@ -34,6 +34,11 @@ normalizes it to match remark:
   becomes a `break` node.
 - goldmark's single `Emphasis` (with a level) splits into `emphasis` and
   `strong`; strikethrough becomes `delete`.
+- An email autolink gets the `mailto:` scheme goldmark leaves off.
+- Footnotes: goldmark collects the definitions into a list at the end of the
+  document and identifies a reference by index; the walker flattens that list
+  into root-level `footnoteDefinition` nodes and resolves each
+  `footnoteReference` back to its label, dropping goldmark's backlink arrow.
 - A GFM task checkbox moves from the item's text onto `listItem.checked`.
 - A fenced code info string splits into `lang` and `meta`.
 - `list.spread` / `listItem.spread` follow the remark looseness rules.

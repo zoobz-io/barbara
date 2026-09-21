@@ -1,0 +1,39 @@
+{
+  "children": [
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "Text with a footnote"
+        },
+        {
+          "identifier": "1",
+          "label": "1",
+          "type": "footnoteReference"
+        },
+        {
+          "type": "text",
+          "value": "."
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "The note."
+            }
+          ],
+          "type": "paragraph"
+        }
+      ],
+      "identifier": "1",
+      "label": "1",
+      "type": "footnoteDefinition"
+    }
+  ],
+  "type": "root"
+}

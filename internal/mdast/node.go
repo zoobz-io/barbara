@@ -158,6 +158,21 @@ type Definition struct {
 	URL        string  `json:"url"`
 }
 
+// FootnoteReference is an inline reference to a FootnoteDefinition.
+type FootnoteReference struct {
+	Type       string `json:"type"`
+	Identifier string `json:"identifier"`
+	Label      string `json:"label"`
+}
+
+// FootnoteDefinition is the content of a footnote, referenced by identifier.
+type FootnoteDefinition struct {
+	Type       string `json:"type"`
+	Identifier string `json:"identifier"`
+	Label      string `json:"label"`
+	Children   []Node `json:"children"`
+}
+
 // Table is a GFM table. Align holds one entry per column: "left", "right",
 // "center", or nil for the default.
 type Table struct {
@@ -178,26 +193,28 @@ type TableCell struct {
 	Children []Node `json:"children"`
 }
 
-func (*Root) mdastNode()           {}
-func (*Paragraph) mdastNode()      {}
-func (*Heading) mdastNode()        {}
-func (*ThematicBreak) mdastNode()  {}
-func (*Blockquote) mdastNode()     {}
-func (*List) mdastNode()           {}
-func (*ListItem) mdastNode()       {}
-func (*Code) mdastNode()           {}
-func (*HTML) mdastNode()           {}
-func (*Text) mdastNode()           {}
-func (*Emphasis) mdastNode()       {}
-func (*Strong) mdastNode()         {}
-func (*Delete) mdastNode()         {}
-func (*InlineCode) mdastNode()     {}
-func (*Break) mdastNode()          {}
-func (*Link) mdastNode()           {}
-func (*Image) mdastNode()          {}
-func (*LinkReference) mdastNode()  {}
-func (*ImageReference) mdastNode() {}
-func (*Definition) mdastNode()     {}
-func (*Table) mdastNode()          {}
-func (*TableRow) mdastNode()       {}
-func (*TableCell) mdastNode()      {}
+func (*Root) mdastNode()               {}
+func (*Paragraph) mdastNode()          {}
+func (*Heading) mdastNode()            {}
+func (*ThematicBreak) mdastNode()      {}
+func (*Blockquote) mdastNode()         {}
+func (*List) mdastNode()               {}
+func (*ListItem) mdastNode()           {}
+func (*Code) mdastNode()               {}
+func (*HTML) mdastNode()               {}
+func (*Text) mdastNode()               {}
+func (*Emphasis) mdastNode()           {}
+func (*Strong) mdastNode()             {}
+func (*Delete) mdastNode()             {}
+func (*InlineCode) mdastNode()         {}
+func (*Break) mdastNode()              {}
+func (*Link) mdastNode()               {}
+func (*Image) mdastNode()              {}
+func (*LinkReference) mdastNode()      {}
+func (*ImageReference) mdastNode()     {}
+func (*Definition) mdastNode()         {}
+func (*FootnoteReference) mdastNode()  {}
+func (*FootnoteDefinition) mdastNode() {}
+func (*Table) mdastNode()              {}
+func (*TableRow) mdastNode()           {}
+func (*TableCell) mdastNode()          {}

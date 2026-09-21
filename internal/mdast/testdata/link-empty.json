@@ -1,0 +1,45 @@
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "title": null,
+          "type": "link",
+          "url": "x"
+        },
+        {
+          "type": "text",
+          "value": " "
+        },
+        {
+          "alt": "",
+          "title": null,
+          "type": "image",
+          "url": "y"
+        },
+        {
+          "type": "text",
+          "value": " "
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "a"
+            }
+          ],
+          "title": null,
+          "type": "link",
+          "url": ""
+        },
+        {
+          "type": "text",
+          "value": " <>"
+        }
+      ],
+      "type": "paragraph"
+    }
+  ],
+  "type": "root"
+}

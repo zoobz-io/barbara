@@ -1,0 +1,90 @@
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "https://x.io/a"
+            }
+          ],
+          "title": null,
+          "type": "link",
+          "url": "https://x.io/a"
+        },
+        {
+          "type": "text",
+          "value": " and "
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "me@x.io"
+            }
+          ],
+          "title": null,
+          "type": "link",
+          "url": "mailto:me@x.io"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "Visit "
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "www.example.com"
+            }
+          ],
+          "title": null,
+          "type": "link",
+          "url": "http://www.example.com"
+        },
+        {
+          "type": "text",
+          "value": " or "
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "https://x.io/a?b=c"
+            }
+          ],
+          "title": null,
+          "type": "link",
+          "url": "https://x.io/a?b=c"
+        },
+        {
+          "type": "text",
+          "value": ", or mail "
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "me@x.io"
+            }
+          ],
+          "title": null,
+          "type": "link",
+          "url": "mailto:me@x.io"
+        },
+        {
+          "type": "text",
+          "value": "."
+        }
+      ],
+      "type": "paragraph"
+    }
+  ],
+  "type": "root"
+}
