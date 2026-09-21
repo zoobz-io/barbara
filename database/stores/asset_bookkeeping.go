@@ -3,6 +3,7 @@ package stores
 import (
 	"context"
 	"fmt"
+	"slices"
 	"strings"
 	"time"
 
@@ -405,7 +406,15 @@ func (b *assetBooks) rebuild(ctx context.Context, tenantID, appID string, f *ass
 			}}); err != nil {
 			return fmt.Errorf("zeroing explicit folder rows: %w", err)
 		}
-		for _, row := range f.Folders {
+		// Root first, then lexical order: the write sequence is fixed, so a failure
+		// names the same row every time and the statement log reads as a tree.
+		paths := make([]string, 0, len(f.Folders))
+		for path := range f.Folders {
+			paths = append(paths, path)
+		}
+		slices.Sort(paths)
+		for _, path := range paths {
+			row := f.Folders[path]
 			if _, err := b.folders.Insert().
 				OnConflict("tenant_id", "app_id", "path").
 				DoUpdate().
