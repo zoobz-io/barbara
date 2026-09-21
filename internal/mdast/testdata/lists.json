@@ -1,0 +1,338 @@
+{
+  "children": [
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "An unordered tight list:"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "children": [
+        {
+          "checked": null,
+          "children": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "first"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "spread": false,
+          "type": "listItem"
+        },
+        {
+          "checked": null,
+          "children": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "second"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "spread": false,
+          "type": "listItem"
+        },
+        {
+          "checked": null,
+          "children": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "third"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "spread": false,
+          "type": "listItem"
+        }
+      ],
+      "ordered": false,
+      "spread": false,
+      "start": null,
+      "type": "list"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "An ordered tight list:"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "children": [
+        {
+          "checked": null,
+          "children": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "one"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "spread": false,
+          "type": "listItem"
+        },
+        {
+          "checked": null,
+          "children": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "two"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "spread": false,
+          "type": "listItem"
+        },
+        {
+          "checked": null,
+          "children": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "three"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "spread": false,
+          "type": "listItem"
+        }
+      ],
+      "ordered": true,
+      "spread": false,
+      "start": 1,
+      "type": "list"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "A loose list with blank lines between items:"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "children": [
+        {
+          "checked": null,
+          "children": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "first item"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "spread": false,
+          "type": "listItem"
+        },
+        {
+          "checked": null,
+          "children": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "second item"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "spread": false,
+          "type": "listItem"
+        }
+      ],
+      "ordered": false,
+      "spread": true,
+      "start": null,
+      "type": "list"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "A nested list:"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "children": [
+        {
+          "checked": null,
+          "children": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "top"
+                }
+              ],
+              "type": "paragraph"
+            },
+            {
+              "children": [
+                {
+                  "checked": null,
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "type": "text",
+                          "value": "nested one"
+                        }
+                      ],
+                      "type": "paragraph"
+                    }
+                  ],
+                  "spread": false,
+                  "type": "listItem"
+                },
+                {
+                  "checked": null,
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "type": "text",
+                          "value": "nested two"
+                        }
+                      ],
+                      "type": "paragraph"
+                    }
+                  ],
+                  "spread": false,
+                  "type": "listItem"
+                }
+              ],
+              "ordered": false,
+              "spread": false,
+              "start": null,
+              "type": "list"
+            }
+          ],
+          "spread": false,
+          "type": "listItem"
+        },
+        {
+          "checked": null,
+          "children": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "back to top"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "spread": false,
+          "type": "listItem"
+        }
+      ],
+      "ordered": false,
+      "spread": false,
+      "start": null,
+      "type": "list"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "An ordered list with a start number:"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "children": [
+        {
+          "checked": null,
+          "children": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "three"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "spread": false,
+          "type": "listItem"
+        },
+        {
+          "checked": null,
+          "children": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "four"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "spread": false,
+          "type": "listItem"
+        },
+        {
+          "checked": null,
+          "children": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "five"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "spread": false,
+          "type": "listItem"
+        }
+      ],
+      "ordered": true,
+      "spread": false,
+      "start": 3,
+      "type": "list"
+    }
+  ],
+  "type": "root"
+}

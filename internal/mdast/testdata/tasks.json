@@ -1,0 +1,86 @@
+{
+  "children": [
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "A task list:"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "children": [
+        {
+          "checked": true,
+          "children": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "a checked task"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "spread": false,
+          "type": "listItem"
+        },
+        {
+          "checked": false,
+          "children": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "an unchecked task"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "spread": false,
+          "type": "listItem"
+        },
+        {
+          "checked": true,
+          "children": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "another checked task"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "spread": false,
+          "type": "listItem"
+        },
+        {
+          "checked": null,
+          "children": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "a plain item with no checkbox"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "spread": false,
+          "type": "listItem"
+        }
+      ],
+      "ordered": false,
+      "spread": false,
+      "start": null,
+      "type": "list"
+    }
+  ],
+  "type": "root"
+}

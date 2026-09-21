@@ -1,0 +1,133 @@
+{
+  "children": [
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "An "
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "inline link"
+            }
+          ],
+          "title": null,
+          "type": "link",
+          "url": "https://example.com"
+        },
+        {
+          "type": "text",
+          "value": " with no title."
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "An "
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "inline link with a title"
+            }
+          ],
+          "title": "Example title",
+          "type": "link",
+          "url": "https://example.com"
+        },
+        {
+          "type": "text",
+          "value": "."
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "An autolink "
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "https://example.com/auto"
+            }
+          ],
+          "title": null,
+          "type": "link",
+          "url": "https://example.com/auto"
+        },
+        {
+          "type": "text",
+          "value": " in angle brackets."
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "A bare URL "
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "https://example.com/bare"
+            }
+          ],
+          "title": null,
+          "type": "link",
+          "url": "https://example.com/bare"
+        },
+        {
+          "type": "text",
+          "value": " that GFM turns into a link."
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "A "
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "reference link"
+            }
+          ],
+          "identifier": "ref",
+          "label": "ref",
+          "referenceType": "full",
+          "type": "linkReference"
+        },
+        {
+          "type": "text",
+          "value": " to a definition."
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "identifier": "ref",
+      "label": "ref",
+      "title": "Reference title",
+      "type": "definition",
+      "url": "https://example.com/ref"
+    }
+  ],
+  "type": "root"
+}

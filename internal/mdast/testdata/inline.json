@@ -1,0 +1,170 @@
+{
+  "children": [
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "Text with "
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "emphasis"
+            }
+          ],
+          "type": "emphasis"
+        },
+        {
+          "type": "text",
+          "value": " and "
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "also emphasis"
+            }
+          ],
+          "type": "emphasis"
+        },
+        {
+          "type": "text",
+          "value": "."
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "Text with "
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "strong"
+            }
+          ],
+          "type": "strong"
+        },
+        {
+          "type": "text",
+          "value": " and "
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "also strong"
+            }
+          ],
+          "type": "strong"
+        },
+        {
+          "type": "text",
+          "value": "."
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "Text with "
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "strikethrough"
+            }
+          ],
+          "type": "delete"
+        },
+        {
+          "type": "text",
+          "value": "."
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "Text with "
+        },
+        {
+          "type": "inlineCode",
+          "value": "inline code"
+        },
+        {
+          "type": "text",
+          "value": " inside it."
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "Nested marks: "
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "strong with "
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "emphasis"
+                }
+              ],
+              "type": "emphasis"
+            },
+            {
+              "type": "text",
+              "value": " inside"
+            }
+          ],
+          "type": "strong"
+        },
+        {
+          "type": "text",
+          "value": " and "
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "emphasis with "
+            },
+            {
+              "type": "inlineCode",
+              "value": "code"
+            },
+            {
+              "type": "text",
+              "value": " inside"
+            }
+          ],
+          "type": "emphasis"
+        },
+        {
+          "type": "text",
+          "value": "."
+        }
+      ],
+      "type": "paragraph"
+    }
+  ],
+  "type": "root"
+}

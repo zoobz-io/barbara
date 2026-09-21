@@ -1,0 +1,459 @@
+{
+  "children": [
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "Deploying the API"
+        }
+      ],
+      "depth": 1,
+      "type": "heading"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "This page walks through a deploy. It mixes "
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "strong"
+            }
+          ],
+          "type": "strong"
+        },
+        {
+          "type": "text",
+          "value": ", "
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "emphasis"
+            }
+          ],
+          "type": "emphasis"
+        },
+        {
+          "type": "text",
+          "value": ",\n"
+        },
+        {
+          "type": "inlineCode",
+          "value": "inline code"
+        },
+        {
+          "type": "text",
+          "value": ", and a "
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "link to the runbook"
+            }
+          ],
+          "title": "Runbook",
+          "type": "link",
+          "url": "https://example.com/runbook"
+        },
+        {
+          "type": "text",
+          "value": "."
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "Prerequisites"
+        }
+      ],
+      "depth": 2,
+      "type": "heading"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "You need the following before you start:"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "children": [
+        {
+          "checked": null,
+          "children": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "A built binary."
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "spread": false,
+          "type": "listItem"
+        },
+        {
+          "checked": null,
+          "children": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "Access to the cluster."
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "spread": false,
+          "type": "listItem"
+        },
+        {
+          "checked": null,
+          "children": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "The "
+                },
+                {
+                  "type": "inlineCode",
+                  "value": "deploy"
+                },
+                {
+                  "type": "text",
+                  "value": " role."
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "spread": false,
+          "type": "listItem"
+        }
+      ],
+      "ordered": true,
+      "spread": false,
+      "start": 1,
+      "type": "list"
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "Note:"
+                }
+              ],
+              "type": "strong"
+            },
+            {
+              "type": "text",
+              "value": " never deploy on a Friday."
+            }
+          ],
+          "type": "paragraph"
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "And never on a Friday afternoon."
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "blockquote"
+        }
+      ],
+      "type": "blockquote"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "Steps"
+        }
+      ],
+      "depth": 2,
+      "type": "heading"
+    },
+    {
+      "children": [
+        {
+          "checked": true,
+          "children": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "Build the binary"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "spread": false,
+          "type": "listItem"
+        },
+        {
+          "checked": false,
+          "children": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "Push the image"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "spread": false,
+          "type": "listItem"
+        },
+        {
+          "checked": false,
+          "children": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "Roll out"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "spread": false,
+          "type": "listItem"
+        }
+      ],
+      "ordered": false,
+      "spread": false,
+      "start": null,
+      "type": "list"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "Run the deploy command:"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "lang": "sh",
+      "meta": "title=\"deploy.sh\"",
+      "type": "code",
+      "value": "./deploy --env prod --wait"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "The rollout status table:"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "align": [
+        "left",
+        "center",
+        "right"
+      ],
+      "children": [
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "stage"
+                }
+              ],
+              "type": "tableCell"
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "status"
+                }
+              ],
+              "type": "tableCell"
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "owner"
+                }
+              ],
+              "type": "tableCell"
+            }
+          ],
+          "type": "tableRow"
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "build"
+                }
+              ],
+              "type": "tableCell"
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "done"
+                }
+              ],
+              "type": "tableCell"
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "ci"
+                }
+              ],
+              "type": "tableCell"
+            }
+          ],
+          "type": "tableRow"
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "push"
+                }
+              ],
+              "type": "tableCell"
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "pending"
+                }
+              ],
+              "type": "tableCell"
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "ci"
+                }
+              ],
+              "type": "tableCell"
+            }
+          ],
+          "type": "tableRow"
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "rollout"
+                }
+              ],
+              "type": "tableCell"
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "blocked"
+                }
+              ],
+              "type": "tableCell"
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "you"
+                }
+              ],
+              "type": "tableCell"
+            }
+          ],
+          "type": "tableRow"
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "children": [
+        {
+          "alt": "deploy diagram",
+          "title": "Deploy flow",
+          "type": "image",
+          "url": "../assets/deploy.png"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "type": "thematicBreak"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "See the "
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "https://example.com/docs"
+            }
+          ],
+          "title": null,
+          "type": "link",
+          "url": "https://example.com/docs"
+        },
+        {
+          "type": "text",
+          "value": " for more, or the © notice below."
+        }
+      ],
+      "type": "paragraph"
+    }
+  ],
+  "type": "root"
+}

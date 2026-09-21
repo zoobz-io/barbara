@@ -15,7 +15,8 @@
     "inspect": "prettier --check .",
     "test": "pnpm -r run test",
     "coverage": "vitest run --coverage",
-    "typecheck": "pnpm -r run typecheck"
+    "typecheck": "pnpm -r run typecheck",
+    "fixtures:mdast": "node scripts/mdast-fixtures.mjs"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
@@ -24,9 +25,15 @@
     "eslint-config-prettier": "10.1.8",
     "eslint-plugin-prettier": "5.5.6",
     "jiti": "2.7.0",
+    "mdast-util-from-markdown": "2.0.2",
+    "mdast-util-frontmatter": "2.0.1",
+    "mdast-util-gfm": "3.1.0",
+    "micromark-extension-frontmatter": "2.0.0",
+    "micromark-extension-gfm": "3.0.0",
     "prettier": "3.9.6",
     "typescript": "5.9.3",
     "typescript-eslint": "8.67.0",
+    "unist-util-remove-position": "5.0.0",
     "vitest": "4.1.11"
   },
   "pnpm": {

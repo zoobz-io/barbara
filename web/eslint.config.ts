@@ -29,4 +29,12 @@ export default tseslint.config(
       "@typescript-eslint/consistent-type-imports": "error",
     },
   },
+  {
+    // Node dev scripts (e.g. the mdast fixture generator) run under Node, not
+    // the browser, so give them the Node globals they use.
+    files: ["scripts/**/*.mjs"],
+    languageOptions: {
+      globals: { console: "readonly", process: "readonly" },
+    },
+  },
 );
