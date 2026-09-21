@@ -16,7 +16,9 @@ import Sidebar from "~/components/studio/sidebar.vue";
  * out like an asset — the header with the path, name, and Save, then the
  * editor on the left and, on the right, the page's details and its recent
  * versions. The route owns the document fetch and remounts this per path;
- * the editor only edits and saves.
+ * the editor only edits and saves. With `?version=` in the route — the
+ * release viewer's "Open in editor" — that version opens as an unsaved
+ * draft over the head, so saving it lands a new version.
  */
 const props = defineProps<{
   documentId: string;
@@ -28,6 +30,19 @@ const route = useRoute();
 const id = String(route.params.id);
 const now = useNow();
 const documents = useDocumentStore();
+
+// The draft's version must be this document's, and not the head — the head
+// is what the editor opens anyway. Anything else is ignored.
+const draftId = typeof route.query.version === "string" ? route.query.version : "";
+const { data: draft } = await useAsyncData(
+  `document-draft-${props.documentId}-${draftId}`,
+  async () => {
+    if (!draftId) return null;
+    const version = await documents.version(draftId).catch(() => null);
+    if (!version || version.document_id !== props.documentId) return null;
+    return version.id === props.doc?.content?.version_id ? null : version;
+  },
+);
 
 const { data: versions, refresh: refreshVersions } = await useAsyncData(
   `document-versions-${props.documentId}`,
@@ -48,6 +63,11 @@ const name = computed(() => keyName(key.value));
 const crumbs = computed(() => contentCrumbs(id, key.value, CONTENT_ROOT_LABEL));
 const status = computed(() => props.doc?.document.status ?? "");
 const head = computed(() => props.doc?.content ?? null);
+const meta = computed(() =>
+  draft.value
+    ? [`Editing v${draft.value.version_number} as a new draft; Save lands it as the next version`]
+    : [],
+);
 </script>
 
 <template>
@@ -55,7 +75,7 @@ const head = computed(() => props.doc?.content ?? null);
     <Sidebar />
 
     <div class="studio-page">
-      <PageHeader :crumbs="crumbs" :title="name">
+      <PageHeader :crumbs="crumbs" :title="name" :meta="meta">
         <template #actions>
           <p v-if="editor?.error" class="error" role="alert">
             {{ editor.error }}
@@ -78,6 +98,7 @@ const head = computed(() => props.doc?.content ?? null);
             ref="editor"
             :document-id="documentId"
             :doc="doc"
+            :draft="draft"
             :refresh="refreshAll"
           />
         </section>

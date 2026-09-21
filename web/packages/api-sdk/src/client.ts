@@ -73,6 +73,7 @@ export const createApiClient = client({
     cut: op("post", "/apps/{app_id}/releases"),
     list: op("get", "/apps/{app_id}/releases"),
     get: op("get", "/apps/{app_id}/releases/{id}"),
+    changes: op("get", "/apps/{app_id}/releases/{id}/changes"),
     rollback: op("post", "/apps/{app_id}/releases/{id}/rollback"),
   },
 

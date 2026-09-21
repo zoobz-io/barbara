@@ -38,6 +38,8 @@ export default defineNuxtIconSheetsConfig({
     upload: "lucide:upload",
     "folder-plus": "lucide:folder-plus",
     "file-plus": "lucide:file-plus",
+    // Release actions: restore an old release, open a page in the editor.
+    restore: "lucide:rotate-ccw",
     // Asset row actions.
     pencil: "lucide:pencil",
     "folder-input": "lucide:folder-input",

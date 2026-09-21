@@ -1,0 +1,197 @@
+/* The studio releases pages: the timeline, a release's manifest and
+   details, and the viewer for a page a release served. */
+
+/* --- The timeline ---------------------------------------------------------- */
+
+.release-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.release-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Each release is a card on a rail, the way a commit log headlines each
+   entry. The rail sits in the page's side gutter, so the card spans the
+   full container width. */
+.release-item {
+  position: relative;
+}
+
+.release-item::before {
+  content: "";
+  position: absolute;
+  top: 1.1rem;
+  bottom: calc(-1 * var(--space-3) - 1.1rem);
+  left: calc(-1 * var(--space-4) - 0.3rem);
+  width: 2px;
+  background: var(--outline-muted);
+}
+
+.release-item:last-child::before {
+  bottom: auto;
+  height: 0;
+}
+
+.release-item::after {
+  content: "";
+  position: absolute;
+  top: 1.1rem;
+  left: calc(-1 * var(--space-4) - 0.625rem);
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: var(--shape-full);
+  border: 2px solid var(--surface);
+  background: var(--outline);
+  box-sizing: border-box;
+}
+
+.release-item.live::after {
+  background: var(--success);
+}
+
+/* The card is the link: the whole item opens the release. */
+.release-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--outline-muted);
+  border-radius: var(--shape-md);
+  background: var(--surface);
+  color: var(--on-surface);
+  text-decoration: none;
+  transition:
+    border-color var(--transition-base),
+    background-color var(--transition-base);
+}
+
+.release-card:hover {
+  border-color: var(--outline);
+  background: var(--state-hover-layer);
+}
+
+.release-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.release-number {
+  font-weight: var(--weight-medium);
+}
+
+.release-label {
+  color: var(--on-surface-muted);
+}
+
+.release-meta,
+.release-stats {
+  margin: 0;
+  color: var(--on-surface-muted);
+  font-size: var(--label-size);
+}
+
+.release-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+}
+
+.release-older {
+  align-self: center;
+}
+
+/* --- Badges: the live marker, a release's kind, a page's change ----------- */
+
+.badge {
+  padding: 0 var(--space-2);
+  border-radius: var(--shape-full);
+  background: var(--success-container);
+  color: var(--on-success-container);
+  font-size: var(--label-size);
+  font-weight: var(--weight-medium);
+}
+
+.kind,
+.change {
+  display: inline-block;
+  padding: 0.1em 0.6em;
+  border-radius: var(--shape-full);
+  background: var(--surface-container-high);
+  color: var(--on-surface-muted);
+  font-size: var(--label-size);
+  white-space: nowrap;
+}
+
+.kind-rollback {
+  background: var(--primary-container);
+  color: var(--on-primary-container);
+}
+
+.change-added {
+  background: var(--success-container);
+  color: var(--on-success-container);
+}
+
+.change-changed {
+  background: var(--primary-container);
+  color: var(--on-primary-container);
+}
+
+.change-removed {
+  background: var(--error-container);
+  color: var(--on-error-container);
+}
+
+/* --- The release page ------------------------------------------------------ */
+
+/* A manifest row: the page's name as the link, its full path beneath. */
+.row-path {
+  display: block;
+  color: var(--on-surface-muted);
+  font-family: var(--font-mono);
+  font-size: var(--label-size);
+}
+
+.removed-title {
+  margin: 0;
+  color: var(--on-surface-muted);
+  font-size: var(--label-size);
+  font-weight: var(--weight-medium);
+}
+
+.removed-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--label-size);
+}
+
+.removed-list code {
+  font-family: var(--font-mono);
+}
+
+.removed-version {
+  margin-left: var(--space-2);
+  color: var(--on-surface-muted);
+}
+
+/* --- The version viewer ---------------------------------------------------- */
+
+/* The prose reads as it would in the editor, without its toolbar. */
+.version-prose .editor-body {
+  padding-top: var(--space-5);
+}

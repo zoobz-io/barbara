@@ -60,7 +60,7 @@ cascade is auto-linked by `@untheme/nuxt`.
 - `/apps/create`, `/apps/edit?id=…` — narrow form pages (create, rename).
 - `/apps/:id` — forwards to the app's content root.
 - `/apps/:id/content` — the studio (layout `studio`): top bar with app
-  picker, Content/Assets/History/Settings tabs, color-mode toggle. The
+  picker, Content/Assets/Releases/Settings tabs, color-mode toggle. The
   content landing page is the root folder of the app's document tree: New
   folder/New page dialogs over a searchable, sortable table of subfolders
   and pages with each page's status.
@@ -80,6 +80,19 @@ cascade is auto-linked by `@untheme/nuxt`.
   folder: a drop zone (uploads land in the folder, with progress) over a
   table of subfolders and files, each a link, and each navigation fetches
   exactly that level.
+- `/apps/:id/releases` — the releases timeline: every release newest first,
+  each a card with its number, kind, label, when and by whom, how many
+  pages it served, and its change counts against the release before; the
+  live one is marked. Older pages append on demand.
+- `/apps/:id/releases/:release` — one release, laid out like an asset: the
+  manifest of pages it served (each marked added, changed, or moved once
+  the changes load) beside its details and what it changed, with Restore,
+  which cuts a new release copying this one forward.
+- `/apps/:id/releases/:release/*` — the viewer for a page a release served:
+  the pages sidebar beside the prose, read-only, at the version the release
+  served, with its details. "Open in editor" takes that version to the
+  page's editor (`…/content/<key>?version=…`) as an unsaved draft, so
+  saving lands a new version.
 
 ## Scripts
 

@@ -7,7 +7,7 @@ import { EditorContent, useEditor } from "@tiptap/vue-3";
 
 import { ref } from "#imports";
 
-import type { DocumentContent } from "~/types/documents";
+import type { DocumentContent, Version } from "~/types/documents";
 import { EDITOR_TOOLBAR } from "~/constants/editor";
 import { apiErrorMessage } from "~/utils/errors";
 import { useDocumentStore } from "~/stores/documents";
@@ -15,15 +15,19 @@ import { useDocumentStore } from "~/stores/documents";
 // The page owns the document fetch (blocking useAsyncData) and remounts
 // this component per document; the editor only edits and saves. Save is
 // the page header's button: the state and the action are exposed to it.
+// A draft, when given, is an older version's content opened over the head
+// as an unsaved edit — dirty from the start, so Save lands it as the next
+// version, based on the head like any other edit.
 const props = defineProps<{
   documentId: string;
   doc: DocumentContent | null;
   refresh: () => Promise<void>;
+  draft?: Version | null;
 }>();
 
 const store = useDocumentStore();
 
-const dirty = ref(false);
+const dirty = ref(props.draft != null);
 const saving = ref(false);
 const error = ref("");
 
@@ -33,7 +37,7 @@ const tick = ref(0);
 const editor = useEditor({
   extensions: [StarterKit, Markdown],
   contentType: "markdown",
-  content: props.doc?.content?.content ?? "",
+  content: props.draft?.content ?? props.doc?.content?.content ?? "",
   onUpdate: () => {
     dirty.value = true;
   },

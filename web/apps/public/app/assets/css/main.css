@@ -11,7 +11,7 @@
 @import "./form-page.css";
 @import "./studio.css";
 @import "./settings.css";
-@import "./history.css";
+@import "./releases.css";
 @import "./content.css";
 @import "./editor.css";
 
@@ -167,7 +167,7 @@ button {
   background: transparent;
 }
 
-/* A titled content box (settings sections, history results). Cards share
+/* A titled content box (settings sections, release details). Cards share
    the page surface and are outlined only; the container tint is reserved
    for inputs, so the two never compete. */
 .panel {

@@ -18,7 +18,12 @@ export function appTabs(id: string): Tab[] {
       to: `/apps/${id}/assets`,
       match: `/apps/${id}/assets/`,
     },
-    { icon: "history", label: "History", to: `/apps/${id}/history` },
+    {
+      icon: "history",
+      label: "Releases",
+      to: `/apps/${id}/releases`,
+      match: `/apps/${id}/releases/`,
+    },
     { icon: "settings", label: "Settings", to: `/apps/${id}/settings` },
   ];
 }
