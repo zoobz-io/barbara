@@ -135,10 +135,12 @@ func (s *Apps) Rename(ctx context.Context, id, newName string) (*models.App, err
 	return app, nil
 }
 
-// Delete removes an app that has no release. An app with any release is refused
-// with ErrAppHasReleases; a missing one with ErrNotFound. The release count is
-// the friendly guard; the releases.app_id foreign key is the backstop if a cut
-// races this delete.
+// Delete removes an app that has no release, and with it everything the schema
+// cascades: its collections, its documents and their versions, and its asset
+// bookkeeping rows. Objects in the bucket are not touched. An app with any
+// release is refused with ErrAppHasReleases; a missing one with ErrNotFound. The
+// release count is the friendly guard; the releases.app_id foreign key — the
+// only one that does not cascade — is the backstop if a cut races this delete.
 func (s *Apps) Delete(ctx context.Context, id string) error {
 	tenantID, err := auth.RequireTenant(ctx)
 	if err != nil {
