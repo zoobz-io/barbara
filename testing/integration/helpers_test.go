@@ -99,6 +99,20 @@ func pgDB(t *testing.T) *sqlx.DB {
 	return db
 }
 
+// resetDB empties every table the suite writes, in one statement, so the foreign
+// keys between them never dictate an order — and it reports a failure instead
+// of swallowing one, because a wipe that fails quietly leaves rows for the next
+// test to trip over. Every Postgres-backed test registers it; the search index
+// has its own reset (clearDocumentsIndex), and the bucket its own deletes.
+func resetDB(t *testing.T, db *sqlx.DB) {
+	t.Helper()
+	if _, err := db.Exec(`TRUNCATE apps, collections, documents, versions,
+		releases, release_entries, release_changes, jobs,
+		asset_folders, asset_stats, asset_stats_daily, asset_bookkeeping`); err != nil {
+		t.Errorf("resetting database: %v", err)
+	}
+}
+
 // testUser is the acting user integration tests run as — a valid UUID, since
 // created_by columns are UUID.
 const testUser = "99999999-9999-9999-9999-999999999999"

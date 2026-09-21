@@ -20,8 +20,7 @@ func versionsFixture(t *testing.T) (*stores.Versions, string) {
 	t.Helper()
 	db := pgDB(t)
 	t.Cleanup(func() {
-		_, _ = db.Exec("DELETE FROM versions")
-		_, _ = db.Exec("DELETE FROM documents")
+		resetDB(t, db)
 		_ = db.Close()
 	})
 	st := stores.New(db, astqlpg.New(), testkit.NewSearchProvider(), testkit.NewBucketProvider())

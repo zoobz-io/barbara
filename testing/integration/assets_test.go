@@ -59,7 +59,7 @@ func minioBucket(t *testing.T) grub.BucketProvider {
 // to the folder view, and a write to a nonexistent app is refused.
 func TestAssets_MinIO(t *testing.T) {
 	db := pgDB(t)
-	defer func() { _ = db.Close() }()
+	t.Cleanup(func() { resetDB(t, db); _ = db.Close() })
 	apps := stores.NewApps(db, astqlpg.New())
 	s := stores.NewAssets(minioBucket(t), apps, db, astqlpg.New())
 
@@ -179,7 +179,7 @@ func TestAssets_MinIO(t *testing.T) {
 // series exact, and a rebuild from the bucket lands on the same numbers.
 func TestAssets_Bookkeeping(t *testing.T) {
 	db := pgDB(t)
-	defer func() { _ = db.Close() }()
+	t.Cleanup(func() { resetDB(t, db); _ = db.Close() })
 	apps := stores.NewApps(db, astqlpg.New())
 	s := stores.NewAssets(minioBucket(t), apps, db, astqlpg.New())
 	ctx := tenantCtx(uuid.NewString())
@@ -271,7 +271,7 @@ func TestAssets_Bookkeeping(t *testing.T) {
 // anything, and its ancestors list with it.
 func TestAssets_Folders(t *testing.T) {
 	db := pgDB(t)
-	defer func() { _ = db.Close() }()
+	t.Cleanup(func() { resetDB(t, db); _ = db.Close() })
 	apps := stores.NewApps(db, astqlpg.New())
 	s := stores.NewAssets(minioBucket(t), apps, db, astqlpg.New())
 	ctx := tenantCtx(uuid.NewString())
@@ -364,7 +364,7 @@ func TestAssets_Folders(t *testing.T) {
 // rollups move with the object in one step.
 func TestAssets_Move(t *testing.T) {
 	db := pgDB(t)
-	defer func() { _ = db.Close() }()
+	t.Cleanup(func() { resetDB(t, db); _ = db.Close() })
 	apps := stores.NewApps(db, astqlpg.New())
 	s := stores.NewAssets(minioBucket(t), apps, db, astqlpg.New())
 	ctx := tenantCtx(uuid.NewString())

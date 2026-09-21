@@ -50,9 +50,7 @@ func docKey(t *testing.T, documents *stores.Documents, id string) string {
 func TestCollections_TreeRewriteAndGuards(t *testing.T) {
 	db := pgDB(t)
 	t.Cleanup(func() {
-		_, _ = db.Exec("DELETE FROM documents")
-		_, _ = db.Exec("DELETE FROM collections")
-		_, _ = db.Exec("DELETE FROM apps")
+		resetDB(t, db)
 		_ = db.Close()
 	})
 
@@ -128,9 +126,7 @@ func TestCollections_TreeRewriteAndGuards(t *testing.T) {
 func TestCollections_ListContents(t *testing.T) {
 	db := pgDB(t)
 	t.Cleanup(func() {
-		_, _ = db.Exec("DELETE FROM documents")
-		_, _ = db.Exec("DELETE FROM collections")
-		_, _ = db.Exec("DELETE FROM apps")
+		resetDB(t, db)
 		_ = db.Close()
 	})
 
