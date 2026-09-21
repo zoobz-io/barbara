@@ -17,6 +17,7 @@ type Apps interface {
 	List(ctx context.Context, limit, offset int) ([]*models.App, error)
 	// Rename changes an app's name.
 	Rename(ctx context.Context, id, newName string) (*models.App, error)
-	// Delete removes an app that has no release.
+	// Delete removes an app that has no release, along with its collections,
+	// documents, versions, and asset bookkeeping. Bucket objects stay.
 	Delete(ctx context.Context, id string) error
 }
