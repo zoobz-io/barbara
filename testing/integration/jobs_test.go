@@ -16,8 +16,8 @@ import (
 
 func TestJobs_EnqueueClaimMarkDone(t *testing.T) {
 	db := pgDB(t)
-	t.Cleanup(func() { _, _ = db.Exec("DELETE FROM jobs"); _ = db.Close() })
-	_, _ = db.Exec("DELETE FROM jobs")
+	t.Cleanup(func() { resetDB(t, db); _ = db.Close() })
+	resetDB(t, db)
 	store := stores.NewJobs(db, astqlpg.New())
 	ctx := context.Background()
 
@@ -90,8 +90,8 @@ func TestJobs_EnqueueClaimMarkDone(t *testing.T) {
 
 func TestJobs_MarkFailedRecordsError(t *testing.T) {
 	db := pgDB(t)
-	t.Cleanup(func() { _, _ = db.Exec("DELETE FROM jobs"); _ = db.Close() })
-	_, _ = db.Exec("DELETE FROM jobs")
+	t.Cleanup(func() { resetDB(t, db); _ = db.Close() })
+	resetDB(t, db)
 	store := stores.NewJobs(db, astqlpg.New())
 	ctx := context.Background()
 

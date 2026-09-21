@@ -25,20 +25,9 @@ func reindexFixture(t *testing.T) (*stores.Stores, *models.App, *models.App) {
 
 	clearDocumentsIndex(t, addr)
 	t.Cleanup(func() {
-		clearDocumentsIndex(t, addr)
-		_, _ = db.Exec("UPDATE apps SET current_release_id = NULL")
-		_, _ = db.Exec("DELETE FROM release_entries")
-		_, _ = db.Exec("DELETE FROM releases")
-		_, _ = db.Exec("DELETE FROM jobs")
-		_, _ = db.Exec("DELETE FROM versions")
-		_, _ = db.Exec("DELETE FROM documents")
-		_, _ = db.Exec("DELETE FROM collections")
-		_, _ = db.Exec("DELETE FROM asset_folders")
-		_, _ = db.Exec("DELETE FROM asset_stats")
-		_, _ = db.Exec("DELETE FROM asset_stats_daily")
-		_, _ = db.Exec("DELETE FROM asset_bookkeeping")
-		_, _ = db.Exec("DELETE FROM apps")
+		resetDB(t, db)
 		_ = db.Close()
+		clearDocumentsIndex(t, addr)
 	})
 
 	st := stores.New(db, astqlpg.New(), provider, testkit.NewBucketProvider())
