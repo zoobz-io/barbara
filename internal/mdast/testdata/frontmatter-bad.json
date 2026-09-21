@@ -1,0 +1,24 @@
+{
+  "children": [
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "Body after malformed frontmatter"
+        }
+      ],
+      "depth": 1,
+      "type": "heading"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "The frontmatter above is fenced but its YAML does not parse."
+        }
+      ],
+      "type": "paragraph"
+    }
+  ],
+  "type": "root"
+}

@@ -21,12 +21,6 @@ func TestFixtures(t *testing.T) {
 			continue
 		}
 		name := base(md)
-		// frontmatter.md and page.md carry YAML frontmatter. Recognizing and
-		// dropping it is #94's job; until then the converter parses the
-		// leading "---" as a thematic break, so these two are skipped here.
-		if name == "frontmatter" || name == "page" {
-			continue
-		}
 		t.Run(name, func(t *testing.T) {
 			src, err := os.ReadFile(md) //nolint:gosec // test-owned fixture path
 			if err != nil {
@@ -36,7 +30,7 @@ func TestFixtures(t *testing.T) {
 			if err != nil {
 				t.Fatalf("missing golden file: %v", err)
 			}
-			root, err := Parse(src)
+			root, meta, err := Parse(src)
 			if err != nil {
 				t.Fatalf("Parse: %v", err)
 			}
@@ -47,6 +41,7 @@ func TestFixtures(t *testing.T) {
 			if !bytes.Equal(got, want) {
 				t.Errorf("mdast JSON differs from golden:\n%s", firstDiff(want, got))
 			}
+			checkMeta(t, name, meta)
 		})
 	}
 }
@@ -54,6 +49,35 @@ func TestFixtures(t *testing.T) {
 func base(path string) string {
 	b := filepath.Base(path)
 	return b[:len(b)-len(filepath.Ext(b))]
+}
+
+// checkMeta compares the frontmatter a fixture returned against its golden
+// <name>.meta.json. A fixture without that file must return an empty map, which
+// covers every non-frontmatter fixture and the malformed-frontmatter case.
+func checkMeta(t *testing.T, name string, meta map[string]any) {
+	t.Helper()
+	raw, err := os.ReadFile(filepath.Join("testdata", name+".meta.json")) //nolint:gosec // test-owned fixture path
+	if err != nil {
+		if len(meta) != 0 {
+			t.Errorf("no %s.meta.json but Parse returned metadata %v", name, meta)
+		}
+		return
+	}
+	var want any
+	if err := json.Unmarshal(raw, &want); err != nil {
+		t.Fatalf("meta golden: %v", err)
+	}
+	gotJSON, err := canonicalJSON(meta)
+	if err != nil {
+		t.Fatalf("marshal meta: %v", err)
+	}
+	wantJSON, err := encodeIndent(want)
+	if err != nil {
+		t.Fatalf("marshal meta golden: %v", err)
+	}
+	if !bytes.Equal(gotJSON, wantJSON) {
+		t.Errorf("metadata differs from golden:\n%s", firstDiff(wantJSON, gotJSON))
+	}
 }
 
 // canonicalJSON marshals a tree the way the fixtures are written: sorted keys, a
@@ -134,7 +158,7 @@ func itoa(n int) string {
 // nested list) is not.
 func TestListItemSpread(t *testing.T) {
 	src := []byte("- first\n\n  second\n\n- lone\n  - nested\n")
-	root, err := Parse(src)
+	root, _, err := Parse(src)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -165,7 +189,7 @@ func BenchmarkParsePage(b *testing.B) {
 	b.ReportAllocs()
 	b.SetBytes(int64(len(src)))
 	for b.Loop() {
-		if _, err := Parse(src); err != nil {
+		if _, _, err := Parse(src); err != nil {
 			b.Fatal(err)
 		}
 	}

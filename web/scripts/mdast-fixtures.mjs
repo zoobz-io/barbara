@@ -24,6 +24,7 @@ import { gfmFromMarkdown } from "mdast-util-gfm";
 import { frontmatter } from "micromark-extension-frontmatter";
 import { frontmatterFromMarkdown } from "mdast-util-frontmatter";
 import { removePosition } from "unist-util-remove-position";
+import { parse as parseYaml } from "yaml";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const testdata = join(here, "..", "..", "internal", "mdast", "testdata");
@@ -74,6 +75,28 @@ async function main() {
     const markdown = await readFile(join(testdata, `${base}.md`), "utf8");
     const tree = parse(markdown);
     removePosition(tree, { force: true });
+
+    // A recognized frontmatter block becomes a yaml node at the top of the
+    // tree. The converter (#94) returns its decoded YAML as page metadata, so
+    // write a <base>.meta.json beside the fixture for the metadata to match.
+    const yaml = tree.children.find((child) => child.type === "yaml");
+    if (yaml) {
+      // Malformed YAML in a fenced block is not an error: the converter returns
+      // empty metadata for it, so no .meta.json is written and the fixture test
+      // asserts the empty map.
+      let data;
+      try {
+        data = parseYaml(yaml.value);
+      } catch {
+        data = undefined;
+      }
+      if (data !== undefined) {
+        const meta = `${JSON.stringify(sortKeys(data), null, 2)}\n`;
+        await writeFile(join(testdata, `${base}.meta.json`), meta);
+        console.log(`wrote ${base}.meta.json`);
+      }
+    }
+
     removeYaml(tree);
     const json = `${JSON.stringify(sortKeys(tree), null, 2)}\n`;
     await writeFile(join(testdata, `${base}.json`), json);

@@ -34,7 +34,8 @@
     "typescript": "5.9.3",
     "typescript-eslint": "8.67.0",
     "unist-util-remove-position": "5.0.0",
-    "vitest": "4.1.11"
+    "vitest": "4.1.11",
+    "yaml": "2.8.0"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
