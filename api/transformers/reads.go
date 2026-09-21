@@ -5,9 +5,44 @@
 package transformers
 
 import (
+	"net/url"
+	"path"
+	"regexp"
+	"strings"
+
 	"github.com/zoobz-io/barbara/api/wire"
 	"github.com/zoobz-io/barbara/database/models"
 )
+
+// urlScheme matches a URL that opens with a scheme (https:, mailto:, and the
+// like) — a colon in the scheme position, before any path separator.
+var urlScheme = regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9+.\-]*:`)
+
+// PublishedAssetResolver returns the URL resolver a published document's mdast
+// tree is rewritten with (see mdast.Rewrite). It turns a relative asset path
+// into the published asset route, so a site fetches a URL rather than a path
+// that only means something inside the app's asset tree.
+//
+// A URL that is already fetchable on its own is left unchanged: one with a
+// scheme, one rooted at "/", and an in-page fragment ("#..."). Any other URL is
+// a path relative to the document's folder (parentPath, "" at the app root); it
+// is resolved against that folder — "../" segments included — and returned as
+// /published/apps/{appID}/assets/object?key=<resolved key>.
+func PublishedAssetResolver(appID, parentPath string) func(string) string {
+	return func(u string) string {
+		if u == "" || strings.HasPrefix(u, "/") || strings.HasPrefix(u, "#") || urlScheme.MatchString(u) {
+			return u
+		}
+		key := path.Join(parentPath, u)
+		return "/published/apps/" + appID + "/assets/object?key=" + assetKeyQuery(key)
+	}
+}
+
+// assetKeyQuery escapes a resolved asset key for use as a query value while
+// keeping its path separators readable.
+func assetKeyQuery(key string) string {
+	return strings.ReplaceAll(url.QueryEscape(key), "%2F", "/")
+}
 
 // IndexToResponse maps a document projection to its site-facing response.
 func IndexToResponse(d *models.DocumentIndex) wire.PublishedDocumentResponse {

@@ -20,6 +20,7 @@ nothing else in Barbara.
 | Symbol | Role |
 |--------|------|
 | `Parse(src []byte) (*Root, map[string]any, error)` | Parses Markdown into an mdast tree and the document's frontmatter. |
+| `Rewrite(root, resolve)` | Replaces every link, image, and definition URL with `resolve(url)`, leaving other fields untouched. The caller's `resolve` decides which URLs change, so the package stays free of Barbara routes. |
 | `Node` | The closed node union. Its method is unexported, so only this package defines node types. |
 | `Root`, `Paragraph`, `Heading`, … | One struct per mdast node type, with the JSON fields from the [mdast spec][mdast]. |
 
