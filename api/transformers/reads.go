@@ -7,10 +7,32 @@ package transformers
 import (
 	"github.com/zoobz-io/barbara/api/wire"
 	"github.com/zoobz-io/barbara/database/models"
+	"github.com/zoobz-io/barbara/internal/mdast"
 )
 
-// IndexToResponse maps a document projection to its site-facing response.
-func IndexToResponse(d *models.DocumentIndex) wire.PublishedDocumentResponse {
+// Response formats for the published document lookup.
+const (
+	// FormatMarkdown returns the raw markdown in Content. It is the default.
+	FormatMarkdown = "markdown"
+	// FormatMdast returns the parsed tree in Body and frontmatter in Meta.
+	FormatMdast = "mdast"
+)
+
+// IndexToResponse maps a document projection to its site-facing response in the
+// requested format. For FormatMdast it parses the content into an mdast tree and
+// returns the tree and the frontmatter; for any other format it returns the raw
+// markdown. URLs in the tree are returned exactly as authored — resolving them
+// to fetchable locations is the site's job until the published URL layout is
+// settled.
+func IndexToResponse(d *models.DocumentIndex, format string) (wire.PublishedDocumentResponse, error) {
+	if format == FormatMdast {
+		return mdastResponse(d)
+	}
+	return markdownResponse(d), nil
+}
+
+// markdownResponse builds the raw-markdown response.
+func markdownResponse(d *models.DocumentIndex) wire.PublishedDocumentResponse {
 	return wire.PublishedDocumentResponse{
 		DocumentID:    d.DocumentID,
 		Key:           d.Key,
@@ -20,6 +42,25 @@ func IndexToResponse(d *models.DocumentIndex) wire.PublishedDocumentResponse {
 		CreatedAt:     d.CreatedAt,
 		UpdatedAt:     d.UpdatedAt,
 	}
+}
+
+// mdastResponse builds the mdast response: the parsed tree and the frontmatter
+// map.
+func mdastResponse(d *models.DocumentIndex) (wire.PublishedDocumentResponse, error) {
+	root, meta, err := mdast.Parse([]byte(d.Content))
+	if err != nil {
+		return wire.PublishedDocumentResponse{}, err
+	}
+	return wire.PublishedDocumentResponse{
+		DocumentID:    d.DocumentID,
+		Key:           d.Key,
+		Body:          root,
+		Meta:          meta,
+		Tags:          d.Tags,
+		VersionNumber: d.VersionNumber,
+		CreatedAt:     d.CreatedAt,
+		UpdatedAt:     d.UpdatedAt,
+	}, nil
 }
 
 // IndexesToListResponse maps a page of projections plus its total to the
@@ -32,7 +73,7 @@ func IndexesToListResponse(docs []models.DocumentIndex, total int64, limit, offs
 		Offset:    offset,
 	}
 	for i := range docs {
-		out.Documents[i] = IndexToResponse(&docs[i])
+		out.Documents[i] = markdownResponse(&docs[i])
 	}
 	return out
 }

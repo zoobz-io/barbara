@@ -3,6 +3,7 @@
 package handlers
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"net/http"
@@ -77,6 +78,60 @@ func TestGetPublishedDocument_OK(t *testing.T) {
 	}
 	if raw["document_id"] != "d1" {
 		t.Errorf("unexpected response: %s", w.Body.String())
+	}
+}
+
+func TestGetPublishedDocument_FormatMarkdownDefault(t *testing.T) {
+	mock := &mockReads{doc: &models.DocumentIndex{
+		DocumentID: "d1", Key: "guides/install.md", AppID: "app-1", Content: "# Install",
+	}}
+	w := driver(t, mock).Request(t, http.MethodGet, "/published/apps/app-1/lookup?key=guides/install.md", nil)
+	if w.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200; body=%s", w.Code, w.Body.String())
+	}
+	var raw map[string]any
+	_ = json.Unmarshal(w.Body.Bytes(), &raw)
+	if raw["content"] != "# Install" {
+		t.Errorf("default format must return raw markdown content: %s", w.Body.String())
+	}
+	if _, ok := raw["body"]; ok {
+		t.Errorf("markdown format must omit body: %s", w.Body.String())
+	}
+}
+
+func TestGetPublishedDocument_FormatMdast(t *testing.T) {
+	mock := &mockReads{doc: &models.DocumentIndex{
+		DocumentID: "d1", Key: "guides/install.md", AppID: "app-1", ParentPath: "guides",
+		Content: "---\ntitle: Install\n---\n\n# Install\n\n![d](d.png)\n",
+	}}
+	w := driver(t, mock).Request(t, http.MethodGet, "/published/apps/app-1/lookup?key=guides/install.md&format=mdast", nil)
+	if w.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200; body=%s", w.Code, w.Body.String())
+	}
+	var raw map[string]any
+	_ = json.Unmarshal(w.Body.Bytes(), &raw)
+	if _, ok := raw["content"]; ok {
+		t.Errorf("mdast format must omit content: %s", w.Body.String())
+	}
+	body, ok := raw["body"].(map[string]any)
+	if !ok || body["type"] != "root" {
+		t.Fatalf("mdast format must return a root body: %s", w.Body.String())
+	}
+	meta, ok := raw["meta"].(map[string]any)
+	if !ok || meta["title"] != "Install" {
+		t.Errorf("mdast format must return frontmatter meta: %s", w.Body.String())
+	}
+	// The image URL comes back exactly as authored; nothing resolves it here.
+	if want := `"url":"d.png"`; !bytes.Contains(w.Body.Bytes(), []byte(want)) {
+		t.Errorf("image URL not returned as authored: %s", w.Body.String())
+	}
+}
+
+func TestGetPublishedDocument_FormatUnknown(t *testing.T) {
+	mock := &mockReads{doc: &models.DocumentIndex{DocumentID: "d1", Key: "x.md", AppID: "app-1"}}
+	w := driver(t, mock).Request(t, http.MethodGet, "/published/apps/app-1/lookup?key=x.md&format=xml", nil)
+	if w.Code != http.StatusUnprocessableEntity {
+		t.Fatalf("status = %d, want 422; body=%s", w.Code, w.Body.String())
 	}
 }
 

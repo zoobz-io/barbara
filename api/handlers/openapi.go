@@ -3,6 +3,8 @@ package handlers
 import (
 	"github.com/zoobz-io/openapi"
 	"github.com/zoobz-io/rocco"
+
+	"github.com/zoobz-io/barbara/internal/mdast"
 )
 
 // ConfigureOpenAPI applies the public API's OpenAPI metadata to the engine: the
@@ -29,4 +31,41 @@ func ConfigureOpenAPI(e *rocco.Engine) {
 
 	e.WithTagGroup("Site", "Published")
 	e.WithTagGroup("Authoring", "Apps", "Collections", "Documents", "Versions", "Publishing", "Releases", "Assets")
+
+	registerMdastModels(e)
+}
+
+// registerMdastModels registers every mdast node type as an OpenAPI component.
+// The published document body (format=mdast) is an mdast.Root whose children are
+// a union reached only through an interface, so rocco cannot discover the
+// variant types by walking the response struct — the discriminate tags refer to
+// them by name, and these registrations put those named schemas in the spec.
+func registerMdastModels(e *rocco.Engine) {
+	e.WithModels(
+		rocco.NewModel[mdast.Root](),
+		rocco.NewModel[mdast.Paragraph](),
+		rocco.NewModel[mdast.Heading](),
+		rocco.NewModel[mdast.ThematicBreak](),
+		rocco.NewModel[mdast.Blockquote](),
+		rocco.NewModel[mdast.List](),
+		rocco.NewModel[mdast.ListItem](),
+		rocco.NewModel[mdast.Code](),
+		rocco.NewModel[mdast.HTML](),
+		rocco.NewModel[mdast.Text](),
+		rocco.NewModel[mdast.Emphasis](),
+		rocco.NewModel[mdast.Strong](),
+		rocco.NewModel[mdast.Delete](),
+		rocco.NewModel[mdast.InlineCode](),
+		rocco.NewModel[mdast.Break](),
+		rocco.NewModel[mdast.Link](),
+		rocco.NewModel[mdast.Image](),
+		rocco.NewModel[mdast.LinkReference](),
+		rocco.NewModel[mdast.ImageReference](),
+		rocco.NewModel[mdast.Definition](),
+		rocco.NewModel[mdast.FootnoteReference](),
+		rocco.NewModel[mdast.FootnoteDefinition](),
+		rocco.NewModel[mdast.Table](),
+		rocco.NewModel[mdast.TableRow](),
+		rocco.NewModel[mdast.TableCell](),
+	)
 }

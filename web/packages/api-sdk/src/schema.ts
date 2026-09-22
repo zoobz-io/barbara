@@ -721,6 +721,31 @@ export interface components {
             /** @description Total bytes of the assets beneath the folder */
             size: number;
         };
+        Blockquote: {
+            children: (components["schemas"]["Paragraph"] | components["schemas"]["Heading"] | components["schemas"]["ThematicBreak"] | components["schemas"]["Blockquote"] | components["schemas"]["List"] | components["schemas"]["ListItem"] | components["schemas"]["Code"] | components["schemas"]["HTML"] | components["schemas"]["Text"] | components["schemas"]["Emphasis"] | components["schemas"]["Strong"] | components["schemas"]["Delete"] | components["schemas"]["InlineCode"] | components["schemas"]["Break"] | components["schemas"]["Link"] | components["schemas"]["Image"] | components["schemas"]["LinkReference"] | components["schemas"]["ImageReference"] | components["schemas"]["Definition"] | components["schemas"]["FootnoteReference"] | components["schemas"]["FootnoteDefinition"] | components["schemas"]["Table"] | components["schemas"]["TableRow"] | components["schemas"]["TableCell"])[];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "blockquote";
+        };
+        Break: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "break";
+        };
+        Code: {
+            lang: string | null;
+            meta: string | null;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "code";
+            value: string;
+        };
         CollectionContentsResponse: {
             /** @description Direct documents, by key */
             documents: components["schemas"]["DocumentResponse"][];
@@ -804,6 +829,25 @@ export interface components {
              */
             label?: string;
         };
+        Definition: {
+            identifier: string;
+            label: string;
+            title: string | null;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "definition";
+            url: string;
+        };
+        Delete: {
+            children: (components["schemas"]["Paragraph"] | components["schemas"]["Heading"] | components["schemas"]["ThematicBreak"] | components["schemas"]["Blockquote"] | components["schemas"]["List"] | components["schemas"]["ListItem"] | components["schemas"]["Code"] | components["schemas"]["HTML"] | components["schemas"]["Text"] | components["schemas"]["Emphasis"] | components["schemas"]["Strong"] | components["schemas"]["Delete"] | components["schemas"]["InlineCode"] | components["schemas"]["Break"] | components["schemas"]["Link"] | components["schemas"]["Image"] | components["schemas"]["LinkReference"] | components["schemas"]["ImageReference"] | components["schemas"]["Definition"] | components["schemas"]["FootnoteReference"] | components["schemas"]["FootnoteDefinition"] | components["schemas"]["Table"] | components["schemas"]["TableRow"] | components["schemas"]["TableCell"])[];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "delete";
+        };
         DocumentContentResponse: {
             /** @description The head version's content, or null if the document has no versions */
             content: components["schemas"]["ContentBlock"];
@@ -849,6 +893,14 @@ export interface components {
              * @description Last update timestamp
              */
             updated_at: string;
+        };
+        Emphasis: {
+            children: (components["schemas"]["Paragraph"] | components["schemas"]["Heading"] | components["schemas"]["ThematicBreak"] | components["schemas"]["Blockquote"] | components["schemas"]["List"] | components["schemas"]["ListItem"] | components["schemas"]["Code"] | components["schemas"]["HTML"] | components["schemas"]["Text"] | components["schemas"]["Emphasis"] | components["schemas"]["Strong"] | components["schemas"]["Delete"] | components["schemas"]["InlineCode"] | components["schemas"]["Break"] | components["schemas"]["Link"] | components["schemas"]["Image"] | components["schemas"]["LinkReference"] | components["schemas"]["ImageReference"] | components["schemas"]["Definition"] | components["schemas"]["FootnoteReference"] | components["schemas"]["FootnoteDefinition"] | components["schemas"]["Table"] | components["schemas"]["TableRow"] | components["schemas"]["TableCell"])[];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "emphasis";
         };
         ErrBadRequest: {
             /**
@@ -922,6 +974,113 @@ export interface components {
             /** @description Human-readable error message */
             message: string;
         };
+        FootnoteDefinition: {
+            children: (components["schemas"]["Paragraph"] | components["schemas"]["Heading"] | components["schemas"]["ThematicBreak"] | components["schemas"]["Blockquote"] | components["schemas"]["List"] | components["schemas"]["ListItem"] | components["schemas"]["Code"] | components["schemas"]["HTML"] | components["schemas"]["Text"] | components["schemas"]["Emphasis"] | components["schemas"]["Strong"] | components["schemas"]["Delete"] | components["schemas"]["InlineCode"] | components["schemas"]["Break"] | components["schemas"]["Link"] | components["schemas"]["Image"] | components["schemas"]["LinkReference"] | components["schemas"]["ImageReference"] | components["schemas"]["Definition"] | components["schemas"]["FootnoteReference"] | components["schemas"]["FootnoteDefinition"] | components["schemas"]["Table"] | components["schemas"]["TableRow"] | components["schemas"]["TableCell"])[];
+            identifier: string;
+            label: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "footnoteDefinition";
+        };
+        FootnoteReference: {
+            identifier: string;
+            label: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "footnoteReference";
+        };
+        HTML: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "html";
+            value: string;
+        };
+        Heading: {
+            children: (components["schemas"]["Paragraph"] | components["schemas"]["Heading"] | components["schemas"]["ThematicBreak"] | components["schemas"]["Blockquote"] | components["schemas"]["List"] | components["schemas"]["ListItem"] | components["schemas"]["Code"] | components["schemas"]["HTML"] | components["schemas"]["Text"] | components["schemas"]["Emphasis"] | components["schemas"]["Strong"] | components["schemas"]["Delete"] | components["schemas"]["InlineCode"] | components["schemas"]["Break"] | components["schemas"]["Link"] | components["schemas"]["Image"] | components["schemas"]["LinkReference"] | components["schemas"]["ImageReference"] | components["schemas"]["Definition"] | components["schemas"]["FootnoteReference"] | components["schemas"]["FootnoteDefinition"] | components["schemas"]["Table"] | components["schemas"]["TableRow"] | components["schemas"]["TableCell"])[];
+            depth: number;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "heading";
+        };
+        Image: {
+            alt: string;
+            title: string | null;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "image";
+            url: string;
+        };
+        ImageReference: {
+            alt: string;
+            identifier: string;
+            label: string;
+            referenceType: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "imageReference";
+        };
+        InlineCode: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "inlineCode";
+            value: string;
+        };
+        Link: {
+            children: (components["schemas"]["Paragraph"] | components["schemas"]["Heading"] | components["schemas"]["ThematicBreak"] | components["schemas"]["Blockquote"] | components["schemas"]["List"] | components["schemas"]["ListItem"] | components["schemas"]["Code"] | components["schemas"]["HTML"] | components["schemas"]["Text"] | components["schemas"]["Emphasis"] | components["schemas"]["Strong"] | components["schemas"]["Delete"] | components["schemas"]["InlineCode"] | components["schemas"]["Break"] | components["schemas"]["Link"] | components["schemas"]["Image"] | components["schemas"]["LinkReference"] | components["schemas"]["ImageReference"] | components["schemas"]["Definition"] | components["schemas"]["FootnoteReference"] | components["schemas"]["FootnoteDefinition"] | components["schemas"]["Table"] | components["schemas"]["TableRow"] | components["schemas"]["TableCell"])[];
+            title: string | null;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "link";
+            url: string;
+        };
+        LinkReference: {
+            children: (components["schemas"]["Paragraph"] | components["schemas"]["Heading"] | components["schemas"]["ThematicBreak"] | components["schemas"]["Blockquote"] | components["schemas"]["List"] | components["schemas"]["ListItem"] | components["schemas"]["Code"] | components["schemas"]["HTML"] | components["schemas"]["Text"] | components["schemas"]["Emphasis"] | components["schemas"]["Strong"] | components["schemas"]["Delete"] | components["schemas"]["InlineCode"] | components["schemas"]["Break"] | components["schemas"]["Link"] | components["schemas"]["Image"] | components["schemas"]["LinkReference"] | components["schemas"]["ImageReference"] | components["schemas"]["Definition"] | components["schemas"]["FootnoteReference"] | components["schemas"]["FootnoteDefinition"] | components["schemas"]["Table"] | components["schemas"]["TableRow"] | components["schemas"]["TableCell"])[];
+            identifier: string;
+            label: string;
+            referenceType: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "linkReference";
+        };
+        List: {
+            children: (components["schemas"]["Paragraph"] | components["schemas"]["Heading"] | components["schemas"]["ThematicBreak"] | components["schemas"]["Blockquote"] | components["schemas"]["List"] | components["schemas"]["ListItem"] | components["schemas"]["Code"] | components["schemas"]["HTML"] | components["schemas"]["Text"] | components["schemas"]["Emphasis"] | components["schemas"]["Strong"] | components["schemas"]["Delete"] | components["schemas"]["InlineCode"] | components["schemas"]["Break"] | components["schemas"]["Link"] | components["schemas"]["Image"] | components["schemas"]["LinkReference"] | components["schemas"]["ImageReference"] | components["schemas"]["Definition"] | components["schemas"]["FootnoteReference"] | components["schemas"]["FootnoteDefinition"] | components["schemas"]["Table"] | components["schemas"]["TableRow"] | components["schemas"]["TableCell"])[];
+            ordered: boolean;
+            spread: boolean;
+            start: number | null;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "list";
+        };
+        ListItem: {
+            checked: boolean | null;
+            children: (components["schemas"]["Paragraph"] | components["schemas"]["Heading"] | components["schemas"]["ThematicBreak"] | components["schemas"]["Blockquote"] | components["schemas"]["List"] | components["schemas"]["ListItem"] | components["schemas"]["Code"] | components["schemas"]["HTML"] | components["schemas"]["Text"] | components["schemas"]["Emphasis"] | components["schemas"]["Strong"] | components["schemas"]["Delete"] | components["schemas"]["InlineCode"] | components["schemas"]["Break"] | components["schemas"]["Link"] | components["schemas"]["Image"] | components["schemas"]["LinkReference"] | components["schemas"]["ImageReference"] | components["schemas"]["Definition"] | components["schemas"]["FootnoteReference"] | components["schemas"]["FootnoteDefinition"] | components["schemas"]["Table"] | components["schemas"]["TableRow"] | components["schemas"]["TableCell"])[];
+            spread: boolean;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "listItem";
+        };
         MoveAssetRequest: {
             /**
              * @description The new key, segments joined by slashes
@@ -942,6 +1101,14 @@ export interface components {
              */
             name: string;
         };
+        Paragraph: {
+            children: (components["schemas"]["Paragraph"] | components["schemas"]["Heading"] | components["schemas"]["ThematicBreak"] | components["schemas"]["Blockquote"] | components["schemas"]["List"] | components["schemas"]["ListItem"] | components["schemas"]["Code"] | components["schemas"]["HTML"] | components["schemas"]["Text"] | components["schemas"]["Emphasis"] | components["schemas"]["Strong"] | components["schemas"]["Delete"] | components["schemas"]["InlineCode"] | components["schemas"]["Break"] | components["schemas"]["Link"] | components["schemas"]["Image"] | components["schemas"]["LinkReference"] | components["schemas"]["ImageReference"] | components["schemas"]["Definition"] | components["schemas"]["FootnoteReference"] | components["schemas"]["FootnoteDefinition"] | components["schemas"]["Table"] | components["schemas"]["TableRow"] | components["schemas"]["TableCell"])[];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "paragraph";
+        };
         PublishRequest: {
             /** @description The version to publish */
             version_id: string;
@@ -957,8 +1124,10 @@ export interface components {
             total: number;
         };
         PublishedDocumentResponse: {
-            /** @description Published content */
-            content: string;
+            /** @description The document body as an mdast tree (format=mdast) */
+            body?: components["schemas"]["Root"];
+            /** @description Published content as raw markdown (format=markdown) */
+            content?: string;
             /**
              * Format: date-time
              * @description When the document was created
@@ -974,6 +1143,10 @@ export interface components {
              * @example guides/install.md
              */
             key: string;
+            /** @description Frontmatter fields (format=mdast) */
+            meta?: {
+                [key: string]: unknown;
+            };
             /** @description Organizational tags */
             tags: string[];
             /**
@@ -1090,11 +1263,64 @@ export interface components {
              */
             name: string;
         };
+        Root: {
+            children: (components["schemas"]["Paragraph"] | components["schemas"]["Heading"] | components["schemas"]["ThematicBreak"] | components["schemas"]["Blockquote"] | components["schemas"]["List"] | components["schemas"]["ListItem"] | components["schemas"]["Code"] | components["schemas"]["HTML"] | components["schemas"]["Text"] | components["schemas"]["Emphasis"] | components["schemas"]["Strong"] | components["schemas"]["Delete"] | components["schemas"]["InlineCode"] | components["schemas"]["Break"] | components["schemas"]["Link"] | components["schemas"]["Image"] | components["schemas"]["LinkReference"] | components["schemas"]["ImageReference"] | components["schemas"]["Definition"] | components["schemas"]["FootnoteReference"] | components["schemas"]["FootnoteDefinition"] | components["schemas"]["Table"] | components["schemas"]["TableRow"] | components["schemas"]["TableCell"])[];
+            /** @constant */
+            type: "root";
+        };
         SaveVersionRequest: {
             /** @description The head version the edit was based on (0 for the first version) */
             base_version: number;
             /** @description The document's full markdown content */
             content: string;
+        };
+        Strong: {
+            children: (components["schemas"]["Paragraph"] | components["schemas"]["Heading"] | components["schemas"]["ThematicBreak"] | components["schemas"]["Blockquote"] | components["schemas"]["List"] | components["schemas"]["ListItem"] | components["schemas"]["Code"] | components["schemas"]["HTML"] | components["schemas"]["Text"] | components["schemas"]["Emphasis"] | components["schemas"]["Strong"] | components["schemas"]["Delete"] | components["schemas"]["InlineCode"] | components["schemas"]["Break"] | components["schemas"]["Link"] | components["schemas"]["Image"] | components["schemas"]["LinkReference"] | components["schemas"]["ImageReference"] | components["schemas"]["Definition"] | components["schemas"]["FootnoteReference"] | components["schemas"]["FootnoteDefinition"] | components["schemas"]["Table"] | components["schemas"]["TableRow"] | components["schemas"]["TableCell"])[];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "strong";
+        };
+        Table: {
+            align: (string | null)[];
+            children: (components["schemas"]["Paragraph"] | components["schemas"]["Heading"] | components["schemas"]["ThematicBreak"] | components["schemas"]["Blockquote"] | components["schemas"]["List"] | components["schemas"]["ListItem"] | components["schemas"]["Code"] | components["schemas"]["HTML"] | components["schemas"]["Text"] | components["schemas"]["Emphasis"] | components["schemas"]["Strong"] | components["schemas"]["Delete"] | components["schemas"]["InlineCode"] | components["schemas"]["Break"] | components["schemas"]["Link"] | components["schemas"]["Image"] | components["schemas"]["LinkReference"] | components["schemas"]["ImageReference"] | components["schemas"]["Definition"] | components["schemas"]["FootnoteReference"] | components["schemas"]["FootnoteDefinition"] | components["schemas"]["Table"] | components["schemas"]["TableRow"] | components["schemas"]["TableCell"])[];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "table";
+        };
+        TableCell: {
+            children: (components["schemas"]["Paragraph"] | components["schemas"]["Heading"] | components["schemas"]["ThematicBreak"] | components["schemas"]["Blockquote"] | components["schemas"]["List"] | components["schemas"]["ListItem"] | components["schemas"]["Code"] | components["schemas"]["HTML"] | components["schemas"]["Text"] | components["schemas"]["Emphasis"] | components["schemas"]["Strong"] | components["schemas"]["Delete"] | components["schemas"]["InlineCode"] | components["schemas"]["Break"] | components["schemas"]["Link"] | components["schemas"]["Image"] | components["schemas"]["LinkReference"] | components["schemas"]["ImageReference"] | components["schemas"]["Definition"] | components["schemas"]["FootnoteReference"] | components["schemas"]["FootnoteDefinition"] | components["schemas"]["Table"] | components["schemas"]["TableRow"] | components["schemas"]["TableCell"])[];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "tableCell";
+        };
+        TableRow: {
+            children: (components["schemas"]["Paragraph"] | components["schemas"]["Heading"] | components["schemas"]["ThematicBreak"] | components["schemas"]["Blockquote"] | components["schemas"]["List"] | components["schemas"]["ListItem"] | components["schemas"]["Code"] | components["schemas"]["HTML"] | components["schemas"]["Text"] | components["schemas"]["Emphasis"] | components["schemas"]["Strong"] | components["schemas"]["Delete"] | components["schemas"]["InlineCode"] | components["schemas"]["Break"] | components["schemas"]["Link"] | components["schemas"]["Image"] | components["schemas"]["LinkReference"] | components["schemas"]["ImageReference"] | components["schemas"]["Definition"] | components["schemas"]["FootnoteReference"] | components["schemas"]["FootnoteDefinition"] | components["schemas"]["Table"] | components["schemas"]["TableRow"] | components["schemas"]["TableCell"])[];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "tableRow";
+        };
+        Text: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "text";
+            value: string;
+        };
+        ThematicBreak: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "thematicBreak";
         };
         ValidationFieldError: {
             /** @description The field that failed validation */
@@ -3344,6 +3570,7 @@ export interface operations {
         parameters: {
             query?: {
                 key?: string;
+                format?: string;
             };
             header?: never;
             path: {
@@ -3387,6 +3614,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrNotFound"];
+                };
+            };
+            /** @description UnprocessableEntity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrValidationFailed"];
                 };
             };
         };

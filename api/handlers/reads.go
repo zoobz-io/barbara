@@ -26,18 +26,30 @@ var GetPublishedDocument = rocco.GET("/published/apps/{app_id}/lookup",
 		if key == "" {
 			return wire.PublishedDocumentResponse{}, rocco.ErrBadRequest.WithMessage("key query parameter required")
 		}
+		format := req.Params.Query["format"]
+		if format == "" {
+			format = transformers.FormatMarkdown
+		}
+		if format != transformers.FormatMarkdown && format != transformers.FormatMdast {
+			return wire.PublishedDocumentResponse{}, rocco.ErrValidationFailed.WithMessage("format must be markdown or mdast")
+		}
+		appID := req.Params.Path["app_id"]
 		reads := sum.MustUse[contracts.Reads](req.Context)
 		ctx := auth.WithPrincipal(req.Context, req.Identity)
-		doc, err := reads.GetPublishedByKey(ctx, req.Params.Path["app_id"], key)
+		doc, err := reads.GetPublishedByKey(ctx, appID, key)
 		if err != nil {
 			return wire.PublishedDocumentResponse{}, transformers.ErrorToResponse(err)
 		}
-		return transformers.IndexToResponse(doc), nil
+		resp, err := transformers.IndexToResponse(doc, format)
+		if err != nil {
+			return wire.PublishedDocumentResponse{}, transformers.ErrorToResponse(err)
+		}
+		return resp, nil
 	}).WithPathParams("app_id").
-	WithQueryParams("key").
+	WithQueryParams("key", "format").
 	WithSummary("Get a published document by key").
 	WithTags("Published").
-	WithErrors(rocco.ErrBadRequest, rocco.ErrNotFound, rocco.ErrUnauthorized).
+	WithErrors(rocco.ErrBadRequest, rocco.ErrValidationFailed, rocco.ErrNotFound, rocco.ErrUnauthorized).
 	WithAuthentication()
 
 // EnumerateDocuments lists an app's published documents, optionally filtered

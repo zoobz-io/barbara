@@ -10,6 +10,7 @@ require (
 	github.com/lib/pq v1.10.9
 	github.com/minio/minio-go/v7 v7.0.87
 	github.com/opensearch-project/opensearch-go/v4 v4.3.0
+	github.com/santhosh-tekuri/jsonschema/v6 v6.0.3
 	github.com/yuin/goldmark v1.8.6
 	github.com/zoobz-io/aperture v1.0.3
 	github.com/zoobz-io/astql v1.0.11
@@ -20,7 +21,7 @@ require (
 	github.com/zoobz-io/lucene v0.0.4
 	github.com/zoobz-io/openapi v1.0.2
 	github.com/zoobz-io/pipz v1.0.7
-	github.com/zoobz-io/rocco v0.1.23
+	github.com/zoobz-io/rocco v0.1.24
 	github.com/zoobz-io/soy v1.0.9
 	github.com/zoobz-io/sum v0.0.12
 	go.abhg.dev/goldmark/frontmatter v0.3.0
