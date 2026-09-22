@@ -1,0 +1,11 @@
+{
+  "children": [
+    {
+      "lang": "python",
+      "meta": "extra meta",
+      "type": "code",
+      "value": "print(1)"
+    }
+  ],
+  "type": "root"
+}
