@@ -1,0 +1,55 @@
+{
+  "children": [
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "A paragraph with a soft line break\nthat continues on the next line."
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "A paragraph with a hard line break from two spaces"
+        },
+        {
+          "type": "break"
+        },
+        {
+          "type": "text",
+          "value": "and then the rest."
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "A paragraph with a hard line break from a backslash"
+        },
+        {
+          "type": "break"
+        },
+        {
+          "type": "text",
+          "value": "and then the rest."
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "A second paragraph, separated by a blank line."
+        }
+      ],
+      "type": "paragraph"
+    }
+  ],
+  "type": "root"
+}

@@ -1,0 +1,65 @@
+{
+  "children": [
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "Fenced code with a language:"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "lang": "go",
+      "meta": null,
+      "type": "code",
+      "value": "func main() {\n\tprintln(\"hello\")\n}"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "Fenced code with a language and meta:"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "lang": "js",
+      "meta": "title=\"example.js\"",
+      "type": "code",
+      "value": "console.log(\"hello\");"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "Fenced code with no language:"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "lang": null,
+      "meta": null,
+      "type": "code",
+      "value": "plain fenced code"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "Indented code:"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "lang": null,
+      "meta": null,
+      "type": "code",
+      "value": "indented code line one\nindented code line two"
+    }
+  ],
+  "type": "root"
+}

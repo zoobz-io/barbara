@@ -1,0 +1,85 @@
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "A blockquote with a single paragraph."
+            }
+          ],
+          "type": "paragraph"
+        }
+      ],
+      "type": "blockquote"
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "A blockquote\nspanning two lines."
+            }
+          ],
+          "type": "paragraph"
+        }
+      ],
+      "type": "blockquote"
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "An outer blockquote."
+            }
+          ],
+          "type": "paragraph"
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "A nested blockquote inside it."
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "blockquote"
+        }
+      ],
+      "type": "blockquote"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "A thematic break follows:"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "type": "thematicBreak"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "And another after this paragraph."
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "type": "thematicBreak"
+    }
+  ],
+  "type": "root"
+}

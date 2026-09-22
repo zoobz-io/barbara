@@ -1,0 +1,23 @@
+{
+  "children": [
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "Backslash escapes: *not emphasis* and `not code` and a literal \\ backslash."
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "Character entities: & and © and © and ❤."
+        }
+      ],
+      "type": "paragraph"
+    }
+  ],
+  "type": "root"
+}

@@ -1,0 +1,148 @@
+{
+  "children": [
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "A GFM table with every alignment:"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "align": [
+        null,
+        "left",
+        "center",
+        "right"
+      ],
+      "children": [
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "default"
+                }
+              ],
+              "type": "tableCell"
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "left"
+                }
+              ],
+              "type": "tableCell"
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "center"
+                }
+              ],
+              "type": "tableCell"
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "right"
+                }
+              ],
+              "type": "tableCell"
+            }
+          ],
+          "type": "tableRow"
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "a1"
+                }
+              ],
+              "type": "tableCell"
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "b1"
+                }
+              ],
+              "type": "tableCell"
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "c1"
+                }
+              ],
+              "type": "tableCell"
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "d1"
+                }
+              ],
+              "type": "tableCell"
+            }
+          ],
+          "type": "tableRow"
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "a2"
+                }
+              ],
+              "type": "tableCell"
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "b2"
+                }
+              ],
+              "type": "tableCell"
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "c2"
+                }
+              ],
+              "type": "tableCell"
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "d2"
+                }
+              ],
+              "type": "tableCell"
+            }
+          ],
+          "type": "tableRow"
+        }
+      ],
+      "type": "table"
+    }
+  ],
+  "type": "root"
+}

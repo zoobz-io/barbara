@@ -1,0 +1,88 @@
+{
+  "children": [
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "An image with alt text "
+        },
+        {
+          "alt": "a red square",
+          "title": null,
+          "type": "image",
+          "url": "red.png"
+        },
+        {
+          "type": "text",
+          "value": "."
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "An image with alt and title "
+        },
+        {
+          "alt": "a blue square",
+          "title": "Blue square",
+          "type": "image",
+          "url": "blue.png"
+        },
+        {
+          "type": "text",
+          "value": "."
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "An image inside a link "
+        },
+        {
+          "children": [
+            {
+              "alt": "a logo",
+              "title": null,
+              "type": "image",
+              "url": "logo.png"
+            }
+          ],
+          "title": null,
+          "type": "link",
+          "url": "https://example.com"
+        },
+        {
+          "type": "text",
+          "value": "."
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "A relative image "
+        },
+        {
+          "alt": "diagram",
+          "title": null,
+          "type": "image",
+          "url": "../assets/diagram.png"
+        },
+        {
+          "type": "text",
+          "value": " from a parent folder."
+        }
+      ],
+      "type": "paragraph"
+    }
+  ],
+  "type": "root"
+}

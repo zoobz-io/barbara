@@ -1,0 +1,24 @@
+{
+  "children": [
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "Getting Started"
+        }
+      ],
+      "depth": 1,
+      "type": "heading"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "The body begins after the frontmatter block."
+        }
+      ],
+      "type": "paragraph"
+    }
+  ],
+  "type": "root"
+}
