@@ -9,19 +9,41 @@ import (
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/extension"
 	east "github.com/yuin/goldmark/extension/ast"
+	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/text"
+	"go.abhg.dev/goldmark/frontmatter"
 )
 
-// parser is a goldmark parser with the GFM extension (tables, strikethrough,
-// task lists, autolinks) and footnotes. It is built once and reused; goldmark
-// parsers are safe for concurrent use.
-var parser = goldmark.New(goldmark.WithExtensions(extension.GFM, extension.Footnote)).Parser()
+// mdParser is a goldmark parser with the GFM extension (tables, strikethrough,
+// task lists, autolinks), footnotes, and YAML frontmatter recognition. It is
+// built once and reused; goldmark parsers are safe for concurrent use.
+var mdParser = goldmark.New(
+	goldmark.WithExtensions(extension.GFM, extension.Footnote, &frontmatter.Extender{}),
+).Parser()
 
-// Parse parses Markdown into an mdast tree.
-func Parse(src []byte) (*Root, error) {
-	doc := parser.Parse(text.NewReader(src))
+// Parse parses Markdown into an mdast tree and the document's frontmatter.
+//
+// YAML frontmatter — a "---"-fenced block at the very top of the document — is
+// not part of the tree; it is returned as metadata so a site reads page fields
+// like title and description as plain values. The map is empty when there is no
+// frontmatter. Malformed frontmatter never fails the parse: if the block is not
+// a well-formed fenced block it stays in the tree as ordinary Markdown, and if
+// it is fenced but its YAML does not decode the map is empty. A page is user
+// content and must still render.
+func Parse(src []byte) (*Root, map[string]any, error) {
+	ctx := parser.NewContext()
+	doc := mdParser.Parse(text.NewReader(src), parser.WithContext(ctx))
+	meta := map[string]any{}
+	if data := frontmatter.Get(ctx); data != nil {
+		// A decode error means the fenced block was not valid YAML. Keep the
+		// map empty rather than half-filled, and never fail the parse.
+		decoded := map[string]any{}
+		if err := data.Decode(&decoded); err == nil {
+			meta = decoded
+		}
+	}
 	c := &conv{src: src, footnotes: footnoteLabels(doc)}
-	return &Root{Type: "root", Children: c.blocks(doc)}, nil
+	return &Root{Type: "root", Children: c.blocks(doc)}, meta, nil
 }
 
 // conv carries per-parse state through the walk.

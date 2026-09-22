@@ -23,6 +23,7 @@ require (
 	github.com/zoobz-io/rocco v0.1.23
 	github.com/zoobz-io/soy v1.0.9
 	github.com/zoobz-io/sum v0.0.12
+	go.abhg.dev/goldmark/frontmatter v0.3.0
 	go.opentelemetry.io/otel v1.42.0
 	go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp v0.14.0
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp v1.38.0
@@ -36,6 +37,7 @@ require (
 )
 
 require (
+	github.com/BurntSushi/toml v1.5.0 // indirect
 	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
