@@ -19,9 +19,14 @@ nothing else in Barbara.
 
 | Symbol | Role |
 |--------|------|
-| `Parse(src []byte) (*Root, map[string]any, error)` | Parses Markdown into an mdast tree and the document's frontmatter. |
+| `Parse(src []byte) (*MdastRoot, map[string]any, error)` | Parses Markdown into an mdast tree and the document's frontmatter. |
 | `Node` | The closed node union. Its method is unexported, so only this package defines node types. |
-| `Root`, `Paragraph`, `Heading`, … | One struct per mdast node type, with the JSON fields from the [mdast spec][mdast]. |
+| `MdastRoot`, `MdastParagraph`, `MdastHeading`, … | One struct per mdast node type, with the JSON fields from the [mdast spec][mdast]. |
+
+The Go type names carry an `Mdast` prefix. rocco names a schema after the bare
+Go type name, and [`internal/hast`](../hast) has a sibling `root` and `text`
+node, so the prefix keeps the two trees' schemas distinct in the OpenAPI spec.
+The JSON `type` values are the unprefixed mdast names (`root`, `paragraph`, …).
 
 ## How it works
 
@@ -48,7 +53,8 @@ normalizes it to match remark:
 ## OpenAPI and the SDK
 
 The published document lookup can return a page as an mdast tree
-(`GET /published/apps/{app_id}/lookup?key=…&format=mdast`). The node types carry
+(`GET /published/apps/{app_id}/lookup?key=…&format=mdast`); the default is a
+hast tree ([`internal/hast`](../hast)) built from this one. The node types carry
 rocco schema tags (a const `type`, a discriminated `children` union), so the
 OpenAPI spec and the generated TypeScript SDK describe the tree as a typed,
 discriminated union — the Go structs are the single source of truth. A test in

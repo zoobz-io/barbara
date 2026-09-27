@@ -81,21 +81,52 @@ func TestGetPublishedDocument_OK(t *testing.T) {
 	}
 }
 
-func TestGetPublishedDocument_FormatMarkdownDefault(t *testing.T) {
+func TestGetPublishedDocument_FormatHastDefault(t *testing.T) {
 	mock := &mockReads{doc: &models.DocumentIndex{
-		DocumentID: "d1", Key: "guides/install.md", AppID: "app-1", Content: "# Install",
+		DocumentID: "d1", Key: "guides/install.md", AppID: "app-1", ParentPath: "guides",
+		Content: "---\ntitle: Install\n---\n\n# Install\n\n![d](d.png)\n",
 	}}
+	// No format parameter: the default is hast.
 	w := driver(t, mock).Request(t, http.MethodGet, "/published/apps/app-1/lookup?key=guides/install.md", nil)
 	if w.Code != http.StatusOK {
 		t.Fatalf("status = %d, want 200; body=%s", w.Code, w.Body.String())
 	}
 	var raw map[string]any
 	_ = json.Unmarshal(w.Body.Bytes(), &raw)
-	if raw["content"] != "# Install" {
-		t.Errorf("default format must return raw markdown content: %s", w.Body.String())
+	if _, ok := raw["content"]; ok {
+		t.Errorf("default (hast) format must omit content: %s", w.Body.String())
 	}
-	if _, ok := raw["body"]; ok {
-		t.Errorf("markdown format must omit body: %s", w.Body.String())
+	if _, ok := raw["mdast"]; ok {
+		t.Errorf("default (hast) format must omit mdast: %s", w.Body.String())
+	}
+	hast, ok := raw["hast"].(map[string]any)
+	if !ok || hast["type"] != "root" {
+		t.Fatalf("default format must return a hast root tree: %s", w.Body.String())
+	}
+	meta, ok := raw["meta"].(map[string]any)
+	if !ok || meta["title"] != "Install" {
+		t.Errorf("hast format must return frontmatter meta: %s", w.Body.String())
+	}
+}
+
+func TestGetPublishedDocument_FormatMarkdown(t *testing.T) {
+	mock := &mockReads{doc: &models.DocumentIndex{
+		DocumentID: "d1", Key: "guides/install.md", AppID: "app-1", Content: "# Install",
+	}}
+	w := driver(t, mock).Request(t, http.MethodGet, "/published/apps/app-1/lookup?key=guides/install.md&format=markdown", nil)
+	if w.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200; body=%s", w.Code, w.Body.String())
+	}
+	var raw map[string]any
+	_ = json.Unmarshal(w.Body.Bytes(), &raw)
+	if raw["content"] != "# Install" {
+		t.Errorf("markdown format must return raw markdown content: %s", w.Body.String())
+	}
+	if _, ok := raw["mdast"]; ok {
+		t.Errorf("markdown format must omit mdast: %s", w.Body.String())
+	}
+	if _, ok := raw["hast"]; ok {
+		t.Errorf("markdown format must omit hast: %s", w.Body.String())
 	}
 }
 
@@ -113,9 +144,9 @@ func TestGetPublishedDocument_FormatMdast(t *testing.T) {
 	if _, ok := raw["content"]; ok {
 		t.Errorf("mdast format must omit content: %s", w.Body.String())
 	}
-	body, ok := raw["body"].(map[string]any)
+	body, ok := raw["mdast"].(map[string]any)
 	if !ok || body["type"] != "root" {
-		t.Fatalf("mdast format must return a root body: %s", w.Body.String())
+		t.Fatalf("mdast format must return a root tree in mdast: %s", w.Body.String())
 	}
 	meta, ok := raw["meta"].(map[string]any)
 	if !ok || meta["title"] != "Install" {
@@ -130,8 +161,8 @@ func TestGetPublishedDocument_FormatMdast(t *testing.T) {
 func TestGetPublishedDocument_FormatUnknown(t *testing.T) {
 	mock := &mockReads{doc: &models.DocumentIndex{DocumentID: "d1", Key: "x.md", AppID: "app-1"}}
 	w := driver(t, mock).Request(t, http.MethodGet, "/published/apps/app-1/lookup?key=x.md&format=xml", nil)
-	if w.Code != http.StatusUnprocessableEntity {
-		t.Fatalf("status = %d, want 422; body=%s", w.Code, w.Body.String())
+	if w.Code != http.StatusBadRequest {
+		t.Fatalf("status = %d, want 400; body=%s", w.Code, w.Body.String())
 	}
 }
 

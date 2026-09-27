@@ -1,0 +1,304 @@
+{
+  "children": [
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "A GFM table with every alignment:"
+        }
+      ],
+      "properties": {},
+      "tagName": "p",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "\n"
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "\n"
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "\n"
+                },
+                {
+                  "children": [
+                    {
+                      "type": "text",
+                      "value": "default"
+                    }
+                  ],
+                  "properties": {},
+                  "tagName": "th",
+                  "type": "element"
+                },
+                {
+                  "type": "text",
+                  "value": "\n"
+                },
+                {
+                  "children": [
+                    {
+                      "type": "text",
+                      "value": "left"
+                    }
+                  ],
+                  "properties": {
+                    "align": "left"
+                  },
+                  "tagName": "th",
+                  "type": "element"
+                },
+                {
+                  "type": "text",
+                  "value": "\n"
+                },
+                {
+                  "children": [
+                    {
+                      "type": "text",
+                      "value": "center"
+                    }
+                  ],
+                  "properties": {
+                    "align": "center"
+                  },
+                  "tagName": "th",
+                  "type": "element"
+                },
+                {
+                  "type": "text",
+                  "value": "\n"
+                },
+                {
+                  "children": [
+                    {
+                      "type": "text",
+                      "value": "right"
+                    }
+                  ],
+                  "properties": {
+                    "align": "right"
+                  },
+                  "tagName": "th",
+                  "type": "element"
+                },
+                {
+                  "type": "text",
+                  "value": "\n"
+                }
+              ],
+              "properties": {},
+              "tagName": "tr",
+              "type": "element"
+            },
+            {
+              "type": "text",
+              "value": "\n"
+            }
+          ],
+          "properties": {},
+          "tagName": "thead",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": "\n"
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "\n"
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "\n"
+                },
+                {
+                  "children": [
+                    {
+                      "type": "text",
+                      "value": "a1"
+                    }
+                  ],
+                  "properties": {},
+                  "tagName": "td",
+                  "type": "element"
+                },
+                {
+                  "type": "text",
+                  "value": "\n"
+                },
+                {
+                  "children": [
+                    {
+                      "type": "text",
+                      "value": "b1"
+                    }
+                  ],
+                  "properties": {
+                    "align": "left"
+                  },
+                  "tagName": "td",
+                  "type": "element"
+                },
+                {
+                  "type": "text",
+                  "value": "\n"
+                },
+                {
+                  "children": [
+                    {
+                      "type": "text",
+                      "value": "c1"
+                    }
+                  ],
+                  "properties": {
+                    "align": "center"
+                  },
+                  "tagName": "td",
+                  "type": "element"
+                },
+                {
+                  "type": "text",
+                  "value": "\n"
+                },
+                {
+                  "children": [
+                    {
+                      "type": "text",
+                      "value": "d1"
+                    }
+                  ],
+                  "properties": {
+                    "align": "right"
+                  },
+                  "tagName": "td",
+                  "type": "element"
+                },
+                {
+                  "type": "text",
+                  "value": "\n"
+                }
+              ],
+              "properties": {},
+              "tagName": "tr",
+              "type": "element"
+            },
+            {
+              "type": "text",
+              "value": "\n"
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "\n"
+                },
+                {
+                  "children": [
+                    {
+                      "type": "text",
+                      "value": "a2"
+                    }
+                  ],
+                  "properties": {},
+                  "tagName": "td",
+                  "type": "element"
+                },
+                {
+                  "type": "text",
+                  "value": "\n"
+                },
+                {
+                  "children": [
+                    {
+                      "type": "text",
+                      "value": "b2"
+                    }
+                  ],
+                  "properties": {
+                    "align": "left"
+                  },
+                  "tagName": "td",
+                  "type": "element"
+                },
+                {
+                  "type": "text",
+                  "value": "\n"
+                },
+                {
+                  "children": [
+                    {
+                      "type": "text",
+                      "value": "c2"
+                    }
+                  ],
+                  "properties": {
+                    "align": "center"
+                  },
+                  "tagName": "td",
+                  "type": "element"
+                },
+                {
+                  "type": "text",
+                  "value": "\n"
+                },
+                {
+                  "children": [
+                    {
+                      "type": "text",
+                      "value": "d2"
+                    }
+                  ],
+                  "properties": {
+                    "align": "right"
+                  },
+                  "tagName": "td",
+                  "type": "element"
+                },
+                {
+                  "type": "text",
+                  "value": "\n"
+                }
+              ],
+              "properties": {},
+              "tagName": "tr",
+              "type": "element"
+            },
+            {
+              "type": "text",
+              "value": "\n"
+            }
+          ],
+          "properties": {},
+          "tagName": "tbody",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": "\n"
+        }
+      ],
+      "properties": {},
+      "tagName": "table",
+      "type": "element"
+    }
+  ],
+  "type": "root"
+}

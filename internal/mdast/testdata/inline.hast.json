@@ -1,0 +1,226 @@
+{
+  "children": [
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "Text with "
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "emphasis"
+            }
+          ],
+          "properties": {},
+          "tagName": "em",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": " and "
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "also emphasis"
+            }
+          ],
+          "properties": {},
+          "tagName": "em",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": "."
+        }
+      ],
+      "properties": {},
+      "tagName": "p",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "Text with "
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "strong"
+            }
+          ],
+          "properties": {},
+          "tagName": "strong",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": " and "
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "also strong"
+            }
+          ],
+          "properties": {},
+          "tagName": "strong",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": "."
+        }
+      ],
+      "properties": {},
+      "tagName": "p",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "Text with "
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "strikethrough"
+            }
+          ],
+          "properties": {},
+          "tagName": "del",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": "."
+        }
+      ],
+      "properties": {},
+      "tagName": "p",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "Text with "
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "inline code"
+            }
+          ],
+          "properties": {},
+          "tagName": "code",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": " inside it."
+        }
+      ],
+      "properties": {},
+      "tagName": "p",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "Nested marks: "
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "strong with "
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "emphasis"
+                }
+              ],
+              "properties": {},
+              "tagName": "em",
+              "type": "element"
+            },
+            {
+              "type": "text",
+              "value": " inside"
+            }
+          ],
+          "properties": {},
+          "tagName": "strong",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": " and "
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "emphasis with "
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "code"
+                }
+              ],
+              "properties": {},
+              "tagName": "code",
+              "type": "element"
+            },
+            {
+              "type": "text",
+              "value": " inside"
+            }
+          ],
+          "properties": {},
+          "tagName": "em",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": "."
+        }
+      ],
+      "properties": {},
+      "tagName": "p",
+      "type": "element"
+    }
+  ],
+  "type": "root"
+}

@@ -1,14 +1,27 @@
-// Regenerate the golden mdast fixtures under internal/mdast/testdata/.
+// Regenerate the golden mdast and hast fixtures under internal/mdast/testdata/.
 //
 // Each fixture is a `<name>.md` file. This script parses it with the same
-// remark building blocks a browser mdast renderer uses and writes the tree to
-// `<name>.json`. The Go converter in internal/mdast must produce byte-equal
-// JSON, so the JSON here is the reference truth for "any remark renderer works".
+// remark building blocks a browser renderer uses and writes two trees:
+//   - `<name>.json`  — the mdast tree (mdast-util-from-markdown). internal/mdast
+//     must produce this byte for byte.
+//   - `<name>.hast.json` — the hast tree (mdast-util-to-hast). internal/hast
+//     must produce this byte for byte.
+// The JSON here is the reference truth: "any remark renderer works" for mdast,
+// "any hast renderer works" for hast.
 //
 // Run from web/: `pnpm fixtures:mdast`.
 //
+// The mdast → hast conversion deviates from the default options in two ways,
+// both recorded in internal/hast/README.md:
+//   - `allowDangerousHtml: true` — an mdast `html` node becomes a hast `raw`
+//     node instead of being dropped. This matches format=mdast; the consumer
+//     decides whether to sanitise.
+//   - a custom `code` handler keeps the fence `meta`, which the default mapping
+//     discards, as the `dataMeta` property (renders as `data-meta`).
+//
 // The JSON is normalized so the Go side has a simple, stable target:
-//   - `position` fields are stripped (source offsets are not part of the tree).
+//   - `position` and `data` fields are stripped (neither is part of the tree
+//     the renderer consumes; `data` is unist bookkeeping).
 //   - `yaml` nodes are removed; frontmatter is page metadata, not a body node
 //     (see #94), so the golden body must not contain it.
 //   - object keys are sorted and the indent is two spaces, so a diff between
@@ -23,11 +36,62 @@ import { gfm } from "micromark-extension-gfm";
 import { gfmFromMarkdown } from "mdast-util-gfm";
 import { frontmatter } from "micromark-extension-frontmatter";
 import { frontmatterFromMarkdown } from "mdast-util-frontmatter";
+import { toHast } from "mdast-util-to-hast";
 import { removePosition } from "unist-util-remove-position";
 import { parse as parseYaml } from "yaml";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const testdata = join(here, "..", "..", "internal", "mdast", "testdata");
+
+// A custom `code` handler for mdast-util-to-hast. It mirrors the library's
+// default (a <pre><code> with a language-<lang> class) but keeps the fence
+// `meta` string: the default stashes it in the node's unist `data`, which never
+// reaches the rendered HTML, so instead we set the `dataMeta` property, which a
+// hast renderer emits as a `data-meta` attribute. internal/hast does the same.
+const handlers = {
+  code(state, node) {
+    const value = node.value ? node.value + "\n" : "";
+    const properties = {};
+    if (node.lang) {
+      properties.className = ["language-" + node.lang];
+    }
+    if (node.meta) {
+      properties.dataMeta = node.meta;
+    }
+    let result = {
+      type: "element",
+      tagName: "code",
+      properties,
+      children: [{ type: "text", value }],
+    };
+    state.patch(node, result);
+    result = state.applyData(node, result);
+    result = {
+      type: "element",
+      tagName: "pre",
+      properties: {},
+      children: [result],
+    };
+    state.patch(node, result);
+    return result;
+  },
+};
+
+// Convert an mdast tree to a hast tree with Barbara's two option deviations.
+function toHastTree(tree) {
+  return toHast(tree, { allowDangerousHtml: true, handlers });
+}
+
+// Strip unist `data` bookkeeping from every node. Positions are already gone
+// (removePosition runs on the mdast tree before conversion), and `data` is not
+// part of the tree a hast renderer consumes, so the golden omits both.
+function removeData(node) {
+  delete node.data;
+  if (Array.isArray(node.children)) {
+    for (const child of node.children) removeData(child);
+  }
+  return node;
+}
 
 // Parse markdown to an mdast tree with GFM and YAML frontmatter recognized.
 function parse(markdown) {
@@ -101,6 +165,13 @@ async function main() {
     const json = `${JSON.stringify(sortKeys(tree), null, 2)}\n`;
     await writeFile(join(testdata, `${base}.json`), json);
     console.log(`wrote ${base}.json`);
+
+    // The hast tree is built from the same (yaml-free, position-free) mdast
+    // tree, so it carries no frontmatter node and no source offsets.
+    const hast = removeData(toHastTree(tree));
+    const hastJson = `${JSON.stringify(sortKeys(hast), null, 2)}\n`;
+    await writeFile(join(testdata, `${base}.hast.json`), hastJson);
+    console.log(`wrote ${base}.hast.json`);
   }
 }
 

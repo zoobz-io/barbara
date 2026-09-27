@@ -1,0 +1,149 @@
+{
+  "children": [
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "A task list:"
+        }
+      ],
+      "properties": {},
+      "tagName": "p",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "\n"
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "properties": {
+                "checked": true,
+                "disabled": true,
+                "type": "checkbox"
+              },
+              "tagName": "input",
+              "type": "element"
+            },
+            {
+              "type": "text",
+              "value": " "
+            },
+            {
+              "type": "text",
+              "value": "a checked task"
+            }
+          ],
+          "properties": {
+            "className": [
+              "task-list-item"
+            ]
+          },
+          "tagName": "li",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": "\n"
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "properties": {
+                "checked": false,
+                "disabled": true,
+                "type": "checkbox"
+              },
+              "tagName": "input",
+              "type": "element"
+            },
+            {
+              "type": "text",
+              "value": " "
+            },
+            {
+              "type": "text",
+              "value": "an unchecked task"
+            }
+          ],
+          "properties": {
+            "className": [
+              "task-list-item"
+            ]
+          },
+          "tagName": "li",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": "\n"
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "properties": {
+                "checked": true,
+                "disabled": true,
+                "type": "checkbox"
+              },
+              "tagName": "input",
+              "type": "element"
+            },
+            {
+              "type": "text",
+              "value": " "
+            },
+            {
+              "type": "text",
+              "value": "another checked task"
+            }
+          ],
+          "properties": {
+            "className": [
+              "task-list-item"
+            ]
+          },
+          "tagName": "li",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": "\n"
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "a plain item with no checkbox"
+            }
+          ],
+          "properties": {},
+          "tagName": "li",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": "\n"
+        }
+      ],
+      "properties": {
+        "className": [
+          "contains-task-list"
+        ]
+      },
+      "tagName": "ul",
+      "type": "element"
+    }
+  ],
+  "type": "root"
+}

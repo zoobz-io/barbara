@@ -1,0 +1,123 @@
+{
+  "children": [
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "An image with alt text "
+        },
+        {
+          "children": [],
+          "properties": {
+            "alt": "a red square",
+            "src": "red.png"
+          },
+          "tagName": "img",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": "."
+        }
+      ],
+      "properties": {},
+      "tagName": "p",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "An image with alt and title "
+        },
+        {
+          "children": [],
+          "properties": {
+            "alt": "a blue square",
+            "src": "blue.png",
+            "title": "Blue square"
+          },
+          "tagName": "img",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": "."
+        }
+      ],
+      "properties": {},
+      "tagName": "p",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "An image inside a link "
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "properties": {
+                "alt": "a logo",
+                "src": "logo.png"
+              },
+              "tagName": "img",
+              "type": "element"
+            }
+          ],
+          "properties": {
+            "href": "https://example.com"
+          },
+          "tagName": "a",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": "."
+        }
+      ],
+      "properties": {},
+      "tagName": "p",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "A relative image "
+        },
+        {
+          "children": [],
+          "properties": {
+            "alt": "diagram",
+            "src": "../assets/diagram.png"
+          },
+          "tagName": "img",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": " from a parent folder."
+        }
+      ],
+      "properties": {},
+      "tagName": "p",
+      "type": "element"
+    }
+  ],
+  "type": "root"
+}

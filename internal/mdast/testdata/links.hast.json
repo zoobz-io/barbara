@@ -1,0 +1,163 @@
+{
+  "children": [
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "An "
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "inline link"
+            }
+          ],
+          "properties": {
+            "href": "https://example.com"
+          },
+          "tagName": "a",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": " with no title."
+        }
+      ],
+      "properties": {},
+      "tagName": "p",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "An "
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "inline link with a title"
+            }
+          ],
+          "properties": {
+            "href": "https://example.com",
+            "title": "Example title"
+          },
+          "tagName": "a",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": "."
+        }
+      ],
+      "properties": {},
+      "tagName": "p",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "An autolink "
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "https://example.com/auto"
+            }
+          ],
+          "properties": {
+            "href": "https://example.com/auto"
+          },
+          "tagName": "a",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": " in angle brackets."
+        }
+      ],
+      "properties": {},
+      "tagName": "p",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "A bare URL "
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "https://example.com/bare"
+            }
+          ],
+          "properties": {
+            "href": "https://example.com/bare"
+          },
+          "tagName": "a",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": " that GFM turns into a link."
+        }
+      ],
+      "properties": {},
+      "tagName": "p",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "A "
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "reference link"
+            }
+          ],
+          "properties": {
+            "href": "https://example.com/ref",
+            "title": "Reference title"
+          },
+          "tagName": "a",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": " to a definition."
+        }
+      ],
+      "properties": {},
+      "tagName": "p",
+      "type": "element"
+    }
+  ],
+  "type": "root"
+}

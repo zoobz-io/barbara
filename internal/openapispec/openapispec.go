@@ -90,12 +90,12 @@ func patch(spec *openapi.OpenAPI) {
 // and the fixture-validation test guards it against drift.
 func markMdastNullable(schemas map[string]*openapi.Schema) {
 	nullable := map[string][]string{
-		"Code":       {"lang", "meta"},
-		"List":       {"start"},
-		"ListItem":   {"checked"},
-		"Link":       {"title"},
-		"Image":      {"title"},
-		"Definition": {"title"},
+		"MdastCode":       {"lang", "meta"},
+		"MdastList":       {"start"},
+		"MdastListItem":   {"checked"},
+		"MdastLink":       {"title"},
+		"MdastImage":      {"title"},
+		"MdastDefinition": {"title"},
 	}
 	for name, props := range nullable {
 		s := schemas[name]
@@ -108,7 +108,7 @@ func markMdastNullable(schemas map[string]*openapi.Schema) {
 	}
 	// A table's align holds one entry per column, each "left"/"right"/"center"
 	// or null for the default.
-	if t := schemas["Table"]; t != nil {
+	if t := schemas["MdastTable"]; t != nil {
 		if align, ok := t.Properties["align"]; ok {
 			makeNullable(align.Items)
 		}

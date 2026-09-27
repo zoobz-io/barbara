@@ -1,0 +1,108 @@
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "https://x.io/a"
+            }
+          ],
+          "properties": {
+            "href": "https://x.io/a"
+          },
+          "tagName": "a",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": " and "
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "me@x.io"
+            }
+          ],
+          "properties": {
+            "href": "mailto:me@x.io"
+          },
+          "tagName": "a",
+          "type": "element"
+        }
+      ],
+      "properties": {},
+      "tagName": "p",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "Visit "
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "www.example.com"
+            }
+          ],
+          "properties": {
+            "href": "http://www.example.com"
+          },
+          "tagName": "a",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": " or "
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "https://x.io/a?b=c"
+            }
+          ],
+          "properties": {
+            "href": "https://x.io/a?b=c"
+          },
+          "tagName": "a",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": ", or mail "
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "me@x.io"
+            }
+          ],
+          "properties": {
+            "href": "mailto:me@x.io"
+          },
+          "tagName": "a",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": "."
+        }
+      ],
+      "properties": {},
+      "tagName": "p",
+      "type": "element"
+    }
+  ],
+  "type": "root"
+}

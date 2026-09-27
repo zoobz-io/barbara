@@ -7,6 +7,7 @@ package wire
 import (
 	"time"
 
+	"github.com/zoobz-io/barbara/internal/hast"
 	"github.com/zoobz-io/barbara/internal/mdast"
 )
 
@@ -14,24 +15,29 @@ import (
 // document. Tenant and internal version identifiers are excluded; the document
 // ID, key, tags and public version number are all a consumer needs.
 //
-// The document body is returned in one of two shapes, chosen by the lookup's
-// format parameter. In markdown (the default) Content holds the raw markdown
-// and Body and Meta are absent. In mdast Body holds the parsed tree, Meta holds
-// the frontmatter, and Content is absent.
+// The document body is returned in one of three shapes, chosen by the lookup's
+// format parameter. In hast (the default) Hast holds the HTML-shaped tree and
+// Meta holds the frontmatter. In mdast Mdast holds the remark tree and Meta the
+// frontmatter. In markdown Content holds the raw markdown. Exactly one of
+// Content, Mdast, Hast is set; the others are absent. Mdast and Hast are
+// separate fields because both roots serialise as type "root", so the SDK
+// cannot discriminate one field on that shared value.
 type PublishedDocumentResponse struct {
-	CreatedAt     time.Time      `json:"created_at" description:"When the document was created"`
-	UpdatedAt     time.Time      `json:"updated_at" description:"When the document was last updated"`
-	Body          *mdast.Root    `json:"body,omitempty" description:"The document body as an mdast tree (format=mdast)"`
-	Meta          map[string]any `json:"meta,omitempty" description:"Frontmatter fields (format=mdast)"`
-	DocumentID    string         `json:"document_id" description:"Document ID" example:"b1e1..."`
-	Key           string         `json:"key" description:"Document key" example:"guides/install.md"`
-	Content       string         `json:"content,omitempty" description:"Published content as raw markdown (format=markdown)"`
-	Tags          []string       `json:"tags" description:"Organizational tags"`
-	VersionNumber int            `json:"version_number" description:"Published version number" example:"3"`
+	CreatedAt     time.Time        `json:"created_at" description:"When the document was created"`
+	UpdatedAt     time.Time        `json:"updated_at" description:"When the document was last updated"`
+	Mdast         *mdast.MdastRoot `json:"mdast,omitempty" description:"The document body as an mdast tree (format=mdast)"`
+	Hast          *hast.HastRoot   `json:"hast,omitempty" description:"The document body as a hast tree (format=hast)"`
+	Meta          map[string]any   `json:"meta,omitempty" description:"Frontmatter fields (format=mdast or format=hast)"`
+	DocumentID    string           `json:"document_id" description:"Document ID" example:"b1e1..."`
+	Key           string           `json:"key" description:"Document key" example:"guides/install.md"`
+	Content       string           `json:"content,omitempty" description:"Published content as raw markdown (format=markdown)"`
+	Tags          []string         `json:"tags" description:"Organizational tags"`
+	VersionNumber int              `json:"version_number" description:"Published version number" example:"3"`
 }
 
-// Clone returns a copy. The mdast body is treated as immutable once built and is
-// shared by reference; the tags and frontmatter maps are copied one level.
+// Clone returns a copy. The mdast and hast trees are treated as immutable once
+// built and are shared by reference; the tags and frontmatter maps are copied
+// one level.
 func (r PublishedDocumentResponse) Clone() PublishedDocumentResponse {
 	c := r
 	if r.Tags != nil {
