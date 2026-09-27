@@ -4,6 +4,7 @@ import (
 	"github.com/zoobz-io/openapi"
 	"github.com/zoobz-io/rocco"
 
+	"github.com/zoobz-io/barbara/internal/hast"
 	"github.com/zoobz-io/barbara/internal/mdast"
 )
 
@@ -33,39 +34,55 @@ func ConfigureOpenAPI(e *rocco.Engine) {
 	e.WithTagGroup("Authoring", "Apps", "Collections", "Documents", "Versions", "Publishing", "Releases", "Assets")
 
 	registerMdastModels(e)
+	registerHastModels(e)
 }
 
 // registerMdastModels registers every mdast node type as an OpenAPI component.
-// The published document body (format=mdast) is an mdast.Root whose children are
+// The published document body (format=mdast) is an mdast.MdastRoot whose children are
 // a union reached only through an interface, so rocco cannot discover the
 // variant types by walking the response struct — the discriminate tags refer to
 // them by name, and these registrations put those named schemas in the spec.
 func registerMdastModels(e *rocco.Engine) {
 	e.WithModels(
-		rocco.NewModel[mdast.Root](),
-		rocco.NewModel[mdast.Paragraph](),
-		rocco.NewModel[mdast.Heading](),
-		rocco.NewModel[mdast.ThematicBreak](),
-		rocco.NewModel[mdast.Blockquote](),
-		rocco.NewModel[mdast.List](),
-		rocco.NewModel[mdast.ListItem](),
-		rocco.NewModel[mdast.Code](),
-		rocco.NewModel[mdast.HTML](),
-		rocco.NewModel[mdast.Text](),
-		rocco.NewModel[mdast.Emphasis](),
-		rocco.NewModel[mdast.Strong](),
-		rocco.NewModel[mdast.Delete](),
-		rocco.NewModel[mdast.InlineCode](),
-		rocco.NewModel[mdast.Break](),
-		rocco.NewModel[mdast.Link](),
-		rocco.NewModel[mdast.Image](),
-		rocco.NewModel[mdast.LinkReference](),
-		rocco.NewModel[mdast.ImageReference](),
-		rocco.NewModel[mdast.Definition](),
-		rocco.NewModel[mdast.FootnoteReference](),
-		rocco.NewModel[mdast.FootnoteDefinition](),
-		rocco.NewModel[mdast.Table](),
-		rocco.NewModel[mdast.TableRow](),
-		rocco.NewModel[mdast.TableCell](),
+		rocco.NewModel[mdast.MdastRoot](),
+		rocco.NewModel[mdast.MdastParagraph](),
+		rocco.NewModel[mdast.MdastHeading](),
+		rocco.NewModel[mdast.MdastThematicBreak](),
+		rocco.NewModel[mdast.MdastBlockquote](),
+		rocco.NewModel[mdast.MdastList](),
+		rocco.NewModel[mdast.MdastListItem](),
+		rocco.NewModel[mdast.MdastCode](),
+		rocco.NewModel[mdast.MdastHTML](),
+		rocco.NewModel[mdast.MdastText](),
+		rocco.NewModel[mdast.MdastEmphasis](),
+		rocco.NewModel[mdast.MdastStrong](),
+		rocco.NewModel[mdast.MdastDelete](),
+		rocco.NewModel[mdast.MdastInlineCode](),
+		rocco.NewModel[mdast.MdastBreak](),
+		rocco.NewModel[mdast.MdastLink](),
+		rocco.NewModel[mdast.MdastImage](),
+		rocco.NewModel[mdast.MdastLinkReference](),
+		rocco.NewModel[mdast.MdastImageReference](),
+		rocco.NewModel[mdast.MdastDefinition](),
+		rocco.NewModel[mdast.MdastFootnoteReference](),
+		rocco.NewModel[mdast.MdastFootnoteDefinition](),
+		rocco.NewModel[mdast.MdastTable](),
+		rocco.NewModel[mdast.MdastTableRow](),
+		rocco.NewModel[mdast.MdastTableCell](),
+	)
+}
+
+// registerHastModels registers every hast node type as an OpenAPI component,
+// for the same reason as the mdast models: the published document body
+// (format=hast) is a hast.HastRoot whose children are a union reached only
+// through an interface. The Hast-prefixed names keep these schemas distinct from
+// the mdast ones (both trees have a root and a text node).
+func registerHastModels(e *rocco.Engine) {
+	e.WithModels(
+		rocco.NewModel[hast.HastRoot](),
+		rocco.NewModel[hast.HastElement](),
+		rocco.NewModel[hast.HastText](),
+		rocco.NewModel[hast.HastComment](),
+		rocco.NewModel[hast.HastRaw](),
 	)
 }

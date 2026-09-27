@@ -1,0 +1,89 @@
+{
+  "children": [
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "A paragraph with a soft line break\nthat continues on the next line."
+        }
+      ],
+      "properties": {},
+      "tagName": "p",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "A paragraph with a hard line break from two spaces"
+        },
+        {
+          "children": [],
+          "properties": {},
+          "tagName": "br",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": "\n"
+        },
+        {
+          "type": "text",
+          "value": "and then the rest."
+        }
+      ],
+      "properties": {},
+      "tagName": "p",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "A paragraph with a hard line break from a backslash"
+        },
+        {
+          "children": [],
+          "properties": {},
+          "tagName": "br",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": "\n"
+        },
+        {
+          "type": "text",
+          "value": "and then the rest."
+        }
+      ],
+      "properties": {},
+      "tagName": "p",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "A second paragraph, separated by a blank line."
+        }
+      ],
+      "properties": {},
+      "tagName": "p",
+      "type": "element"
+    }
+  ],
+  "type": "root"
+}

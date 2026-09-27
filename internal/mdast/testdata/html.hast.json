@@ -1,0 +1,55 @@
+{
+  "children": [
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "An HTML block:"
+        }
+      ],
+      "properties": {},
+      "tagName": "p",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "type": "raw",
+      "value": "<div class=\"note\">\n  <p>Raw HTML block content.</p>\n</div>"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "A paragraph with inline "
+        },
+        {
+          "type": "raw",
+          "value": "<abbr title=\"HyperText Markup Language\">"
+        },
+        {
+          "type": "text",
+          "value": "HTML"
+        },
+        {
+          "type": "raw",
+          "value": "</abbr>"
+        },
+        {
+          "type": "text",
+          "value": " in it."
+        }
+      ],
+      "properties": {},
+      "tagName": "p",
+      "type": "element"
+    }
+  ],
+  "type": "root"
+}

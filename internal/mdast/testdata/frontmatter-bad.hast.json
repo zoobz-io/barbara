@@ -1,0 +1,31 @@
+{
+  "children": [
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "Body after malformed frontmatter"
+        }
+      ],
+      "properties": {},
+      "tagName": "h1",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "The frontmatter above is fenced but its YAML does not parse."
+        }
+      ],
+      "properties": {},
+      "tagName": "p",
+      "type": "element"
+    }
+  ],
+  "type": "root"
+}

@@ -30,7 +30,7 @@ var mdParser = goldmark.New(
 // a well-formed fenced block it stays in the tree as ordinary Markdown, and if
 // it is fenced but its YAML does not decode the map is empty. A page is user
 // content and must still render.
-func Parse(src []byte) (*Root, map[string]any, error) {
+func Parse(src []byte) (*MdastRoot, map[string]any, error) {
 	ctx := parser.NewContext()
 	doc := mdParser.Parse(text.NewReader(src), parser.WithContext(ctx))
 	meta := map[string]any{}
@@ -43,7 +43,7 @@ func Parse(src []byte) (*Root, map[string]any, error) {
 		}
 	}
 	c := &conv{src: src, footnotes: footnoteLabels(doc)}
-	return &Root{Type: "root", Children: c.blocks(doc)}, meta, nil
+	return &MdastRoot{Type: "root", Children: c.blocks(doc)}, meta, nil
 }
 
 // conv carries per-parse state through the walk.
@@ -98,16 +98,16 @@ func (c *conv) blocks(parent ast.Node) []Node {
 func (c *conv) block(n ast.Node) Node {
 	switch b := n.(type) {
 	case *ast.Paragraph:
-		return &Paragraph{Type: "paragraph", Children: c.inline(b)}
+		return &MdastParagraph{Type: "paragraph", Children: c.inline(b)}
 	case *ast.TextBlock:
 		// A tight list item's content. mdast still wraps it in a paragraph.
-		return &Paragraph{Type: "paragraph", Children: c.inline(b)}
+		return &MdastParagraph{Type: "paragraph", Children: c.inline(b)}
 	case *ast.Heading:
-		return &Heading{Type: "heading", Depth: b.Level, Children: c.inline(b)}
+		return &MdastHeading{Type: "heading", Depth: b.Level, Children: c.inline(b)}
 	case *ast.ThematicBreak:
-		return &ThematicBreak{Type: "thematicBreak"}
+		return &MdastThematicBreak{Type: "thematicBreak"}
 	case *ast.Blockquote:
-		return &Blockquote{Type: "blockquote", Children: c.blocks(b)}
+		return &MdastBlockquote{Type: "blockquote", Children: c.blocks(b)}
 	case *ast.List:
 		return c.list(b)
 	case *ast.ListItem:
@@ -115,13 +115,13 @@ func (c *conv) block(n ast.Node) Node {
 	case *ast.FencedCodeBlock:
 		return c.fencedCode(b)
 	case *ast.CodeBlock:
-		return &Code{Type: "code", Lang: nil, Meta: nil, Value: linesValue(b.Lines(), c.src)}
+		return &MdastCode{Type: "code", Lang: nil, Meta: nil, Value: linesValue(b.Lines(), c.src)}
 	case *ast.HTMLBlock:
 		value := linesValue(b.Lines(), c.src)
 		if b.HasClosure() {
 			value += string(b.ClosureLine.Value(c.src))
 		}
-		return &HTML{Type: "html", Value: strings.TrimSuffix(value, "\n")}
+		return &MdastHTML{Type: "html", Value: strings.TrimSuffix(value, "\n")}
 	case *ast.LinkReferenceDefinition:
 		return convertDefinition(b)
 	case *east.Table:
@@ -131,9 +131,9 @@ func (c *conv) block(n ast.Node) Node {
 }
 
 // footnoteDefinition converts a goldmark footnote to an mdast footnoteDefinition.
-func (c *conv) footnoteDefinition(fn *east.Footnote) *FootnoteDefinition {
+func (c *conv) footnoteDefinition(fn *east.Footnote) *MdastFootnoteDefinition {
 	label := string(fn.Ref)
-	return &FootnoteDefinition{
+	return &MdastFootnoteDefinition{
 		Type:       "footnoteDefinition",
 		Identifier: normalizeIdentifier(label),
 		Label:      label,
@@ -142,13 +142,13 @@ func (c *conv) footnoteDefinition(fn *east.Footnote) *FootnoteDefinition {
 }
 
 // list converts a list and its items.
-func (c *conv) list(l *ast.List) *List {
+func (c *conv) list(l *ast.List) *MdastList {
 	var start *int
 	if l.IsOrdered() {
 		s := l.Start
 		start = &s
 	}
-	return &List{
+	return &MdastList{
 		Type:     "list",
 		Ordered:  l.IsOrdered(),
 		Start:    start,
@@ -159,8 +159,8 @@ func (c *conv) list(l *ast.List) *List {
 
 // listItem converts a list item, lifting a leading GFM task checkbox out of its
 // content and onto the item's Checked field.
-func (c *conv) listItem(item *ast.ListItem) *ListItem {
-	return &ListItem{
+func (c *conv) listItem(item *ast.ListItem) *MdastListItem {
+	return &MdastListItem{
 		Type:     "listItem",
 		Spread:   c.itemSpread(item),
 		Checked:  taskChecked(item),
@@ -250,7 +250,7 @@ func taskChecked(item *ast.ListItem) *bool {
 // language and the trailing meta. The info string is trimmed, the language is
 // the text up to the first whitespace, and the meta is the remainder with its
 // leading whitespace dropped — matching remark.
-func (c *conv) fencedCode(b *ast.FencedCodeBlock) *Code {
+func (c *conv) fencedCode(b *ast.FencedCodeBlock) *MdastCode {
 	value := linesValue(b.Lines(), c.src)
 	var lang, meta *string
 	if b.Info != nil {
@@ -266,36 +266,36 @@ func (c *conv) fencedCode(b *ast.FencedCodeBlock) *Code {
 			lang = &head
 		}
 	}
-	return &Code{Type: "code", Lang: lang, Meta: meta, Value: value}
+	return &MdastCode{Type: "code", Lang: lang, Meta: meta, Value: value}
 }
 
 // table converts a GFM table. goldmark models the header as a distinct node;
 // mdast represents it as an ordinary row, so both map to a table row.
-func (c *conv) table(t *east.Table) *Table {
+func (c *conv) table(t *east.Table) *MdastTable {
 	align := make([]*string, len(t.Alignments))
 	for i, a := range t.Alignments {
 		align[i] = alignString(a)
 	}
 	rows := []Node{}
 	for ch := t.FirstChild(); ch != nil; ch = ch.NextSibling() {
-		rows = append(rows, &TableRow{Type: "tableRow", Children: c.cells(ch)})
+		rows = append(rows, &MdastTableRow{Type: "tableRow", Children: c.cells(ch)})
 	}
-	return &Table{Type: "table", Align: align, Children: rows}
+	return &MdastTable{Type: "table", Align: align, Children: rows}
 }
 
 // cells converts the cells of a table row.
 func (c *conv) cells(row ast.Node) []Node {
 	cells := []Node{}
 	for ch := row.FirstChild(); ch != nil; ch = ch.NextSibling() {
-		cells = append(cells, &TableCell{Type: "tableCell", Children: c.inline(ch)})
+		cells = append(cells, &MdastTableCell{Type: "tableCell", Children: c.inline(ch)})
 	}
 	return cells
 }
 
 // convertDefinition converts a link reference definition.
-func convertDefinition(d *ast.LinkReferenceDefinition) *Definition {
+func convertDefinition(d *ast.LinkReferenceDefinition) *MdastDefinition {
 	label := string(d.Label)
-	return &Definition{
+	return &MdastDefinition{
 		Type:       "definition",
 		Identifier: normalizeIdentifier(label),
 		Label:      label,
@@ -314,7 +314,7 @@ func (c *conv) inline(parent ast.Node) []Node {
 	var buf strings.Builder
 	flush := func() {
 		if buf.Len() > 0 {
-			out = append(out, &Text{Type: "text", Value: buf.String()})
+			out = append(out, &MdastText{Type: "text", Value: buf.String()})
 			buf.Reset()
 		}
 	}
@@ -327,7 +327,7 @@ func (c *conv) inline(parent ast.Node) []Node {
 			}
 			if t.HardLineBreak() {
 				flush()
-				out = append(out, &Break{Type: "break"})
+				out = append(out, &MdastBreak{Type: "break"})
 			}
 		case *ast.String:
 			buf.WriteString(decodeText(t.Value))
@@ -351,13 +351,13 @@ func (c *conv) inlineNode(n ast.Node) Node {
 	switch i := n.(type) {
 	case *ast.Emphasis:
 		if i.Level == 2 {
-			return &Strong{Type: "strong", Children: c.inline(i)}
+			return &MdastStrong{Type: "strong", Children: c.inline(i)}
 		}
-		return &Emphasis{Type: "emphasis", Children: c.inline(i)}
+		return &MdastEmphasis{Type: "emphasis", Children: c.inline(i)}
 	case *east.Strikethrough:
-		return &Delete{Type: "delete", Children: c.inline(i)}
+		return &MdastDelete{Type: "delete", Children: c.inline(i)}
 	case *ast.CodeSpan:
-		return &InlineCode{Type: "inlineCode", Value: codeSpanValue(i, c.src)}
+		return &MdastInlineCode{Type: "inlineCode", Value: codeSpanValue(i, c.src)}
 	case *ast.Link:
 		return c.link(i)
 	case *ast.AutoLink:
@@ -365,10 +365,10 @@ func (c *conv) inlineNode(n ast.Node) Node {
 	case *ast.Image:
 		return c.image(i)
 	case *ast.RawHTML:
-		return &HTML{Type: "html", Value: rawHTMLValue(i, c.src)}
+		return &MdastHTML{Type: "html", Value: rawHTMLValue(i, c.src)}
 	case *east.FootnoteLink:
 		label := c.footnotes[i.Index]
-		return &FootnoteReference{
+		return &MdastFootnoteReference{
 			Type:       "footnoteReference",
 			Identifier: normalizeIdentifier(label),
 			Label:      label,
@@ -382,7 +382,7 @@ func (c *conv) inlineNode(n ast.Node) Node {
 func (c *conv) link(l *ast.Link) Node {
 	if l.Reference != nil {
 		label := string(l.Reference.Value)
-		return &LinkReference{
+		return &MdastLinkReference{
 			Type:          "linkReference",
 			Identifier:    normalizeIdentifier(label),
 			Label:         label,
@@ -390,7 +390,7 @@ func (c *conv) link(l *ast.Link) Node {
 			Children:      c.inline(l),
 		}
 	}
-	return &Link{
+	return &MdastLink{
 		Type:     "link",
 		URL:      string(l.Destination),
 		Title:    optString(l.Title),
@@ -406,11 +406,11 @@ func (c *conv) autoLink(a *ast.AutoLink) Node {
 	if a.AutoLinkType == ast.AutoLinkEmail {
 		url = "mailto:" + url
 	}
-	return &Link{
+	return &MdastLink{
 		Type:     "link",
 		URL:      url,
 		Title:    nil,
-		Children: []Node{&Text{Type: "text", Value: string(a.Label(c.src))}},
+		Children: []Node{&MdastText{Type: "text", Value: string(a.Label(c.src))}},
 	}
 }
 
@@ -420,7 +420,7 @@ func (c *conv) image(img *ast.Image) Node {
 	alt := textContent(img, c.src)
 	if img.Reference != nil {
 		label := string(img.Reference.Value)
-		return &ImageReference{
+		return &MdastImageReference{
 			Type:          "imageReference",
 			Identifier:    normalizeIdentifier(label),
 			Label:         label,
@@ -428,7 +428,7 @@ func (c *conv) image(img *ast.Image) Node {
 			Alt:           alt,
 		}
 	}
-	return &Image{
+	return &MdastImage{
 		Type:  "image",
 		URL:   string(img.Destination),
 		Title: optString(img.Title),

@@ -1,0 +1,31 @@
+{
+  "children": [
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "Getting Started"
+        }
+      ],
+      "properties": {},
+      "tagName": "h1",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "The body begins after the frontmatter block."
+        }
+      ],
+      "properties": {},
+      "tagName": "p",
+      "type": "element"
+    }
+  ],
+  "type": "root"
+}

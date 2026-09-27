@@ -1,0 +1,121 @@
+{
+  "children": [
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "Heading level 1"
+        }
+      ],
+      "properties": {},
+      "tagName": "h1",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "Heading level 2"
+        }
+      ],
+      "properties": {},
+      "tagName": "h2",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "Heading level 3"
+        }
+      ],
+      "properties": {},
+      "tagName": "h3",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "Heading level 4"
+        }
+      ],
+      "properties": {},
+      "tagName": "h4",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "Heading level 5"
+        }
+      ],
+      "properties": {},
+      "tagName": "h5",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "Heading level 6"
+        }
+      ],
+      "properties": {},
+      "tagName": "h6",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "Setext level 1"
+        }
+      ],
+      "properties": {},
+      "tagName": "h1",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "Setext level 2"
+        }
+      ],
+      "properties": {},
+      "tagName": "h2",
+      "type": "element"
+    }
+  ],
+  "type": "root"
+}
