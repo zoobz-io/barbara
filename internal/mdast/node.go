@@ -20,13 +20,13 @@
 package mdast
 
 // nodeUnion lists every node type a children field may hold — every node type
-// except Root, which appears only at the top. It is the discriminate tag value
+// except MdastRoot, which appears only at the top. It is the discriminate tag value
 // on each children field. It is duplicated in those tags because Go struct tags
 // must be string literals; keep this doc list and the tags in step.
 //
-//	Paragraph,Heading,ThematicBreak,Blockquote,List,ListItem,Code,HTML,Text,
-//	Emphasis,Strong,Delete,InlineCode,Break,Link,Image,LinkReference,
-//	ImageReference,Definition,FootnoteReference,FootnoteDefinition,Table,TableRow,TableCell
+//	MdastParagraph,MdastHeading,MdastThematicBreak,MdastBlockquote,MdastList,MdastListItem,MdastCode,MdastHTML,MdastText,
+//	MdastEmphasis,MdastStrong,MdastDelete,MdastInlineCode,MdastBreak,MdastLink,MdastImage,MdastLinkReference,
+//	MdastImageReference,MdastDefinition,MdastFootnoteReference,MdastFootnoteDefinition,MdastTable,MdastTableRow,MdastTableCell
 
 // Node is a node in an mdast tree. The set of implementations is closed — the
 // interface's method is unexported, so only this package defines node types.
@@ -34,132 +34,132 @@ type Node interface {
 	mdastNode()
 }
 
-// Root is the document root.
-type Root struct {
+// MdastRoot is the document root.
+type MdastRoot struct {
 	Type     string `json:"type" const:"root"`
-	Children []Node `json:"children" discriminate:"Paragraph,Heading,ThematicBreak,Blockquote,List,ListItem,Code,HTML,Text,Emphasis,Strong,Delete,InlineCode,Break,Link,Image,LinkReference,ImageReference,Definition,FootnoteReference,FootnoteDefinition,Table,TableRow,TableCell" discriminated_by:"type"`
+	Children []Node `json:"children" discriminate:"MdastParagraph,MdastHeading,MdastThematicBreak,MdastBlockquote,MdastList,MdastListItem,MdastCode,MdastHTML,MdastText,MdastEmphasis,MdastStrong,MdastDelete,MdastInlineCode,MdastBreak,MdastLink,MdastImage,MdastLinkReference,MdastImageReference,MdastDefinition,MdastFootnoteReference,MdastFootnoteDefinition,MdastTable,MdastTableRow,MdastTableCell" discriminated_by:"type"`
 }
 
-// Paragraph is a run of inline content.
-type Paragraph struct {
+// MdastParagraph is a run of inline content.
+type MdastParagraph struct {
 	Type     string `json:"type" const:"paragraph"`
-	Children []Node `json:"children" discriminate:"Paragraph,Heading,ThematicBreak,Blockquote,List,ListItem,Code,HTML,Text,Emphasis,Strong,Delete,InlineCode,Break,Link,Image,LinkReference,ImageReference,Definition,FootnoteReference,FootnoteDefinition,Table,TableRow,TableCell" discriminated_by:"type"`
+	Children []Node `json:"children" discriminate:"MdastParagraph,MdastHeading,MdastThematicBreak,MdastBlockquote,MdastList,MdastListItem,MdastCode,MdastHTML,MdastText,MdastEmphasis,MdastStrong,MdastDelete,MdastInlineCode,MdastBreak,MdastLink,MdastImage,MdastLinkReference,MdastImageReference,MdastDefinition,MdastFootnoteReference,MdastFootnoteDefinition,MdastTable,MdastTableRow,MdastTableCell" discriminated_by:"type"`
 }
 
-// Heading is an ATX or setext heading. Depth is 1 through 6.
-type Heading struct {
+// MdastHeading is an ATX or setext heading. Depth is 1 through 6.
+type MdastHeading struct {
 	Type     string `json:"type" const:"heading"`
-	Children []Node `json:"children" discriminate:"Paragraph,Heading,ThematicBreak,Blockquote,List,ListItem,Code,HTML,Text,Emphasis,Strong,Delete,InlineCode,Break,Link,Image,LinkReference,ImageReference,Definition,FootnoteReference,FootnoteDefinition,Table,TableRow,TableCell" discriminated_by:"type"`
+	Children []Node `json:"children" discriminate:"MdastParagraph,MdastHeading,MdastThematicBreak,MdastBlockquote,MdastList,MdastListItem,MdastCode,MdastHTML,MdastText,MdastEmphasis,MdastStrong,MdastDelete,MdastInlineCode,MdastBreak,MdastLink,MdastImage,MdastLinkReference,MdastImageReference,MdastDefinition,MdastFootnoteReference,MdastFootnoteDefinition,MdastTable,MdastTableRow,MdastTableCell" discriminated_by:"type"`
 	Depth    int    `json:"depth"`
 }
 
-// ThematicBreak is a horizontal rule.
-type ThematicBreak struct {
+// MdastThematicBreak is a horizontal rule.
+type MdastThematicBreak struct {
 	Type string `json:"type" const:"thematicBreak"`
 }
 
-// Blockquote is a block quote.
-type Blockquote struct {
+// MdastBlockquote is a block quote.
+type MdastBlockquote struct {
 	Type     string `json:"type" const:"blockquote"`
-	Children []Node `json:"children" discriminate:"Paragraph,Heading,ThematicBreak,Blockquote,List,ListItem,Code,HTML,Text,Emphasis,Strong,Delete,InlineCode,Break,Link,Image,LinkReference,ImageReference,Definition,FootnoteReference,FootnoteDefinition,Table,TableRow,TableCell" discriminated_by:"type"`
+	Children []Node `json:"children" discriminate:"MdastParagraph,MdastHeading,MdastThematicBreak,MdastBlockquote,MdastList,MdastListItem,MdastCode,MdastHTML,MdastText,MdastEmphasis,MdastStrong,MdastDelete,MdastInlineCode,MdastBreak,MdastLink,MdastImage,MdastLinkReference,MdastImageReference,MdastDefinition,MdastFootnoteReference,MdastFootnoteDefinition,MdastTable,MdastTableRow,MdastTableCell" discriminated_by:"type"`
 }
 
-// List is an ordered or unordered list. Start is the ordered start number, or
+// MdastList is an ordered or unordered list. Start is the ordered start number, or
 // nil for an unordered list. Spread is true when the list is loose.
-type List struct {
+type MdastList struct {
 	Start    *int   `json:"start"`
 	Type     string `json:"type" const:"list"`
-	Children []Node `json:"children" discriminate:"Paragraph,Heading,ThematicBreak,Blockquote,List,ListItem,Code,HTML,Text,Emphasis,Strong,Delete,InlineCode,Break,Link,Image,LinkReference,ImageReference,Definition,FootnoteReference,FootnoteDefinition,Table,TableRow,TableCell" discriminated_by:"type"`
+	Children []Node `json:"children" discriminate:"MdastParagraph,MdastHeading,MdastThematicBreak,MdastBlockquote,MdastList,MdastListItem,MdastCode,MdastHTML,MdastText,MdastEmphasis,MdastStrong,MdastDelete,MdastInlineCode,MdastBreak,MdastLink,MdastImage,MdastLinkReference,MdastImageReference,MdastDefinition,MdastFootnoteReference,MdastFootnoteDefinition,MdastTable,MdastTableRow,MdastTableCell" discriminated_by:"type"`
 	Ordered  bool   `json:"ordered"`
 	Spread   bool   `json:"spread"`
 }
 
-// ListItem is one item of a list. Checked is non-nil for a GFM task item.
+// MdastListItem is one item of a list. Checked is non-nil for a GFM task item.
 // Spread is true when the item's own blocks are loose.
-type ListItem struct {
+type MdastListItem struct {
 	Checked  *bool  `json:"checked"`
 	Type     string `json:"type" const:"listItem"`
-	Children []Node `json:"children" discriminate:"Paragraph,Heading,ThematicBreak,Blockquote,List,ListItem,Code,HTML,Text,Emphasis,Strong,Delete,InlineCode,Break,Link,Image,LinkReference,ImageReference,Definition,FootnoteReference,FootnoteDefinition,Table,TableRow,TableCell" discriminated_by:"type"`
+	Children []Node `json:"children" discriminate:"MdastParagraph,MdastHeading,MdastThematicBreak,MdastBlockquote,MdastList,MdastListItem,MdastCode,MdastHTML,MdastText,MdastEmphasis,MdastStrong,MdastDelete,MdastInlineCode,MdastBreak,MdastLink,MdastImage,MdastLinkReference,MdastImageReference,MdastDefinition,MdastFootnoteReference,MdastFootnoteDefinition,MdastTable,MdastTableRow,MdastTableCell" discriminated_by:"type"`
 	Spread   bool   `json:"spread"`
 }
 
-// Code is a fenced or indented code block. Lang and Meta come from a fence's
+// MdastCode is a fenced or indented code block. Lang and Meta come from a fence's
 // info string and are nil when absent.
-type Code struct {
+type MdastCode struct {
 	Type  string  `json:"type" const:"code"`
 	Lang  *string `json:"lang"`
 	Meta  *string `json:"meta"`
 	Value string  `json:"value"`
 }
 
-// HTML is a raw HTML block or a run of inline raw HTML.
-type HTML struct {
+// MdastHTML is a raw HTML block or a run of inline raw HTML.
+type MdastHTML struct {
 	Type  string `json:"type" const:"html"`
 	Value string `json:"value"`
 }
 
-// Text is a run of plain text. Soft line breaks are kept as "\n" in Value.
-type Text struct {
+// MdastText is a run of plain text. Soft line breaks are kept as "\n" in Value.
+type MdastText struct {
 	Type  string `json:"type" const:"text"`
 	Value string `json:"value"`
 }
 
-// Emphasis is emphasized (italic) inline content.
-type Emphasis struct {
+// MdastEmphasis is emphasized (italic) inline content.
+type MdastEmphasis struct {
 	Type     string `json:"type" const:"emphasis"`
-	Children []Node `json:"children" discriminate:"Paragraph,Heading,ThematicBreak,Blockquote,List,ListItem,Code,HTML,Text,Emphasis,Strong,Delete,InlineCode,Break,Link,Image,LinkReference,ImageReference,Definition,FootnoteReference,FootnoteDefinition,Table,TableRow,TableCell" discriminated_by:"type"`
+	Children []Node `json:"children" discriminate:"MdastParagraph,MdastHeading,MdastThematicBreak,MdastBlockquote,MdastList,MdastListItem,MdastCode,MdastHTML,MdastText,MdastEmphasis,MdastStrong,MdastDelete,MdastInlineCode,MdastBreak,MdastLink,MdastImage,MdastLinkReference,MdastImageReference,MdastDefinition,MdastFootnoteReference,MdastFootnoteDefinition,MdastTable,MdastTableRow,MdastTableCell" discriminated_by:"type"`
 }
 
-// Strong is strongly emphasized (bold) inline content.
-type Strong struct {
+// MdastStrong is strongly emphasized (bold) inline content.
+type MdastStrong struct {
 	Type     string `json:"type" const:"strong"`
-	Children []Node `json:"children" discriminate:"Paragraph,Heading,ThematicBreak,Blockquote,List,ListItem,Code,HTML,Text,Emphasis,Strong,Delete,InlineCode,Break,Link,Image,LinkReference,ImageReference,Definition,FootnoteReference,FootnoteDefinition,Table,TableRow,TableCell" discriminated_by:"type"`
+	Children []Node `json:"children" discriminate:"MdastParagraph,MdastHeading,MdastThematicBreak,MdastBlockquote,MdastList,MdastListItem,MdastCode,MdastHTML,MdastText,MdastEmphasis,MdastStrong,MdastDelete,MdastInlineCode,MdastBreak,MdastLink,MdastImage,MdastLinkReference,MdastImageReference,MdastDefinition,MdastFootnoteReference,MdastFootnoteDefinition,MdastTable,MdastTableRow,MdastTableCell" discriminated_by:"type"`
 }
 
-// Delete is struck-through (GFM) inline content.
-type Delete struct {
+// MdastDelete is struck-through (GFM) inline content.
+type MdastDelete struct {
 	Type     string `json:"type" const:"delete"`
-	Children []Node `json:"children" discriminate:"Paragraph,Heading,ThematicBreak,Blockquote,List,ListItem,Code,HTML,Text,Emphasis,Strong,Delete,InlineCode,Break,Link,Image,LinkReference,ImageReference,Definition,FootnoteReference,FootnoteDefinition,Table,TableRow,TableCell" discriminated_by:"type"`
+	Children []Node `json:"children" discriminate:"MdastParagraph,MdastHeading,MdastThematicBreak,MdastBlockquote,MdastList,MdastListItem,MdastCode,MdastHTML,MdastText,MdastEmphasis,MdastStrong,MdastDelete,MdastInlineCode,MdastBreak,MdastLink,MdastImage,MdastLinkReference,MdastImageReference,MdastDefinition,MdastFootnoteReference,MdastFootnoteDefinition,MdastTable,MdastTableRow,MdastTableCell" discriminated_by:"type"`
 }
 
-// InlineCode is an inline code span.
-type InlineCode struct {
+// MdastInlineCode is an inline code span.
+type MdastInlineCode struct {
 	Type  string `json:"type" const:"inlineCode"`
 	Value string `json:"value"`
 }
 
-// Break is a hard line break.
-type Break struct {
+// MdastBreak is a hard line break.
+type MdastBreak struct {
 	Type string `json:"type" const:"break"`
 }
 
-// Link is an inline link or an autolink.
-type Link struct {
+// MdastLink is an inline link or an autolink.
+type MdastLink struct {
 	Type     string  `json:"type" const:"link"`
 	URL      string  `json:"url"`
 	Title    *string `json:"title"`
-	Children []Node  `json:"children" discriminate:"Paragraph,Heading,ThematicBreak,Blockquote,List,ListItem,Code,HTML,Text,Emphasis,Strong,Delete,InlineCode,Break,Link,Image,LinkReference,ImageReference,Definition,FootnoteReference,FootnoteDefinition,Table,TableRow,TableCell" discriminated_by:"type"`
+	Children []Node  `json:"children" discriminate:"MdastParagraph,MdastHeading,MdastThematicBreak,MdastBlockquote,MdastList,MdastListItem,MdastCode,MdastHTML,MdastText,MdastEmphasis,MdastStrong,MdastDelete,MdastInlineCode,MdastBreak,MdastLink,MdastImage,MdastLinkReference,MdastImageReference,MdastDefinition,MdastFootnoteReference,MdastFootnoteDefinition,MdastTable,MdastTableRow,MdastTableCell" discriminated_by:"type"`
 }
 
-// Image is an inline image. Alt is the image's plain-text description.
-type Image struct {
+// MdastImage is an inline image. Alt is the image's plain-text description.
+type MdastImage struct {
 	Type  string  `json:"type" const:"image"`
 	URL   string  `json:"url"`
 	Title *string `json:"title"`
 	Alt   string  `json:"alt"`
 }
 
-// LinkReference is a link that points at a Definition by identifier.
-type LinkReference struct {
+// MdastLinkReference is a link that points at a MdastDefinition by identifier.
+type MdastLinkReference struct {
 	Type          string `json:"type" const:"linkReference"`
 	Identifier    string `json:"identifier"`
 	Label         string `json:"label"`
 	ReferenceType string `json:"referenceType"`
-	Children      []Node `json:"children" discriminate:"Paragraph,Heading,ThematicBreak,Blockquote,List,ListItem,Code,HTML,Text,Emphasis,Strong,Delete,InlineCode,Break,Link,Image,LinkReference,ImageReference,Definition,FootnoteReference,FootnoteDefinition,Table,TableRow,TableCell" discriminated_by:"type"`
+	Children      []Node `json:"children" discriminate:"MdastParagraph,MdastHeading,MdastThematicBreak,MdastBlockquote,MdastList,MdastListItem,MdastCode,MdastHTML,MdastText,MdastEmphasis,MdastStrong,MdastDelete,MdastInlineCode,MdastBreak,MdastLink,MdastImage,MdastLinkReference,MdastImageReference,MdastDefinition,MdastFootnoteReference,MdastFootnoteDefinition,MdastTable,MdastTableRow,MdastTableCell" discriminated_by:"type"`
 }
 
-// ImageReference is an image that points at a Definition by identifier.
-type ImageReference struct {
+// MdastImageReference is an image that points at a MdastDefinition by identifier.
+type MdastImageReference struct {
 	Type          string `json:"type" const:"imageReference"`
 	Identifier    string `json:"identifier"`
 	Label         string `json:"label"`
@@ -167,8 +167,8 @@ type ImageReference struct {
 	Alt           string `json:"alt"`
 }
 
-// Definition is a link reference definition.
-type Definition struct {
+// MdastDefinition is a link reference definition.
+type MdastDefinition struct {
 	Type       string  `json:"type" const:"definition"`
 	Identifier string  `json:"identifier"`
 	Label      string  `json:"label"`
@@ -176,63 +176,63 @@ type Definition struct {
 	URL        string  `json:"url"`
 }
 
-// FootnoteReference is an inline reference to a FootnoteDefinition.
-type FootnoteReference struct {
+// MdastFootnoteReference is an inline reference to a MdastFootnoteDefinition.
+type MdastFootnoteReference struct {
 	Type       string `json:"type" const:"footnoteReference"`
 	Identifier string `json:"identifier"`
 	Label      string `json:"label"`
 }
 
-// FootnoteDefinition is the content of a footnote, referenced by identifier.
-type FootnoteDefinition struct {
+// MdastFootnoteDefinition is the content of a footnote, referenced by identifier.
+type MdastFootnoteDefinition struct {
 	Type       string `json:"type" const:"footnoteDefinition"`
 	Identifier string `json:"identifier"`
 	Label      string `json:"label"`
-	Children   []Node `json:"children" discriminate:"Paragraph,Heading,ThematicBreak,Blockquote,List,ListItem,Code,HTML,Text,Emphasis,Strong,Delete,InlineCode,Break,Link,Image,LinkReference,ImageReference,Definition,FootnoteReference,FootnoteDefinition,Table,TableRow,TableCell" discriminated_by:"type"`
+	Children   []Node `json:"children" discriminate:"MdastParagraph,MdastHeading,MdastThematicBreak,MdastBlockquote,MdastList,MdastListItem,MdastCode,MdastHTML,MdastText,MdastEmphasis,MdastStrong,MdastDelete,MdastInlineCode,MdastBreak,MdastLink,MdastImage,MdastLinkReference,MdastImageReference,MdastDefinition,MdastFootnoteReference,MdastFootnoteDefinition,MdastTable,MdastTableRow,MdastTableCell" discriminated_by:"type"`
 }
 
-// Table is a GFM table. Align holds one entry per column: "left", "right",
+// MdastTable is a GFM table. Align holds one entry per column: "left", "right",
 // "center", or nil for the default.
-type Table struct {
+type MdastTable struct {
 	Type     string    `json:"type" const:"table"`
 	Align    []*string `json:"align"`
-	Children []Node    `json:"children" discriminate:"Paragraph,Heading,ThematicBreak,Blockquote,List,ListItem,Code,HTML,Text,Emphasis,Strong,Delete,InlineCode,Break,Link,Image,LinkReference,ImageReference,Definition,FootnoteReference,FootnoteDefinition,Table,TableRow,TableCell" discriminated_by:"type"`
+	Children []Node    `json:"children" discriminate:"MdastParagraph,MdastHeading,MdastThematicBreak,MdastBlockquote,MdastList,MdastListItem,MdastCode,MdastHTML,MdastText,MdastEmphasis,MdastStrong,MdastDelete,MdastInlineCode,MdastBreak,MdastLink,MdastImage,MdastLinkReference,MdastImageReference,MdastDefinition,MdastFootnoteReference,MdastFootnoteDefinition,MdastTable,MdastTableRow,MdastTableCell" discriminated_by:"type"`
 }
 
-// TableRow is one row of a Table, header or body.
-type TableRow struct {
+// MdastTableRow is one row of a MdastTable, header or body.
+type MdastTableRow struct {
 	Type     string `json:"type" const:"tableRow"`
-	Children []Node `json:"children" discriminate:"Paragraph,Heading,ThematicBreak,Blockquote,List,ListItem,Code,HTML,Text,Emphasis,Strong,Delete,InlineCode,Break,Link,Image,LinkReference,ImageReference,Definition,FootnoteReference,FootnoteDefinition,Table,TableRow,TableCell" discriminated_by:"type"`
+	Children []Node `json:"children" discriminate:"MdastParagraph,MdastHeading,MdastThematicBreak,MdastBlockquote,MdastList,MdastListItem,MdastCode,MdastHTML,MdastText,MdastEmphasis,MdastStrong,MdastDelete,MdastInlineCode,MdastBreak,MdastLink,MdastImage,MdastLinkReference,MdastImageReference,MdastDefinition,MdastFootnoteReference,MdastFootnoteDefinition,MdastTable,MdastTableRow,MdastTableCell" discriminated_by:"type"`
 }
 
-// TableCell is one cell of a TableRow.
-type TableCell struct {
+// MdastTableCell is one cell of a MdastTableRow.
+type MdastTableCell struct {
 	Type     string `json:"type" const:"tableCell"`
-	Children []Node `json:"children" discriminate:"Paragraph,Heading,ThematicBreak,Blockquote,List,ListItem,Code,HTML,Text,Emphasis,Strong,Delete,InlineCode,Break,Link,Image,LinkReference,ImageReference,Definition,FootnoteReference,FootnoteDefinition,Table,TableRow,TableCell" discriminated_by:"type"`
+	Children []Node `json:"children" discriminate:"MdastParagraph,MdastHeading,MdastThematicBreak,MdastBlockquote,MdastList,MdastListItem,MdastCode,MdastHTML,MdastText,MdastEmphasis,MdastStrong,MdastDelete,MdastInlineCode,MdastBreak,MdastLink,MdastImage,MdastLinkReference,MdastImageReference,MdastDefinition,MdastFootnoteReference,MdastFootnoteDefinition,MdastTable,MdastTableRow,MdastTableCell" discriminated_by:"type"`
 }
 
-func (*Root) mdastNode()               {}
-func (*Paragraph) mdastNode()          {}
-func (*Heading) mdastNode()            {}
-func (*ThematicBreak) mdastNode()      {}
-func (*Blockquote) mdastNode()         {}
-func (*List) mdastNode()               {}
-func (*ListItem) mdastNode()           {}
-func (*Code) mdastNode()               {}
-func (*HTML) mdastNode()               {}
-func (*Text) mdastNode()               {}
-func (*Emphasis) mdastNode()           {}
-func (*Strong) mdastNode()             {}
-func (*Delete) mdastNode()             {}
-func (*InlineCode) mdastNode()         {}
-func (*Break) mdastNode()              {}
-func (*Link) mdastNode()               {}
-func (*Image) mdastNode()              {}
-func (*LinkReference) mdastNode()      {}
-func (*ImageReference) mdastNode()     {}
-func (*Definition) mdastNode()         {}
-func (*FootnoteReference) mdastNode()  {}
-func (*FootnoteDefinition) mdastNode() {}
-func (*Table) mdastNode()              {}
-func (*TableRow) mdastNode()           {}
-func (*TableCell) mdastNode()          {}
+func (*MdastRoot) mdastNode()               {}
+func (*MdastParagraph) mdastNode()          {}
+func (*MdastHeading) mdastNode()            {}
+func (*MdastThematicBreak) mdastNode()      {}
+func (*MdastBlockquote) mdastNode()         {}
+func (*MdastList) mdastNode()               {}
+func (*MdastListItem) mdastNode()           {}
+func (*MdastCode) mdastNode()               {}
+func (*MdastHTML) mdastNode()               {}
+func (*MdastText) mdastNode()               {}
+func (*MdastEmphasis) mdastNode()           {}
+func (*MdastStrong) mdastNode()             {}
+func (*MdastDelete) mdastNode()             {}
+func (*MdastInlineCode) mdastNode()         {}
+func (*MdastBreak) mdastNode()              {}
+func (*MdastLink) mdastNode()               {}
+func (*MdastImage) mdastNode()              {}
+func (*MdastLinkReference) mdastNode()      {}
+func (*MdastImageReference) mdastNode()     {}
+func (*MdastDefinition) mdastNode()         {}
+func (*MdastFootnoteReference) mdastNode()  {}
+func (*MdastFootnoteDefinition) mdastNode() {}
+func (*MdastTable) mdastNode()              {}
+func (*MdastTableRow) mdastNode()           {}
+func (*MdastTableCell) mdastNode()          {}

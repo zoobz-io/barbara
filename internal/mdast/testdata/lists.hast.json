@@ -1,0 +1,427 @@
+{
+  "children": [
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "An unordered tight list:"
+        }
+      ],
+      "properties": {},
+      "tagName": "p",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "\n"
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "first"
+            }
+          ],
+          "properties": {},
+          "tagName": "li",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": "\n"
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "second"
+            }
+          ],
+          "properties": {},
+          "tagName": "li",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": "\n"
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "third"
+            }
+          ],
+          "properties": {},
+          "tagName": "li",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": "\n"
+        }
+      ],
+      "properties": {},
+      "tagName": "ul",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "An ordered tight list:"
+        }
+      ],
+      "properties": {},
+      "tagName": "p",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "\n"
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "one"
+            }
+          ],
+          "properties": {},
+          "tagName": "li",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": "\n"
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "two"
+            }
+          ],
+          "properties": {},
+          "tagName": "li",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": "\n"
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "three"
+            }
+          ],
+          "properties": {},
+          "tagName": "li",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": "\n"
+        }
+      ],
+      "properties": {},
+      "tagName": "ol",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "A loose list with blank lines between items:"
+        }
+      ],
+      "properties": {},
+      "tagName": "p",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "\n"
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "\n"
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "first item"
+                }
+              ],
+              "properties": {},
+              "tagName": "p",
+              "type": "element"
+            },
+            {
+              "type": "text",
+              "value": "\n"
+            }
+          ],
+          "properties": {},
+          "tagName": "li",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": "\n"
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "\n"
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "second item"
+                }
+              ],
+              "properties": {},
+              "tagName": "p",
+              "type": "element"
+            },
+            {
+              "type": "text",
+              "value": "\n"
+            }
+          ],
+          "properties": {},
+          "tagName": "li",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": "\n"
+        }
+      ],
+      "properties": {},
+      "tagName": "ul",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "A nested list:"
+        }
+      ],
+      "properties": {},
+      "tagName": "p",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "\n"
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "top"
+            },
+            {
+              "type": "text",
+              "value": "\n"
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "\n"
+                },
+                {
+                  "children": [
+                    {
+                      "type": "text",
+                      "value": "nested one"
+                    }
+                  ],
+                  "properties": {},
+                  "tagName": "li",
+                  "type": "element"
+                },
+                {
+                  "type": "text",
+                  "value": "\n"
+                },
+                {
+                  "children": [
+                    {
+                      "type": "text",
+                      "value": "nested two"
+                    }
+                  ],
+                  "properties": {},
+                  "tagName": "li",
+                  "type": "element"
+                },
+                {
+                  "type": "text",
+                  "value": "\n"
+                }
+              ],
+              "properties": {},
+              "tagName": "ul",
+              "type": "element"
+            },
+            {
+              "type": "text",
+              "value": "\n"
+            }
+          ],
+          "properties": {},
+          "tagName": "li",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": "\n"
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "back to top"
+            }
+          ],
+          "properties": {},
+          "tagName": "li",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": "\n"
+        }
+      ],
+      "properties": {},
+      "tagName": "ul",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "An ordered list with a start number:"
+        }
+      ],
+      "properties": {},
+      "tagName": "p",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "\n"
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "three"
+            }
+          ],
+          "properties": {},
+          "tagName": "li",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": "\n"
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "four"
+            }
+          ],
+          "properties": {},
+          "tagName": "li",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": "\n"
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "five"
+            }
+          ],
+          "properties": {},
+          "tagName": "li",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": "\n"
+        }
+      ],
+      "properties": {
+        "start": 3
+      },
+      "tagName": "ol",
+      "type": "element"
+    }
+  ],
+  "type": "root"
+}

@@ -1,0 +1,28 @@
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "print(1)\n"
+            }
+          ],
+          "properties": {
+            "className": [
+              "language-python"
+            ],
+            "dataMeta": "extra meta"
+          },
+          "tagName": "code",
+          "type": "element"
+        }
+      ],
+      "properties": {},
+      "tagName": "pre",
+      "type": "element"
+    }
+  ],
+  "type": "root"
+}

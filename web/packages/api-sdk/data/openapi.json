@@ -3296,16 +3296,6 @@
               }
             },
             "description": "NotFound"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrValidationFailed"
-                }
-              }
-            },
-            "description": "UnprocessableEntity"
           }
         },
         "summary": "Get a published document by key",
@@ -3811,169 +3801,6 @@
           "size"
         ]
       },
-      "Blockquote": {
-        "properties": {
-          "children": {
-            "items": {
-              "discriminator": {
-                "mapping": {
-                  "blockquote": "#/components/schemas/Blockquote",
-                  "break": "#/components/schemas/Break",
-                  "code": "#/components/schemas/Code",
-                  "definition": "#/components/schemas/Definition",
-                  "delete": "#/components/schemas/Delete",
-                  "emphasis": "#/components/schemas/Emphasis",
-                  "footnoteDefinition": "#/components/schemas/FootnoteDefinition",
-                  "footnoteReference": "#/components/schemas/FootnoteReference",
-                  "heading": "#/components/schemas/Heading",
-                  "html": "#/components/schemas/HTML",
-                  "image": "#/components/schemas/Image",
-                  "imageReference": "#/components/schemas/ImageReference",
-                  "inlineCode": "#/components/schemas/InlineCode",
-                  "link": "#/components/schemas/Link",
-                  "linkReference": "#/components/schemas/LinkReference",
-                  "list": "#/components/schemas/List",
-                  "listItem": "#/components/schemas/ListItem",
-                  "paragraph": "#/components/schemas/Paragraph",
-                  "strong": "#/components/schemas/Strong",
-                  "table": "#/components/schemas/Table",
-                  "tableCell": "#/components/schemas/TableCell",
-                  "tableRow": "#/components/schemas/TableRow",
-                  "text": "#/components/schemas/Text",
-                  "thematicBreak": "#/components/schemas/ThematicBreak"
-                },
-                "propertyName": "type"
-              },
-              "oneOf": [
-                {
-                  "$ref": "#/components/schemas/Paragraph"
-                },
-                {
-                  "$ref": "#/components/schemas/Heading"
-                },
-                {
-                  "$ref": "#/components/schemas/ThematicBreak"
-                },
-                {
-                  "$ref": "#/components/schemas/Blockquote"
-                },
-                {
-                  "$ref": "#/components/schemas/List"
-                },
-                {
-                  "$ref": "#/components/schemas/ListItem"
-                },
-                {
-                  "$ref": "#/components/schemas/Code"
-                },
-                {
-                  "$ref": "#/components/schemas/HTML"
-                },
-                {
-                  "$ref": "#/components/schemas/Text"
-                },
-                {
-                  "$ref": "#/components/schemas/Emphasis"
-                },
-                {
-                  "$ref": "#/components/schemas/Strong"
-                },
-                {
-                  "$ref": "#/components/schemas/Delete"
-                },
-                {
-                  "$ref": "#/components/schemas/InlineCode"
-                },
-                {
-                  "$ref": "#/components/schemas/Break"
-                },
-                {
-                  "$ref": "#/components/schemas/Link"
-                },
-                {
-                  "$ref": "#/components/schemas/Image"
-                },
-                {
-                  "$ref": "#/components/schemas/LinkReference"
-                },
-                {
-                  "$ref": "#/components/schemas/ImageReference"
-                },
-                {
-                  "$ref": "#/components/schemas/Definition"
-                },
-                {
-                  "$ref": "#/components/schemas/FootnoteReference"
-                },
-                {
-                  "$ref": "#/components/schemas/FootnoteDefinition"
-                },
-                {
-                  "$ref": "#/components/schemas/Table"
-                },
-                {
-                  "$ref": "#/components/schemas/TableRow"
-                },
-                {
-                  "$ref": "#/components/schemas/TableCell"
-                }
-              ]
-            },
-            "type": "array"
-          },
-          "type": {
-            "const": "blockquote",
-            "type": "string"
-          }
-        },
-        "type": "object",
-        "required": [
-          "type",
-          "children"
-        ]
-      },
-      "Break": {
-        "properties": {
-          "type": {
-            "const": "break",
-            "type": "string"
-          }
-        },
-        "type": "object",
-        "required": [
-          "type"
-        ]
-      },
-      "Code": {
-        "properties": {
-          "lang": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "meta": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "type": {
-            "const": "code",
-            "type": "string"
-          },
-          "value": {
-            "type": "string"
-          }
-        },
-        "type": "object",
-        "required": [
-          "type",
-          "lang",
-          "meta",
-          "value"
-        ]
-      },
       "CollectionContentsResponse": {
         "properties": {
           "documents": {
@@ -4139,158 +3966,6 @@
         },
         "type": "object"
       },
-      "Definition": {
-        "properties": {
-          "identifier": {
-            "type": "string"
-          },
-          "label": {
-            "type": "string"
-          },
-          "title": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "type": {
-            "const": "definition",
-            "type": "string"
-          },
-          "url": {
-            "type": "string"
-          }
-        },
-        "type": "object",
-        "required": [
-          "type",
-          "identifier",
-          "label",
-          "title",
-          "url"
-        ]
-      },
-      "Delete": {
-        "properties": {
-          "children": {
-            "items": {
-              "discriminator": {
-                "mapping": {
-                  "blockquote": "#/components/schemas/Blockquote",
-                  "break": "#/components/schemas/Break",
-                  "code": "#/components/schemas/Code",
-                  "definition": "#/components/schemas/Definition",
-                  "delete": "#/components/schemas/Delete",
-                  "emphasis": "#/components/schemas/Emphasis",
-                  "footnoteDefinition": "#/components/schemas/FootnoteDefinition",
-                  "footnoteReference": "#/components/schemas/FootnoteReference",
-                  "heading": "#/components/schemas/Heading",
-                  "html": "#/components/schemas/HTML",
-                  "image": "#/components/schemas/Image",
-                  "imageReference": "#/components/schemas/ImageReference",
-                  "inlineCode": "#/components/schemas/InlineCode",
-                  "link": "#/components/schemas/Link",
-                  "linkReference": "#/components/schemas/LinkReference",
-                  "list": "#/components/schemas/List",
-                  "listItem": "#/components/schemas/ListItem",
-                  "paragraph": "#/components/schemas/Paragraph",
-                  "strong": "#/components/schemas/Strong",
-                  "table": "#/components/schemas/Table",
-                  "tableCell": "#/components/schemas/TableCell",
-                  "tableRow": "#/components/schemas/TableRow",
-                  "text": "#/components/schemas/Text",
-                  "thematicBreak": "#/components/schemas/ThematicBreak"
-                },
-                "propertyName": "type"
-              },
-              "oneOf": [
-                {
-                  "$ref": "#/components/schemas/Paragraph"
-                },
-                {
-                  "$ref": "#/components/schemas/Heading"
-                },
-                {
-                  "$ref": "#/components/schemas/ThematicBreak"
-                },
-                {
-                  "$ref": "#/components/schemas/Blockquote"
-                },
-                {
-                  "$ref": "#/components/schemas/List"
-                },
-                {
-                  "$ref": "#/components/schemas/ListItem"
-                },
-                {
-                  "$ref": "#/components/schemas/Code"
-                },
-                {
-                  "$ref": "#/components/schemas/HTML"
-                },
-                {
-                  "$ref": "#/components/schemas/Text"
-                },
-                {
-                  "$ref": "#/components/schemas/Emphasis"
-                },
-                {
-                  "$ref": "#/components/schemas/Strong"
-                },
-                {
-                  "$ref": "#/components/schemas/Delete"
-                },
-                {
-                  "$ref": "#/components/schemas/InlineCode"
-                },
-                {
-                  "$ref": "#/components/schemas/Break"
-                },
-                {
-                  "$ref": "#/components/schemas/Link"
-                },
-                {
-                  "$ref": "#/components/schemas/Image"
-                },
-                {
-                  "$ref": "#/components/schemas/LinkReference"
-                },
-                {
-                  "$ref": "#/components/schemas/ImageReference"
-                },
-                {
-                  "$ref": "#/components/schemas/Definition"
-                },
-                {
-                  "$ref": "#/components/schemas/FootnoteReference"
-                },
-                {
-                  "$ref": "#/components/schemas/FootnoteDefinition"
-                },
-                {
-                  "$ref": "#/components/schemas/Table"
-                },
-                {
-                  "$ref": "#/components/schemas/TableRow"
-                },
-                {
-                  "$ref": "#/components/schemas/TableCell"
-                }
-              ]
-            },
-            "type": "array"
-          },
-          "type": {
-            "const": "delete",
-            "type": "string"
-          }
-        },
-        "type": "object",
-        "required": [
-          "type",
-          "children"
-        ]
-      },
       "DocumentContentResponse": {
         "properties": {
           "content": {
@@ -4385,127 +4060,6 @@
           "key",
           "status",
           "tags"
-        ]
-      },
-      "Emphasis": {
-        "properties": {
-          "children": {
-            "items": {
-              "discriminator": {
-                "mapping": {
-                  "blockquote": "#/components/schemas/Blockquote",
-                  "break": "#/components/schemas/Break",
-                  "code": "#/components/schemas/Code",
-                  "definition": "#/components/schemas/Definition",
-                  "delete": "#/components/schemas/Delete",
-                  "emphasis": "#/components/schemas/Emphasis",
-                  "footnoteDefinition": "#/components/schemas/FootnoteDefinition",
-                  "footnoteReference": "#/components/schemas/FootnoteReference",
-                  "heading": "#/components/schemas/Heading",
-                  "html": "#/components/schemas/HTML",
-                  "image": "#/components/schemas/Image",
-                  "imageReference": "#/components/schemas/ImageReference",
-                  "inlineCode": "#/components/schemas/InlineCode",
-                  "link": "#/components/schemas/Link",
-                  "linkReference": "#/components/schemas/LinkReference",
-                  "list": "#/components/schemas/List",
-                  "listItem": "#/components/schemas/ListItem",
-                  "paragraph": "#/components/schemas/Paragraph",
-                  "strong": "#/components/schemas/Strong",
-                  "table": "#/components/schemas/Table",
-                  "tableCell": "#/components/schemas/TableCell",
-                  "tableRow": "#/components/schemas/TableRow",
-                  "text": "#/components/schemas/Text",
-                  "thematicBreak": "#/components/schemas/ThematicBreak"
-                },
-                "propertyName": "type"
-              },
-              "oneOf": [
-                {
-                  "$ref": "#/components/schemas/Paragraph"
-                },
-                {
-                  "$ref": "#/components/schemas/Heading"
-                },
-                {
-                  "$ref": "#/components/schemas/ThematicBreak"
-                },
-                {
-                  "$ref": "#/components/schemas/Blockquote"
-                },
-                {
-                  "$ref": "#/components/schemas/List"
-                },
-                {
-                  "$ref": "#/components/schemas/ListItem"
-                },
-                {
-                  "$ref": "#/components/schemas/Code"
-                },
-                {
-                  "$ref": "#/components/schemas/HTML"
-                },
-                {
-                  "$ref": "#/components/schemas/Text"
-                },
-                {
-                  "$ref": "#/components/schemas/Emphasis"
-                },
-                {
-                  "$ref": "#/components/schemas/Strong"
-                },
-                {
-                  "$ref": "#/components/schemas/Delete"
-                },
-                {
-                  "$ref": "#/components/schemas/InlineCode"
-                },
-                {
-                  "$ref": "#/components/schemas/Break"
-                },
-                {
-                  "$ref": "#/components/schemas/Link"
-                },
-                {
-                  "$ref": "#/components/schemas/Image"
-                },
-                {
-                  "$ref": "#/components/schemas/LinkReference"
-                },
-                {
-                  "$ref": "#/components/schemas/ImageReference"
-                },
-                {
-                  "$ref": "#/components/schemas/Definition"
-                },
-                {
-                  "$ref": "#/components/schemas/FootnoteReference"
-                },
-                {
-                  "$ref": "#/components/schemas/FootnoteDefinition"
-                },
-                {
-                  "$ref": "#/components/schemas/Table"
-                },
-                {
-                  "$ref": "#/components/schemas/TableRow"
-                },
-                {
-                  "$ref": "#/components/schemas/TableCell"
-                }
-              ]
-            },
-            "type": "array"
-          },
-          "type": {
-            "const": "emphasis",
-            "type": "string"
-          }
-        },
-        "type": "object",
-        "required": [
-          "type",
-          "children"
         ]
       },
       "ErrBadRequest": {
@@ -4670,111 +4224,686 @@
           "message"
         ]
       },
-      "FootnoteDefinition": {
+      "HastComment": {
+        "properties": {
+          "type": {
+            "const": "comment",
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "value"
+        ]
+      },
+      "HastElement": {
         "properties": {
           "children": {
             "items": {
               "discriminator": {
                 "mapping": {
-                  "blockquote": "#/components/schemas/Blockquote",
-                  "break": "#/components/schemas/Break",
-                  "code": "#/components/schemas/Code",
-                  "definition": "#/components/schemas/Definition",
-                  "delete": "#/components/schemas/Delete",
-                  "emphasis": "#/components/schemas/Emphasis",
-                  "footnoteDefinition": "#/components/schemas/FootnoteDefinition",
-                  "footnoteReference": "#/components/schemas/FootnoteReference",
-                  "heading": "#/components/schemas/Heading",
-                  "html": "#/components/schemas/HTML",
-                  "image": "#/components/schemas/Image",
-                  "imageReference": "#/components/schemas/ImageReference",
-                  "inlineCode": "#/components/schemas/InlineCode",
-                  "link": "#/components/schemas/Link",
-                  "linkReference": "#/components/schemas/LinkReference",
-                  "list": "#/components/schemas/List",
-                  "listItem": "#/components/schemas/ListItem",
-                  "paragraph": "#/components/schemas/Paragraph",
-                  "strong": "#/components/schemas/Strong",
-                  "table": "#/components/schemas/Table",
-                  "tableCell": "#/components/schemas/TableCell",
-                  "tableRow": "#/components/schemas/TableRow",
-                  "text": "#/components/schemas/Text",
-                  "thematicBreak": "#/components/schemas/ThematicBreak"
+                  "comment": "#/components/schemas/HastComment",
+                  "element": "#/components/schemas/HastElement",
+                  "raw": "#/components/schemas/HastRaw",
+                  "text": "#/components/schemas/HastText"
                 },
                 "propertyName": "type"
               },
               "oneOf": [
                 {
-                  "$ref": "#/components/schemas/Paragraph"
+                  "$ref": "#/components/schemas/HastElement"
                 },
                 {
-                  "$ref": "#/components/schemas/Heading"
+                  "$ref": "#/components/schemas/HastText"
                 },
                 {
-                  "$ref": "#/components/schemas/ThematicBreak"
+                  "$ref": "#/components/schemas/HastComment"
                 },
                 {
-                  "$ref": "#/components/schemas/Blockquote"
+                  "$ref": "#/components/schemas/HastRaw"
+                }
+              ]
+            },
+            "type": "array"
+          },
+          "properties": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "tagName": {
+            "type": "string"
+          },
+          "type": {
+            "const": "element",
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "tagName",
+          "properties",
+          "children"
+        ]
+      },
+      "HastRaw": {
+        "properties": {
+          "type": {
+            "const": "raw",
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "value"
+        ]
+      },
+      "HastRoot": {
+        "properties": {
+          "children": {
+            "items": {
+              "discriminator": {
+                "mapping": {
+                  "comment": "#/components/schemas/HastComment",
+                  "element": "#/components/schemas/HastElement",
+                  "raw": "#/components/schemas/HastRaw",
+                  "text": "#/components/schemas/HastText"
+                },
+                "propertyName": "type"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/HastElement"
                 },
                 {
-                  "$ref": "#/components/schemas/List"
+                  "$ref": "#/components/schemas/HastText"
                 },
                 {
-                  "$ref": "#/components/schemas/ListItem"
+                  "$ref": "#/components/schemas/HastComment"
                 },
                 {
-                  "$ref": "#/components/schemas/Code"
+                  "$ref": "#/components/schemas/HastRaw"
+                }
+              ]
+            },
+            "type": "array"
+          },
+          "type": {
+            "const": "root",
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "children"
+        ]
+      },
+      "HastText": {
+        "properties": {
+          "type": {
+            "const": "text",
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "value"
+        ]
+      },
+      "MdastBlockquote": {
+        "properties": {
+          "children": {
+            "items": {
+              "discriminator": {
+                "mapping": {
+                  "blockquote": "#/components/schemas/MdastBlockquote",
+                  "break": "#/components/schemas/MdastBreak",
+                  "code": "#/components/schemas/MdastCode",
+                  "definition": "#/components/schemas/MdastDefinition",
+                  "delete": "#/components/schemas/MdastDelete",
+                  "emphasis": "#/components/schemas/MdastEmphasis",
+                  "footnoteDefinition": "#/components/schemas/MdastFootnoteDefinition",
+                  "footnoteReference": "#/components/schemas/MdastFootnoteReference",
+                  "heading": "#/components/schemas/MdastHeading",
+                  "html": "#/components/schemas/MdastHTML",
+                  "image": "#/components/schemas/MdastImage",
+                  "imageReference": "#/components/schemas/MdastImageReference",
+                  "inlineCode": "#/components/schemas/MdastInlineCode",
+                  "link": "#/components/schemas/MdastLink",
+                  "linkReference": "#/components/schemas/MdastLinkReference",
+                  "list": "#/components/schemas/MdastList",
+                  "listItem": "#/components/schemas/MdastListItem",
+                  "paragraph": "#/components/schemas/MdastParagraph",
+                  "strong": "#/components/schemas/MdastStrong",
+                  "table": "#/components/schemas/MdastTable",
+                  "tableCell": "#/components/schemas/MdastTableCell",
+                  "tableRow": "#/components/schemas/MdastTableRow",
+                  "text": "#/components/schemas/MdastText",
+                  "thematicBreak": "#/components/schemas/MdastThematicBreak"
+                },
+                "propertyName": "type"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/MdastParagraph"
                 },
                 {
-                  "$ref": "#/components/schemas/HTML"
+                  "$ref": "#/components/schemas/MdastHeading"
                 },
                 {
-                  "$ref": "#/components/schemas/Text"
+                  "$ref": "#/components/schemas/MdastThematicBreak"
                 },
                 {
-                  "$ref": "#/components/schemas/Emphasis"
+                  "$ref": "#/components/schemas/MdastBlockquote"
                 },
                 {
-                  "$ref": "#/components/schemas/Strong"
+                  "$ref": "#/components/schemas/MdastList"
                 },
                 {
-                  "$ref": "#/components/schemas/Delete"
+                  "$ref": "#/components/schemas/MdastListItem"
                 },
                 {
-                  "$ref": "#/components/schemas/InlineCode"
+                  "$ref": "#/components/schemas/MdastCode"
                 },
                 {
-                  "$ref": "#/components/schemas/Break"
+                  "$ref": "#/components/schemas/MdastHTML"
                 },
                 {
-                  "$ref": "#/components/schemas/Link"
+                  "$ref": "#/components/schemas/MdastText"
                 },
                 {
-                  "$ref": "#/components/schemas/Image"
+                  "$ref": "#/components/schemas/MdastEmphasis"
                 },
                 {
-                  "$ref": "#/components/schemas/LinkReference"
+                  "$ref": "#/components/schemas/MdastStrong"
                 },
                 {
-                  "$ref": "#/components/schemas/ImageReference"
+                  "$ref": "#/components/schemas/MdastDelete"
                 },
                 {
-                  "$ref": "#/components/schemas/Definition"
+                  "$ref": "#/components/schemas/MdastInlineCode"
                 },
                 {
-                  "$ref": "#/components/schemas/FootnoteReference"
+                  "$ref": "#/components/schemas/MdastBreak"
                 },
                 {
-                  "$ref": "#/components/schemas/FootnoteDefinition"
+                  "$ref": "#/components/schemas/MdastLink"
                 },
                 {
-                  "$ref": "#/components/schemas/Table"
+                  "$ref": "#/components/schemas/MdastImage"
                 },
                 {
-                  "$ref": "#/components/schemas/TableRow"
+                  "$ref": "#/components/schemas/MdastLinkReference"
                 },
                 {
-                  "$ref": "#/components/schemas/TableCell"
+                  "$ref": "#/components/schemas/MdastImageReference"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastDefinition"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastFootnoteReference"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastFootnoteDefinition"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastTable"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastTableRow"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastTableCell"
+                }
+              ]
+            },
+            "type": "array"
+          },
+          "type": {
+            "const": "blockquote",
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "children"
+        ]
+      },
+      "MdastBreak": {
+        "properties": {
+          "type": {
+            "const": "break",
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type"
+        ]
+      },
+      "MdastCode": {
+        "properties": {
+          "lang": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "type": {
+            "const": "code",
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "lang",
+          "meta",
+          "value"
+        ]
+      },
+      "MdastDefinition": {
+        "properties": {
+          "identifier": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "type": {
+            "const": "definition",
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "identifier",
+          "label",
+          "title",
+          "url"
+        ]
+      },
+      "MdastDelete": {
+        "properties": {
+          "children": {
+            "items": {
+              "discriminator": {
+                "mapping": {
+                  "blockquote": "#/components/schemas/MdastBlockquote",
+                  "break": "#/components/schemas/MdastBreak",
+                  "code": "#/components/schemas/MdastCode",
+                  "definition": "#/components/schemas/MdastDefinition",
+                  "delete": "#/components/schemas/MdastDelete",
+                  "emphasis": "#/components/schemas/MdastEmphasis",
+                  "footnoteDefinition": "#/components/schemas/MdastFootnoteDefinition",
+                  "footnoteReference": "#/components/schemas/MdastFootnoteReference",
+                  "heading": "#/components/schemas/MdastHeading",
+                  "html": "#/components/schemas/MdastHTML",
+                  "image": "#/components/schemas/MdastImage",
+                  "imageReference": "#/components/schemas/MdastImageReference",
+                  "inlineCode": "#/components/schemas/MdastInlineCode",
+                  "link": "#/components/schemas/MdastLink",
+                  "linkReference": "#/components/schemas/MdastLinkReference",
+                  "list": "#/components/schemas/MdastList",
+                  "listItem": "#/components/schemas/MdastListItem",
+                  "paragraph": "#/components/schemas/MdastParagraph",
+                  "strong": "#/components/schemas/MdastStrong",
+                  "table": "#/components/schemas/MdastTable",
+                  "tableCell": "#/components/schemas/MdastTableCell",
+                  "tableRow": "#/components/schemas/MdastTableRow",
+                  "text": "#/components/schemas/MdastText",
+                  "thematicBreak": "#/components/schemas/MdastThematicBreak"
+                },
+                "propertyName": "type"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/MdastParagraph"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastHeading"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastThematicBreak"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastBlockquote"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastList"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastListItem"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastCode"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastHTML"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastText"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastEmphasis"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastStrong"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastDelete"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastInlineCode"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastBreak"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastLink"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastImage"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastLinkReference"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastImageReference"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastDefinition"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastFootnoteReference"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastFootnoteDefinition"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastTable"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastTableRow"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastTableCell"
+                }
+              ]
+            },
+            "type": "array"
+          },
+          "type": {
+            "const": "delete",
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "children"
+        ]
+      },
+      "MdastEmphasis": {
+        "properties": {
+          "children": {
+            "items": {
+              "discriminator": {
+                "mapping": {
+                  "blockquote": "#/components/schemas/MdastBlockquote",
+                  "break": "#/components/schemas/MdastBreak",
+                  "code": "#/components/schemas/MdastCode",
+                  "definition": "#/components/schemas/MdastDefinition",
+                  "delete": "#/components/schemas/MdastDelete",
+                  "emphasis": "#/components/schemas/MdastEmphasis",
+                  "footnoteDefinition": "#/components/schemas/MdastFootnoteDefinition",
+                  "footnoteReference": "#/components/schemas/MdastFootnoteReference",
+                  "heading": "#/components/schemas/MdastHeading",
+                  "html": "#/components/schemas/MdastHTML",
+                  "image": "#/components/schemas/MdastImage",
+                  "imageReference": "#/components/schemas/MdastImageReference",
+                  "inlineCode": "#/components/schemas/MdastInlineCode",
+                  "link": "#/components/schemas/MdastLink",
+                  "linkReference": "#/components/schemas/MdastLinkReference",
+                  "list": "#/components/schemas/MdastList",
+                  "listItem": "#/components/schemas/MdastListItem",
+                  "paragraph": "#/components/schemas/MdastParagraph",
+                  "strong": "#/components/schemas/MdastStrong",
+                  "table": "#/components/schemas/MdastTable",
+                  "tableCell": "#/components/schemas/MdastTableCell",
+                  "tableRow": "#/components/schemas/MdastTableRow",
+                  "text": "#/components/schemas/MdastText",
+                  "thematicBreak": "#/components/schemas/MdastThematicBreak"
+                },
+                "propertyName": "type"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/MdastParagraph"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastHeading"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastThematicBreak"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastBlockquote"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastList"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastListItem"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastCode"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastHTML"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastText"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastEmphasis"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastStrong"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastDelete"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastInlineCode"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastBreak"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastLink"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastImage"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastLinkReference"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastImageReference"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastDefinition"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastFootnoteReference"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastFootnoteDefinition"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastTable"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastTableRow"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastTableCell"
+                }
+              ]
+            },
+            "type": "array"
+          },
+          "type": {
+            "const": "emphasis",
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "children"
+        ]
+      },
+      "MdastFootnoteDefinition": {
+        "properties": {
+          "children": {
+            "items": {
+              "discriminator": {
+                "mapping": {
+                  "blockquote": "#/components/schemas/MdastBlockquote",
+                  "break": "#/components/schemas/MdastBreak",
+                  "code": "#/components/schemas/MdastCode",
+                  "definition": "#/components/schemas/MdastDefinition",
+                  "delete": "#/components/schemas/MdastDelete",
+                  "emphasis": "#/components/schemas/MdastEmphasis",
+                  "footnoteDefinition": "#/components/schemas/MdastFootnoteDefinition",
+                  "footnoteReference": "#/components/schemas/MdastFootnoteReference",
+                  "heading": "#/components/schemas/MdastHeading",
+                  "html": "#/components/schemas/MdastHTML",
+                  "image": "#/components/schemas/MdastImage",
+                  "imageReference": "#/components/schemas/MdastImageReference",
+                  "inlineCode": "#/components/schemas/MdastInlineCode",
+                  "link": "#/components/schemas/MdastLink",
+                  "linkReference": "#/components/schemas/MdastLinkReference",
+                  "list": "#/components/schemas/MdastList",
+                  "listItem": "#/components/schemas/MdastListItem",
+                  "paragraph": "#/components/schemas/MdastParagraph",
+                  "strong": "#/components/schemas/MdastStrong",
+                  "table": "#/components/schemas/MdastTable",
+                  "tableCell": "#/components/schemas/MdastTableCell",
+                  "tableRow": "#/components/schemas/MdastTableRow",
+                  "text": "#/components/schemas/MdastText",
+                  "thematicBreak": "#/components/schemas/MdastThematicBreak"
+                },
+                "propertyName": "type"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/MdastParagraph"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastHeading"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastThematicBreak"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastBlockquote"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastList"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastListItem"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastCode"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastHTML"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastText"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastEmphasis"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastStrong"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastDelete"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastInlineCode"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastBreak"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastLink"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastImage"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastLinkReference"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastImageReference"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastDefinition"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastFootnoteReference"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastFootnoteDefinition"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastTable"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastTableRow"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastTableCell"
                 }
               ]
             },
@@ -4799,7 +4928,7 @@
           "children"
         ]
       },
-      "FootnoteReference": {
+      "MdastFootnoteReference": {
         "properties": {
           "identifier": {
             "type": "string"
@@ -4819,7 +4948,7 @@
           "label"
         ]
       },
-      "HTML": {
+      "MdastHTML": {
         "properties": {
           "type": {
             "const": "html",
@@ -4835,111 +4964,111 @@
           "value"
         ]
       },
-      "Heading": {
+      "MdastHeading": {
         "properties": {
           "children": {
             "items": {
               "discriminator": {
                 "mapping": {
-                  "blockquote": "#/components/schemas/Blockquote",
-                  "break": "#/components/schemas/Break",
-                  "code": "#/components/schemas/Code",
-                  "definition": "#/components/schemas/Definition",
-                  "delete": "#/components/schemas/Delete",
-                  "emphasis": "#/components/schemas/Emphasis",
-                  "footnoteDefinition": "#/components/schemas/FootnoteDefinition",
-                  "footnoteReference": "#/components/schemas/FootnoteReference",
-                  "heading": "#/components/schemas/Heading",
-                  "html": "#/components/schemas/HTML",
-                  "image": "#/components/schemas/Image",
-                  "imageReference": "#/components/schemas/ImageReference",
-                  "inlineCode": "#/components/schemas/InlineCode",
-                  "link": "#/components/schemas/Link",
-                  "linkReference": "#/components/schemas/LinkReference",
-                  "list": "#/components/schemas/List",
-                  "listItem": "#/components/schemas/ListItem",
-                  "paragraph": "#/components/schemas/Paragraph",
-                  "strong": "#/components/schemas/Strong",
-                  "table": "#/components/schemas/Table",
-                  "tableCell": "#/components/schemas/TableCell",
-                  "tableRow": "#/components/schemas/TableRow",
-                  "text": "#/components/schemas/Text",
-                  "thematicBreak": "#/components/schemas/ThematicBreak"
+                  "blockquote": "#/components/schemas/MdastBlockquote",
+                  "break": "#/components/schemas/MdastBreak",
+                  "code": "#/components/schemas/MdastCode",
+                  "definition": "#/components/schemas/MdastDefinition",
+                  "delete": "#/components/schemas/MdastDelete",
+                  "emphasis": "#/components/schemas/MdastEmphasis",
+                  "footnoteDefinition": "#/components/schemas/MdastFootnoteDefinition",
+                  "footnoteReference": "#/components/schemas/MdastFootnoteReference",
+                  "heading": "#/components/schemas/MdastHeading",
+                  "html": "#/components/schemas/MdastHTML",
+                  "image": "#/components/schemas/MdastImage",
+                  "imageReference": "#/components/schemas/MdastImageReference",
+                  "inlineCode": "#/components/schemas/MdastInlineCode",
+                  "link": "#/components/schemas/MdastLink",
+                  "linkReference": "#/components/schemas/MdastLinkReference",
+                  "list": "#/components/schemas/MdastList",
+                  "listItem": "#/components/schemas/MdastListItem",
+                  "paragraph": "#/components/schemas/MdastParagraph",
+                  "strong": "#/components/schemas/MdastStrong",
+                  "table": "#/components/schemas/MdastTable",
+                  "tableCell": "#/components/schemas/MdastTableCell",
+                  "tableRow": "#/components/schemas/MdastTableRow",
+                  "text": "#/components/schemas/MdastText",
+                  "thematicBreak": "#/components/schemas/MdastThematicBreak"
                 },
                 "propertyName": "type"
               },
               "oneOf": [
                 {
-                  "$ref": "#/components/schemas/Paragraph"
+                  "$ref": "#/components/schemas/MdastParagraph"
                 },
                 {
-                  "$ref": "#/components/schemas/Heading"
+                  "$ref": "#/components/schemas/MdastHeading"
                 },
                 {
-                  "$ref": "#/components/schemas/ThematicBreak"
+                  "$ref": "#/components/schemas/MdastThematicBreak"
                 },
                 {
-                  "$ref": "#/components/schemas/Blockquote"
+                  "$ref": "#/components/schemas/MdastBlockquote"
                 },
                 {
-                  "$ref": "#/components/schemas/List"
+                  "$ref": "#/components/schemas/MdastList"
                 },
                 {
-                  "$ref": "#/components/schemas/ListItem"
+                  "$ref": "#/components/schemas/MdastListItem"
                 },
                 {
-                  "$ref": "#/components/schemas/Code"
+                  "$ref": "#/components/schemas/MdastCode"
                 },
                 {
-                  "$ref": "#/components/schemas/HTML"
+                  "$ref": "#/components/schemas/MdastHTML"
                 },
                 {
-                  "$ref": "#/components/schemas/Text"
+                  "$ref": "#/components/schemas/MdastText"
                 },
                 {
-                  "$ref": "#/components/schemas/Emphasis"
+                  "$ref": "#/components/schemas/MdastEmphasis"
                 },
                 {
-                  "$ref": "#/components/schemas/Strong"
+                  "$ref": "#/components/schemas/MdastStrong"
                 },
                 {
-                  "$ref": "#/components/schemas/Delete"
+                  "$ref": "#/components/schemas/MdastDelete"
                 },
                 {
-                  "$ref": "#/components/schemas/InlineCode"
+                  "$ref": "#/components/schemas/MdastInlineCode"
                 },
                 {
-                  "$ref": "#/components/schemas/Break"
+                  "$ref": "#/components/schemas/MdastBreak"
                 },
                 {
-                  "$ref": "#/components/schemas/Link"
+                  "$ref": "#/components/schemas/MdastLink"
                 },
                 {
-                  "$ref": "#/components/schemas/Image"
+                  "$ref": "#/components/schemas/MdastImage"
                 },
                 {
-                  "$ref": "#/components/schemas/LinkReference"
+                  "$ref": "#/components/schemas/MdastLinkReference"
                 },
                 {
-                  "$ref": "#/components/schemas/ImageReference"
+                  "$ref": "#/components/schemas/MdastImageReference"
                 },
                 {
-                  "$ref": "#/components/schemas/Definition"
+                  "$ref": "#/components/schemas/MdastDefinition"
                 },
                 {
-                  "$ref": "#/components/schemas/FootnoteReference"
+                  "$ref": "#/components/schemas/MdastFootnoteReference"
                 },
                 {
-                  "$ref": "#/components/schemas/FootnoteDefinition"
+                  "$ref": "#/components/schemas/MdastFootnoteDefinition"
                 },
                 {
-                  "$ref": "#/components/schemas/Table"
+                  "$ref": "#/components/schemas/MdastTable"
                 },
                 {
-                  "$ref": "#/components/schemas/TableRow"
+                  "$ref": "#/components/schemas/MdastTableRow"
                 },
                 {
-                  "$ref": "#/components/schemas/TableCell"
+                  "$ref": "#/components/schemas/MdastTableCell"
                 }
               ]
             },
@@ -4960,7 +5089,7 @@
           "depth"
         ]
       },
-      "Image": {
+      "MdastImage": {
         "properties": {
           "alt": {
             "type": "string"
@@ -4987,7 +5116,7 @@
           "alt"
         ]
       },
-      "ImageReference": {
+      "MdastImageReference": {
         "properties": {
           "alt": {
             "type": "string"
@@ -5015,7 +5144,7 @@
           "alt"
         ]
       },
-      "InlineCode": {
+      "MdastInlineCode": {
         "properties": {
           "type": {
             "const": "inlineCode",
@@ -5031,111 +5160,111 @@
           "value"
         ]
       },
-      "Link": {
+      "MdastLink": {
         "properties": {
           "children": {
             "items": {
               "discriminator": {
                 "mapping": {
-                  "blockquote": "#/components/schemas/Blockquote",
-                  "break": "#/components/schemas/Break",
-                  "code": "#/components/schemas/Code",
-                  "definition": "#/components/schemas/Definition",
-                  "delete": "#/components/schemas/Delete",
-                  "emphasis": "#/components/schemas/Emphasis",
-                  "footnoteDefinition": "#/components/schemas/FootnoteDefinition",
-                  "footnoteReference": "#/components/schemas/FootnoteReference",
-                  "heading": "#/components/schemas/Heading",
-                  "html": "#/components/schemas/HTML",
-                  "image": "#/components/schemas/Image",
-                  "imageReference": "#/components/schemas/ImageReference",
-                  "inlineCode": "#/components/schemas/InlineCode",
-                  "link": "#/components/schemas/Link",
-                  "linkReference": "#/components/schemas/LinkReference",
-                  "list": "#/components/schemas/List",
-                  "listItem": "#/components/schemas/ListItem",
-                  "paragraph": "#/components/schemas/Paragraph",
-                  "strong": "#/components/schemas/Strong",
-                  "table": "#/components/schemas/Table",
-                  "tableCell": "#/components/schemas/TableCell",
-                  "tableRow": "#/components/schemas/TableRow",
-                  "text": "#/components/schemas/Text",
-                  "thematicBreak": "#/components/schemas/ThematicBreak"
+                  "blockquote": "#/components/schemas/MdastBlockquote",
+                  "break": "#/components/schemas/MdastBreak",
+                  "code": "#/components/schemas/MdastCode",
+                  "definition": "#/components/schemas/MdastDefinition",
+                  "delete": "#/components/schemas/MdastDelete",
+                  "emphasis": "#/components/schemas/MdastEmphasis",
+                  "footnoteDefinition": "#/components/schemas/MdastFootnoteDefinition",
+                  "footnoteReference": "#/components/schemas/MdastFootnoteReference",
+                  "heading": "#/components/schemas/MdastHeading",
+                  "html": "#/components/schemas/MdastHTML",
+                  "image": "#/components/schemas/MdastImage",
+                  "imageReference": "#/components/schemas/MdastImageReference",
+                  "inlineCode": "#/components/schemas/MdastInlineCode",
+                  "link": "#/components/schemas/MdastLink",
+                  "linkReference": "#/components/schemas/MdastLinkReference",
+                  "list": "#/components/schemas/MdastList",
+                  "listItem": "#/components/schemas/MdastListItem",
+                  "paragraph": "#/components/schemas/MdastParagraph",
+                  "strong": "#/components/schemas/MdastStrong",
+                  "table": "#/components/schemas/MdastTable",
+                  "tableCell": "#/components/schemas/MdastTableCell",
+                  "tableRow": "#/components/schemas/MdastTableRow",
+                  "text": "#/components/schemas/MdastText",
+                  "thematicBreak": "#/components/schemas/MdastThematicBreak"
                 },
                 "propertyName": "type"
               },
               "oneOf": [
                 {
-                  "$ref": "#/components/schemas/Paragraph"
+                  "$ref": "#/components/schemas/MdastParagraph"
                 },
                 {
-                  "$ref": "#/components/schemas/Heading"
+                  "$ref": "#/components/schemas/MdastHeading"
                 },
                 {
-                  "$ref": "#/components/schemas/ThematicBreak"
+                  "$ref": "#/components/schemas/MdastThematicBreak"
                 },
                 {
-                  "$ref": "#/components/schemas/Blockquote"
+                  "$ref": "#/components/schemas/MdastBlockquote"
                 },
                 {
-                  "$ref": "#/components/schemas/List"
+                  "$ref": "#/components/schemas/MdastList"
                 },
                 {
-                  "$ref": "#/components/schemas/ListItem"
+                  "$ref": "#/components/schemas/MdastListItem"
                 },
                 {
-                  "$ref": "#/components/schemas/Code"
+                  "$ref": "#/components/schemas/MdastCode"
                 },
                 {
-                  "$ref": "#/components/schemas/HTML"
+                  "$ref": "#/components/schemas/MdastHTML"
                 },
                 {
-                  "$ref": "#/components/schemas/Text"
+                  "$ref": "#/components/schemas/MdastText"
                 },
                 {
-                  "$ref": "#/components/schemas/Emphasis"
+                  "$ref": "#/components/schemas/MdastEmphasis"
                 },
                 {
-                  "$ref": "#/components/schemas/Strong"
+                  "$ref": "#/components/schemas/MdastStrong"
                 },
                 {
-                  "$ref": "#/components/schemas/Delete"
+                  "$ref": "#/components/schemas/MdastDelete"
                 },
                 {
-                  "$ref": "#/components/schemas/InlineCode"
+                  "$ref": "#/components/schemas/MdastInlineCode"
                 },
                 {
-                  "$ref": "#/components/schemas/Break"
+                  "$ref": "#/components/schemas/MdastBreak"
                 },
                 {
-                  "$ref": "#/components/schemas/Link"
+                  "$ref": "#/components/schemas/MdastLink"
                 },
                 {
-                  "$ref": "#/components/schemas/Image"
+                  "$ref": "#/components/schemas/MdastImage"
                 },
                 {
-                  "$ref": "#/components/schemas/LinkReference"
+                  "$ref": "#/components/schemas/MdastLinkReference"
                 },
                 {
-                  "$ref": "#/components/schemas/ImageReference"
+                  "$ref": "#/components/schemas/MdastImageReference"
                 },
                 {
-                  "$ref": "#/components/schemas/Definition"
+                  "$ref": "#/components/schemas/MdastDefinition"
                 },
                 {
-                  "$ref": "#/components/schemas/FootnoteReference"
+                  "$ref": "#/components/schemas/MdastFootnoteReference"
                 },
                 {
-                  "$ref": "#/components/schemas/FootnoteDefinition"
+                  "$ref": "#/components/schemas/MdastFootnoteDefinition"
                 },
                 {
-                  "$ref": "#/components/schemas/Table"
+                  "$ref": "#/components/schemas/MdastTable"
                 },
                 {
-                  "$ref": "#/components/schemas/TableRow"
+                  "$ref": "#/components/schemas/MdastTableRow"
                 },
                 {
-                  "$ref": "#/components/schemas/TableCell"
+                  "$ref": "#/components/schemas/MdastTableCell"
                 }
               ]
             },
@@ -5163,111 +5292,111 @@
           "children"
         ]
       },
-      "LinkReference": {
+      "MdastLinkReference": {
         "properties": {
           "children": {
             "items": {
               "discriminator": {
                 "mapping": {
-                  "blockquote": "#/components/schemas/Blockquote",
-                  "break": "#/components/schemas/Break",
-                  "code": "#/components/schemas/Code",
-                  "definition": "#/components/schemas/Definition",
-                  "delete": "#/components/schemas/Delete",
-                  "emphasis": "#/components/schemas/Emphasis",
-                  "footnoteDefinition": "#/components/schemas/FootnoteDefinition",
-                  "footnoteReference": "#/components/schemas/FootnoteReference",
-                  "heading": "#/components/schemas/Heading",
-                  "html": "#/components/schemas/HTML",
-                  "image": "#/components/schemas/Image",
-                  "imageReference": "#/components/schemas/ImageReference",
-                  "inlineCode": "#/components/schemas/InlineCode",
-                  "link": "#/components/schemas/Link",
-                  "linkReference": "#/components/schemas/LinkReference",
-                  "list": "#/components/schemas/List",
-                  "listItem": "#/components/schemas/ListItem",
-                  "paragraph": "#/components/schemas/Paragraph",
-                  "strong": "#/components/schemas/Strong",
-                  "table": "#/components/schemas/Table",
-                  "tableCell": "#/components/schemas/TableCell",
-                  "tableRow": "#/components/schemas/TableRow",
-                  "text": "#/components/schemas/Text",
-                  "thematicBreak": "#/components/schemas/ThematicBreak"
+                  "blockquote": "#/components/schemas/MdastBlockquote",
+                  "break": "#/components/schemas/MdastBreak",
+                  "code": "#/components/schemas/MdastCode",
+                  "definition": "#/components/schemas/MdastDefinition",
+                  "delete": "#/components/schemas/MdastDelete",
+                  "emphasis": "#/components/schemas/MdastEmphasis",
+                  "footnoteDefinition": "#/components/schemas/MdastFootnoteDefinition",
+                  "footnoteReference": "#/components/schemas/MdastFootnoteReference",
+                  "heading": "#/components/schemas/MdastHeading",
+                  "html": "#/components/schemas/MdastHTML",
+                  "image": "#/components/schemas/MdastImage",
+                  "imageReference": "#/components/schemas/MdastImageReference",
+                  "inlineCode": "#/components/schemas/MdastInlineCode",
+                  "link": "#/components/schemas/MdastLink",
+                  "linkReference": "#/components/schemas/MdastLinkReference",
+                  "list": "#/components/schemas/MdastList",
+                  "listItem": "#/components/schemas/MdastListItem",
+                  "paragraph": "#/components/schemas/MdastParagraph",
+                  "strong": "#/components/schemas/MdastStrong",
+                  "table": "#/components/schemas/MdastTable",
+                  "tableCell": "#/components/schemas/MdastTableCell",
+                  "tableRow": "#/components/schemas/MdastTableRow",
+                  "text": "#/components/schemas/MdastText",
+                  "thematicBreak": "#/components/schemas/MdastThematicBreak"
                 },
                 "propertyName": "type"
               },
               "oneOf": [
                 {
-                  "$ref": "#/components/schemas/Paragraph"
+                  "$ref": "#/components/schemas/MdastParagraph"
                 },
                 {
-                  "$ref": "#/components/schemas/Heading"
+                  "$ref": "#/components/schemas/MdastHeading"
                 },
                 {
-                  "$ref": "#/components/schemas/ThematicBreak"
+                  "$ref": "#/components/schemas/MdastThematicBreak"
                 },
                 {
-                  "$ref": "#/components/schemas/Blockquote"
+                  "$ref": "#/components/schemas/MdastBlockquote"
                 },
                 {
-                  "$ref": "#/components/schemas/List"
+                  "$ref": "#/components/schemas/MdastList"
                 },
                 {
-                  "$ref": "#/components/schemas/ListItem"
+                  "$ref": "#/components/schemas/MdastListItem"
                 },
                 {
-                  "$ref": "#/components/schemas/Code"
+                  "$ref": "#/components/schemas/MdastCode"
                 },
                 {
-                  "$ref": "#/components/schemas/HTML"
+                  "$ref": "#/components/schemas/MdastHTML"
                 },
                 {
-                  "$ref": "#/components/schemas/Text"
+                  "$ref": "#/components/schemas/MdastText"
                 },
                 {
-                  "$ref": "#/components/schemas/Emphasis"
+                  "$ref": "#/components/schemas/MdastEmphasis"
                 },
                 {
-                  "$ref": "#/components/schemas/Strong"
+                  "$ref": "#/components/schemas/MdastStrong"
                 },
                 {
-                  "$ref": "#/components/schemas/Delete"
+                  "$ref": "#/components/schemas/MdastDelete"
                 },
                 {
-                  "$ref": "#/components/schemas/InlineCode"
+                  "$ref": "#/components/schemas/MdastInlineCode"
                 },
                 {
-                  "$ref": "#/components/schemas/Break"
+                  "$ref": "#/components/schemas/MdastBreak"
                 },
                 {
-                  "$ref": "#/components/schemas/Link"
+                  "$ref": "#/components/schemas/MdastLink"
                 },
                 {
-                  "$ref": "#/components/schemas/Image"
+                  "$ref": "#/components/schemas/MdastImage"
                 },
                 {
-                  "$ref": "#/components/schemas/LinkReference"
+                  "$ref": "#/components/schemas/MdastLinkReference"
                 },
                 {
-                  "$ref": "#/components/schemas/ImageReference"
+                  "$ref": "#/components/schemas/MdastImageReference"
                 },
                 {
-                  "$ref": "#/components/schemas/Definition"
+                  "$ref": "#/components/schemas/MdastDefinition"
                 },
                 {
-                  "$ref": "#/components/schemas/FootnoteReference"
+                  "$ref": "#/components/schemas/MdastFootnoteReference"
                 },
                 {
-                  "$ref": "#/components/schemas/FootnoteDefinition"
+                  "$ref": "#/components/schemas/MdastFootnoteDefinition"
                 },
                 {
-                  "$ref": "#/components/schemas/Table"
+                  "$ref": "#/components/schemas/MdastTable"
                 },
                 {
-                  "$ref": "#/components/schemas/TableRow"
+                  "$ref": "#/components/schemas/MdastTableRow"
                 },
                 {
-                  "$ref": "#/components/schemas/TableCell"
+                  "$ref": "#/components/schemas/MdastTableCell"
                 }
               ]
             },
@@ -5296,111 +5425,111 @@
           "children"
         ]
       },
-      "List": {
+      "MdastList": {
         "properties": {
           "children": {
             "items": {
               "discriminator": {
                 "mapping": {
-                  "blockquote": "#/components/schemas/Blockquote",
-                  "break": "#/components/schemas/Break",
-                  "code": "#/components/schemas/Code",
-                  "definition": "#/components/schemas/Definition",
-                  "delete": "#/components/schemas/Delete",
-                  "emphasis": "#/components/schemas/Emphasis",
-                  "footnoteDefinition": "#/components/schemas/FootnoteDefinition",
-                  "footnoteReference": "#/components/schemas/FootnoteReference",
-                  "heading": "#/components/schemas/Heading",
-                  "html": "#/components/schemas/HTML",
-                  "image": "#/components/schemas/Image",
-                  "imageReference": "#/components/schemas/ImageReference",
-                  "inlineCode": "#/components/schemas/InlineCode",
-                  "link": "#/components/schemas/Link",
-                  "linkReference": "#/components/schemas/LinkReference",
-                  "list": "#/components/schemas/List",
-                  "listItem": "#/components/schemas/ListItem",
-                  "paragraph": "#/components/schemas/Paragraph",
-                  "strong": "#/components/schemas/Strong",
-                  "table": "#/components/schemas/Table",
-                  "tableCell": "#/components/schemas/TableCell",
-                  "tableRow": "#/components/schemas/TableRow",
-                  "text": "#/components/schemas/Text",
-                  "thematicBreak": "#/components/schemas/ThematicBreak"
+                  "blockquote": "#/components/schemas/MdastBlockquote",
+                  "break": "#/components/schemas/MdastBreak",
+                  "code": "#/components/schemas/MdastCode",
+                  "definition": "#/components/schemas/MdastDefinition",
+                  "delete": "#/components/schemas/MdastDelete",
+                  "emphasis": "#/components/schemas/MdastEmphasis",
+                  "footnoteDefinition": "#/components/schemas/MdastFootnoteDefinition",
+                  "footnoteReference": "#/components/schemas/MdastFootnoteReference",
+                  "heading": "#/components/schemas/MdastHeading",
+                  "html": "#/components/schemas/MdastHTML",
+                  "image": "#/components/schemas/MdastImage",
+                  "imageReference": "#/components/schemas/MdastImageReference",
+                  "inlineCode": "#/components/schemas/MdastInlineCode",
+                  "link": "#/components/schemas/MdastLink",
+                  "linkReference": "#/components/schemas/MdastLinkReference",
+                  "list": "#/components/schemas/MdastList",
+                  "listItem": "#/components/schemas/MdastListItem",
+                  "paragraph": "#/components/schemas/MdastParagraph",
+                  "strong": "#/components/schemas/MdastStrong",
+                  "table": "#/components/schemas/MdastTable",
+                  "tableCell": "#/components/schemas/MdastTableCell",
+                  "tableRow": "#/components/schemas/MdastTableRow",
+                  "text": "#/components/schemas/MdastText",
+                  "thematicBreak": "#/components/schemas/MdastThematicBreak"
                 },
                 "propertyName": "type"
               },
               "oneOf": [
                 {
-                  "$ref": "#/components/schemas/Paragraph"
+                  "$ref": "#/components/schemas/MdastParagraph"
                 },
                 {
-                  "$ref": "#/components/schemas/Heading"
+                  "$ref": "#/components/schemas/MdastHeading"
                 },
                 {
-                  "$ref": "#/components/schemas/ThematicBreak"
+                  "$ref": "#/components/schemas/MdastThematicBreak"
                 },
                 {
-                  "$ref": "#/components/schemas/Blockquote"
+                  "$ref": "#/components/schemas/MdastBlockquote"
                 },
                 {
-                  "$ref": "#/components/schemas/List"
+                  "$ref": "#/components/schemas/MdastList"
                 },
                 {
-                  "$ref": "#/components/schemas/ListItem"
+                  "$ref": "#/components/schemas/MdastListItem"
                 },
                 {
-                  "$ref": "#/components/schemas/Code"
+                  "$ref": "#/components/schemas/MdastCode"
                 },
                 {
-                  "$ref": "#/components/schemas/HTML"
+                  "$ref": "#/components/schemas/MdastHTML"
                 },
                 {
-                  "$ref": "#/components/schemas/Text"
+                  "$ref": "#/components/schemas/MdastText"
                 },
                 {
-                  "$ref": "#/components/schemas/Emphasis"
+                  "$ref": "#/components/schemas/MdastEmphasis"
                 },
                 {
-                  "$ref": "#/components/schemas/Strong"
+                  "$ref": "#/components/schemas/MdastStrong"
                 },
                 {
-                  "$ref": "#/components/schemas/Delete"
+                  "$ref": "#/components/schemas/MdastDelete"
                 },
                 {
-                  "$ref": "#/components/schemas/InlineCode"
+                  "$ref": "#/components/schemas/MdastInlineCode"
                 },
                 {
-                  "$ref": "#/components/schemas/Break"
+                  "$ref": "#/components/schemas/MdastBreak"
                 },
                 {
-                  "$ref": "#/components/schemas/Link"
+                  "$ref": "#/components/schemas/MdastLink"
                 },
                 {
-                  "$ref": "#/components/schemas/Image"
+                  "$ref": "#/components/schemas/MdastImage"
                 },
                 {
-                  "$ref": "#/components/schemas/LinkReference"
+                  "$ref": "#/components/schemas/MdastLinkReference"
                 },
                 {
-                  "$ref": "#/components/schemas/ImageReference"
+                  "$ref": "#/components/schemas/MdastImageReference"
                 },
                 {
-                  "$ref": "#/components/schemas/Definition"
+                  "$ref": "#/components/schemas/MdastDefinition"
                 },
                 {
-                  "$ref": "#/components/schemas/FootnoteReference"
+                  "$ref": "#/components/schemas/MdastFootnoteReference"
                 },
                 {
-                  "$ref": "#/components/schemas/FootnoteDefinition"
+                  "$ref": "#/components/schemas/MdastFootnoteDefinition"
                 },
                 {
-                  "$ref": "#/components/schemas/Table"
+                  "$ref": "#/components/schemas/MdastTable"
                 },
                 {
-                  "$ref": "#/components/schemas/TableRow"
+                  "$ref": "#/components/schemas/MdastTableRow"
                 },
                 {
-                  "$ref": "#/components/schemas/TableCell"
+                  "$ref": "#/components/schemas/MdastTableCell"
                 }
               ]
             },
@@ -5432,7 +5561,7 @@
           "spread"
         ]
       },
-      "ListItem": {
+      "MdastListItem": {
         "properties": {
           "checked": {
             "type": [
@@ -5444,105 +5573,105 @@
             "items": {
               "discriminator": {
                 "mapping": {
-                  "blockquote": "#/components/schemas/Blockquote",
-                  "break": "#/components/schemas/Break",
-                  "code": "#/components/schemas/Code",
-                  "definition": "#/components/schemas/Definition",
-                  "delete": "#/components/schemas/Delete",
-                  "emphasis": "#/components/schemas/Emphasis",
-                  "footnoteDefinition": "#/components/schemas/FootnoteDefinition",
-                  "footnoteReference": "#/components/schemas/FootnoteReference",
-                  "heading": "#/components/schemas/Heading",
-                  "html": "#/components/schemas/HTML",
-                  "image": "#/components/schemas/Image",
-                  "imageReference": "#/components/schemas/ImageReference",
-                  "inlineCode": "#/components/schemas/InlineCode",
-                  "link": "#/components/schemas/Link",
-                  "linkReference": "#/components/schemas/LinkReference",
-                  "list": "#/components/schemas/List",
-                  "listItem": "#/components/schemas/ListItem",
-                  "paragraph": "#/components/schemas/Paragraph",
-                  "strong": "#/components/schemas/Strong",
-                  "table": "#/components/schemas/Table",
-                  "tableCell": "#/components/schemas/TableCell",
-                  "tableRow": "#/components/schemas/TableRow",
-                  "text": "#/components/schemas/Text",
-                  "thematicBreak": "#/components/schemas/ThematicBreak"
+                  "blockquote": "#/components/schemas/MdastBlockquote",
+                  "break": "#/components/schemas/MdastBreak",
+                  "code": "#/components/schemas/MdastCode",
+                  "definition": "#/components/schemas/MdastDefinition",
+                  "delete": "#/components/schemas/MdastDelete",
+                  "emphasis": "#/components/schemas/MdastEmphasis",
+                  "footnoteDefinition": "#/components/schemas/MdastFootnoteDefinition",
+                  "footnoteReference": "#/components/schemas/MdastFootnoteReference",
+                  "heading": "#/components/schemas/MdastHeading",
+                  "html": "#/components/schemas/MdastHTML",
+                  "image": "#/components/schemas/MdastImage",
+                  "imageReference": "#/components/schemas/MdastImageReference",
+                  "inlineCode": "#/components/schemas/MdastInlineCode",
+                  "link": "#/components/schemas/MdastLink",
+                  "linkReference": "#/components/schemas/MdastLinkReference",
+                  "list": "#/components/schemas/MdastList",
+                  "listItem": "#/components/schemas/MdastListItem",
+                  "paragraph": "#/components/schemas/MdastParagraph",
+                  "strong": "#/components/schemas/MdastStrong",
+                  "table": "#/components/schemas/MdastTable",
+                  "tableCell": "#/components/schemas/MdastTableCell",
+                  "tableRow": "#/components/schemas/MdastTableRow",
+                  "text": "#/components/schemas/MdastText",
+                  "thematicBreak": "#/components/schemas/MdastThematicBreak"
                 },
                 "propertyName": "type"
               },
               "oneOf": [
                 {
-                  "$ref": "#/components/schemas/Paragraph"
+                  "$ref": "#/components/schemas/MdastParagraph"
                 },
                 {
-                  "$ref": "#/components/schemas/Heading"
+                  "$ref": "#/components/schemas/MdastHeading"
                 },
                 {
-                  "$ref": "#/components/schemas/ThematicBreak"
+                  "$ref": "#/components/schemas/MdastThematicBreak"
                 },
                 {
-                  "$ref": "#/components/schemas/Blockquote"
+                  "$ref": "#/components/schemas/MdastBlockquote"
                 },
                 {
-                  "$ref": "#/components/schemas/List"
+                  "$ref": "#/components/schemas/MdastList"
                 },
                 {
-                  "$ref": "#/components/schemas/ListItem"
+                  "$ref": "#/components/schemas/MdastListItem"
                 },
                 {
-                  "$ref": "#/components/schemas/Code"
+                  "$ref": "#/components/schemas/MdastCode"
                 },
                 {
-                  "$ref": "#/components/schemas/HTML"
+                  "$ref": "#/components/schemas/MdastHTML"
                 },
                 {
-                  "$ref": "#/components/schemas/Text"
+                  "$ref": "#/components/schemas/MdastText"
                 },
                 {
-                  "$ref": "#/components/schemas/Emphasis"
+                  "$ref": "#/components/schemas/MdastEmphasis"
                 },
                 {
-                  "$ref": "#/components/schemas/Strong"
+                  "$ref": "#/components/schemas/MdastStrong"
                 },
                 {
-                  "$ref": "#/components/schemas/Delete"
+                  "$ref": "#/components/schemas/MdastDelete"
                 },
                 {
-                  "$ref": "#/components/schemas/InlineCode"
+                  "$ref": "#/components/schemas/MdastInlineCode"
                 },
                 {
-                  "$ref": "#/components/schemas/Break"
+                  "$ref": "#/components/schemas/MdastBreak"
                 },
                 {
-                  "$ref": "#/components/schemas/Link"
+                  "$ref": "#/components/schemas/MdastLink"
                 },
                 {
-                  "$ref": "#/components/schemas/Image"
+                  "$ref": "#/components/schemas/MdastImage"
                 },
                 {
-                  "$ref": "#/components/schemas/LinkReference"
+                  "$ref": "#/components/schemas/MdastLinkReference"
                 },
                 {
-                  "$ref": "#/components/schemas/ImageReference"
+                  "$ref": "#/components/schemas/MdastImageReference"
                 },
                 {
-                  "$ref": "#/components/schemas/Definition"
+                  "$ref": "#/components/schemas/MdastDefinition"
                 },
                 {
-                  "$ref": "#/components/schemas/FootnoteReference"
+                  "$ref": "#/components/schemas/MdastFootnoteReference"
                 },
                 {
-                  "$ref": "#/components/schemas/FootnoteDefinition"
+                  "$ref": "#/components/schemas/MdastFootnoteDefinition"
                 },
                 {
-                  "$ref": "#/components/schemas/Table"
+                  "$ref": "#/components/schemas/MdastTable"
                 },
                 {
-                  "$ref": "#/components/schemas/TableRow"
+                  "$ref": "#/components/schemas/MdastTableRow"
                 },
                 {
-                  "$ref": "#/components/schemas/TableCell"
+                  "$ref": "#/components/schemas/MdastTableCell"
                 }
               ]
             },
@@ -5562,6 +5691,770 @@
           "type",
           "children",
           "spread"
+        ]
+      },
+      "MdastParagraph": {
+        "properties": {
+          "children": {
+            "items": {
+              "discriminator": {
+                "mapping": {
+                  "blockquote": "#/components/schemas/MdastBlockquote",
+                  "break": "#/components/schemas/MdastBreak",
+                  "code": "#/components/schemas/MdastCode",
+                  "definition": "#/components/schemas/MdastDefinition",
+                  "delete": "#/components/schemas/MdastDelete",
+                  "emphasis": "#/components/schemas/MdastEmphasis",
+                  "footnoteDefinition": "#/components/schemas/MdastFootnoteDefinition",
+                  "footnoteReference": "#/components/schemas/MdastFootnoteReference",
+                  "heading": "#/components/schemas/MdastHeading",
+                  "html": "#/components/schemas/MdastHTML",
+                  "image": "#/components/schemas/MdastImage",
+                  "imageReference": "#/components/schemas/MdastImageReference",
+                  "inlineCode": "#/components/schemas/MdastInlineCode",
+                  "link": "#/components/schemas/MdastLink",
+                  "linkReference": "#/components/schemas/MdastLinkReference",
+                  "list": "#/components/schemas/MdastList",
+                  "listItem": "#/components/schemas/MdastListItem",
+                  "paragraph": "#/components/schemas/MdastParagraph",
+                  "strong": "#/components/schemas/MdastStrong",
+                  "table": "#/components/schemas/MdastTable",
+                  "tableCell": "#/components/schemas/MdastTableCell",
+                  "tableRow": "#/components/schemas/MdastTableRow",
+                  "text": "#/components/schemas/MdastText",
+                  "thematicBreak": "#/components/schemas/MdastThematicBreak"
+                },
+                "propertyName": "type"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/MdastParagraph"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastHeading"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastThematicBreak"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastBlockquote"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastList"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastListItem"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastCode"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastHTML"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastText"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastEmphasis"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastStrong"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastDelete"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastInlineCode"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastBreak"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastLink"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastImage"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastLinkReference"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastImageReference"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastDefinition"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastFootnoteReference"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastFootnoteDefinition"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastTable"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastTableRow"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastTableCell"
+                }
+              ]
+            },
+            "type": "array"
+          },
+          "type": {
+            "const": "paragraph",
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "children"
+        ]
+      },
+      "MdastRoot": {
+        "properties": {
+          "children": {
+            "items": {
+              "discriminator": {
+                "mapping": {
+                  "blockquote": "#/components/schemas/MdastBlockquote",
+                  "break": "#/components/schemas/MdastBreak",
+                  "code": "#/components/schemas/MdastCode",
+                  "definition": "#/components/schemas/MdastDefinition",
+                  "delete": "#/components/schemas/MdastDelete",
+                  "emphasis": "#/components/schemas/MdastEmphasis",
+                  "footnoteDefinition": "#/components/schemas/MdastFootnoteDefinition",
+                  "footnoteReference": "#/components/schemas/MdastFootnoteReference",
+                  "heading": "#/components/schemas/MdastHeading",
+                  "html": "#/components/schemas/MdastHTML",
+                  "image": "#/components/schemas/MdastImage",
+                  "imageReference": "#/components/schemas/MdastImageReference",
+                  "inlineCode": "#/components/schemas/MdastInlineCode",
+                  "link": "#/components/schemas/MdastLink",
+                  "linkReference": "#/components/schemas/MdastLinkReference",
+                  "list": "#/components/schemas/MdastList",
+                  "listItem": "#/components/schemas/MdastListItem",
+                  "paragraph": "#/components/schemas/MdastParagraph",
+                  "strong": "#/components/schemas/MdastStrong",
+                  "table": "#/components/schemas/MdastTable",
+                  "tableCell": "#/components/schemas/MdastTableCell",
+                  "tableRow": "#/components/schemas/MdastTableRow",
+                  "text": "#/components/schemas/MdastText",
+                  "thematicBreak": "#/components/schemas/MdastThematicBreak"
+                },
+                "propertyName": "type"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/MdastParagraph"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastHeading"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastThematicBreak"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastBlockquote"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastList"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastListItem"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastCode"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastHTML"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastText"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastEmphasis"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastStrong"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastDelete"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastInlineCode"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastBreak"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastLink"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastImage"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastLinkReference"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastImageReference"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastDefinition"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastFootnoteReference"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastFootnoteDefinition"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastTable"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastTableRow"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastTableCell"
+                }
+              ]
+            },
+            "type": "array"
+          },
+          "type": {
+            "const": "root",
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "children"
+        ]
+      },
+      "MdastStrong": {
+        "properties": {
+          "children": {
+            "items": {
+              "discriminator": {
+                "mapping": {
+                  "blockquote": "#/components/schemas/MdastBlockquote",
+                  "break": "#/components/schemas/MdastBreak",
+                  "code": "#/components/schemas/MdastCode",
+                  "definition": "#/components/schemas/MdastDefinition",
+                  "delete": "#/components/schemas/MdastDelete",
+                  "emphasis": "#/components/schemas/MdastEmphasis",
+                  "footnoteDefinition": "#/components/schemas/MdastFootnoteDefinition",
+                  "footnoteReference": "#/components/schemas/MdastFootnoteReference",
+                  "heading": "#/components/schemas/MdastHeading",
+                  "html": "#/components/schemas/MdastHTML",
+                  "image": "#/components/schemas/MdastImage",
+                  "imageReference": "#/components/schemas/MdastImageReference",
+                  "inlineCode": "#/components/schemas/MdastInlineCode",
+                  "link": "#/components/schemas/MdastLink",
+                  "linkReference": "#/components/schemas/MdastLinkReference",
+                  "list": "#/components/schemas/MdastList",
+                  "listItem": "#/components/schemas/MdastListItem",
+                  "paragraph": "#/components/schemas/MdastParagraph",
+                  "strong": "#/components/schemas/MdastStrong",
+                  "table": "#/components/schemas/MdastTable",
+                  "tableCell": "#/components/schemas/MdastTableCell",
+                  "tableRow": "#/components/schemas/MdastTableRow",
+                  "text": "#/components/schemas/MdastText",
+                  "thematicBreak": "#/components/schemas/MdastThematicBreak"
+                },
+                "propertyName": "type"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/MdastParagraph"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastHeading"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastThematicBreak"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastBlockquote"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastList"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastListItem"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastCode"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastHTML"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastText"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastEmphasis"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastStrong"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastDelete"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastInlineCode"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastBreak"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastLink"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastImage"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastLinkReference"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastImageReference"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastDefinition"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastFootnoteReference"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastFootnoteDefinition"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastTable"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastTableRow"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastTableCell"
+                }
+              ]
+            },
+            "type": "array"
+          },
+          "type": {
+            "const": "strong",
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "children"
+        ]
+      },
+      "MdastTable": {
+        "properties": {
+          "align": {
+            "items": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "type": "array"
+          },
+          "children": {
+            "items": {
+              "discriminator": {
+                "mapping": {
+                  "blockquote": "#/components/schemas/MdastBlockquote",
+                  "break": "#/components/schemas/MdastBreak",
+                  "code": "#/components/schemas/MdastCode",
+                  "definition": "#/components/schemas/MdastDefinition",
+                  "delete": "#/components/schemas/MdastDelete",
+                  "emphasis": "#/components/schemas/MdastEmphasis",
+                  "footnoteDefinition": "#/components/schemas/MdastFootnoteDefinition",
+                  "footnoteReference": "#/components/schemas/MdastFootnoteReference",
+                  "heading": "#/components/schemas/MdastHeading",
+                  "html": "#/components/schemas/MdastHTML",
+                  "image": "#/components/schemas/MdastImage",
+                  "imageReference": "#/components/schemas/MdastImageReference",
+                  "inlineCode": "#/components/schemas/MdastInlineCode",
+                  "link": "#/components/schemas/MdastLink",
+                  "linkReference": "#/components/schemas/MdastLinkReference",
+                  "list": "#/components/schemas/MdastList",
+                  "listItem": "#/components/schemas/MdastListItem",
+                  "paragraph": "#/components/schemas/MdastParagraph",
+                  "strong": "#/components/schemas/MdastStrong",
+                  "table": "#/components/schemas/MdastTable",
+                  "tableCell": "#/components/schemas/MdastTableCell",
+                  "tableRow": "#/components/schemas/MdastTableRow",
+                  "text": "#/components/schemas/MdastText",
+                  "thematicBreak": "#/components/schemas/MdastThematicBreak"
+                },
+                "propertyName": "type"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/MdastParagraph"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastHeading"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastThematicBreak"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastBlockquote"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastList"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastListItem"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastCode"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastHTML"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastText"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastEmphasis"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastStrong"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastDelete"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastInlineCode"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastBreak"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastLink"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastImage"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastLinkReference"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastImageReference"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastDefinition"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastFootnoteReference"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastFootnoteDefinition"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastTable"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastTableRow"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastTableCell"
+                }
+              ]
+            },
+            "type": "array"
+          },
+          "type": {
+            "const": "table",
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "align",
+          "children"
+        ]
+      },
+      "MdastTableCell": {
+        "properties": {
+          "children": {
+            "items": {
+              "discriminator": {
+                "mapping": {
+                  "blockquote": "#/components/schemas/MdastBlockquote",
+                  "break": "#/components/schemas/MdastBreak",
+                  "code": "#/components/schemas/MdastCode",
+                  "definition": "#/components/schemas/MdastDefinition",
+                  "delete": "#/components/schemas/MdastDelete",
+                  "emphasis": "#/components/schemas/MdastEmphasis",
+                  "footnoteDefinition": "#/components/schemas/MdastFootnoteDefinition",
+                  "footnoteReference": "#/components/schemas/MdastFootnoteReference",
+                  "heading": "#/components/schemas/MdastHeading",
+                  "html": "#/components/schemas/MdastHTML",
+                  "image": "#/components/schemas/MdastImage",
+                  "imageReference": "#/components/schemas/MdastImageReference",
+                  "inlineCode": "#/components/schemas/MdastInlineCode",
+                  "link": "#/components/schemas/MdastLink",
+                  "linkReference": "#/components/schemas/MdastLinkReference",
+                  "list": "#/components/schemas/MdastList",
+                  "listItem": "#/components/schemas/MdastListItem",
+                  "paragraph": "#/components/schemas/MdastParagraph",
+                  "strong": "#/components/schemas/MdastStrong",
+                  "table": "#/components/schemas/MdastTable",
+                  "tableCell": "#/components/schemas/MdastTableCell",
+                  "tableRow": "#/components/schemas/MdastTableRow",
+                  "text": "#/components/schemas/MdastText",
+                  "thematicBreak": "#/components/schemas/MdastThematicBreak"
+                },
+                "propertyName": "type"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/MdastParagraph"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastHeading"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastThematicBreak"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastBlockquote"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastList"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastListItem"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastCode"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastHTML"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastText"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastEmphasis"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastStrong"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastDelete"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastInlineCode"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastBreak"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastLink"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastImage"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastLinkReference"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastImageReference"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastDefinition"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastFootnoteReference"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastFootnoteDefinition"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastTable"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastTableRow"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastTableCell"
+                }
+              ]
+            },
+            "type": "array"
+          },
+          "type": {
+            "const": "tableCell",
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "children"
+        ]
+      },
+      "MdastTableRow": {
+        "properties": {
+          "children": {
+            "items": {
+              "discriminator": {
+                "mapping": {
+                  "blockquote": "#/components/schemas/MdastBlockquote",
+                  "break": "#/components/schemas/MdastBreak",
+                  "code": "#/components/schemas/MdastCode",
+                  "definition": "#/components/schemas/MdastDefinition",
+                  "delete": "#/components/schemas/MdastDelete",
+                  "emphasis": "#/components/schemas/MdastEmphasis",
+                  "footnoteDefinition": "#/components/schemas/MdastFootnoteDefinition",
+                  "footnoteReference": "#/components/schemas/MdastFootnoteReference",
+                  "heading": "#/components/schemas/MdastHeading",
+                  "html": "#/components/schemas/MdastHTML",
+                  "image": "#/components/schemas/MdastImage",
+                  "imageReference": "#/components/schemas/MdastImageReference",
+                  "inlineCode": "#/components/schemas/MdastInlineCode",
+                  "link": "#/components/schemas/MdastLink",
+                  "linkReference": "#/components/schemas/MdastLinkReference",
+                  "list": "#/components/schemas/MdastList",
+                  "listItem": "#/components/schemas/MdastListItem",
+                  "paragraph": "#/components/schemas/MdastParagraph",
+                  "strong": "#/components/schemas/MdastStrong",
+                  "table": "#/components/schemas/MdastTable",
+                  "tableCell": "#/components/schemas/MdastTableCell",
+                  "tableRow": "#/components/schemas/MdastTableRow",
+                  "text": "#/components/schemas/MdastText",
+                  "thematicBreak": "#/components/schemas/MdastThematicBreak"
+                },
+                "propertyName": "type"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/MdastParagraph"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastHeading"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastThematicBreak"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastBlockquote"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastList"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastListItem"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastCode"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastHTML"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastText"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastEmphasis"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastStrong"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastDelete"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastInlineCode"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastBreak"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastLink"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastImage"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastLinkReference"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastImageReference"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastDefinition"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastFootnoteReference"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastFootnoteDefinition"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastTable"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastTableRow"
+                },
+                {
+                  "$ref": "#/components/schemas/MdastTableCell"
+                }
+              ]
+            },
+            "type": "array"
+          },
+          "type": {
+            "const": "tableRow",
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "children"
+        ]
+      },
+      "MdastText": {
+        "properties": {
+          "type": {
+            "const": "text",
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "value"
+        ]
+      },
+      "MdastThematicBreak": {
+        "properties": {
+          "type": {
+            "const": "thematicBreak",
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type"
         ]
       },
       "MoveAssetRequest": {
@@ -5605,127 +6498,6 @@
         "required": [
           "collection_id",
           "name"
-        ]
-      },
-      "Paragraph": {
-        "properties": {
-          "children": {
-            "items": {
-              "discriminator": {
-                "mapping": {
-                  "blockquote": "#/components/schemas/Blockquote",
-                  "break": "#/components/schemas/Break",
-                  "code": "#/components/schemas/Code",
-                  "definition": "#/components/schemas/Definition",
-                  "delete": "#/components/schemas/Delete",
-                  "emphasis": "#/components/schemas/Emphasis",
-                  "footnoteDefinition": "#/components/schemas/FootnoteDefinition",
-                  "footnoteReference": "#/components/schemas/FootnoteReference",
-                  "heading": "#/components/schemas/Heading",
-                  "html": "#/components/schemas/HTML",
-                  "image": "#/components/schemas/Image",
-                  "imageReference": "#/components/schemas/ImageReference",
-                  "inlineCode": "#/components/schemas/InlineCode",
-                  "link": "#/components/schemas/Link",
-                  "linkReference": "#/components/schemas/LinkReference",
-                  "list": "#/components/schemas/List",
-                  "listItem": "#/components/schemas/ListItem",
-                  "paragraph": "#/components/schemas/Paragraph",
-                  "strong": "#/components/schemas/Strong",
-                  "table": "#/components/schemas/Table",
-                  "tableCell": "#/components/schemas/TableCell",
-                  "tableRow": "#/components/schemas/TableRow",
-                  "text": "#/components/schemas/Text",
-                  "thematicBreak": "#/components/schemas/ThematicBreak"
-                },
-                "propertyName": "type"
-              },
-              "oneOf": [
-                {
-                  "$ref": "#/components/schemas/Paragraph"
-                },
-                {
-                  "$ref": "#/components/schemas/Heading"
-                },
-                {
-                  "$ref": "#/components/schemas/ThematicBreak"
-                },
-                {
-                  "$ref": "#/components/schemas/Blockquote"
-                },
-                {
-                  "$ref": "#/components/schemas/List"
-                },
-                {
-                  "$ref": "#/components/schemas/ListItem"
-                },
-                {
-                  "$ref": "#/components/schemas/Code"
-                },
-                {
-                  "$ref": "#/components/schemas/HTML"
-                },
-                {
-                  "$ref": "#/components/schemas/Text"
-                },
-                {
-                  "$ref": "#/components/schemas/Emphasis"
-                },
-                {
-                  "$ref": "#/components/schemas/Strong"
-                },
-                {
-                  "$ref": "#/components/schemas/Delete"
-                },
-                {
-                  "$ref": "#/components/schemas/InlineCode"
-                },
-                {
-                  "$ref": "#/components/schemas/Break"
-                },
-                {
-                  "$ref": "#/components/schemas/Link"
-                },
-                {
-                  "$ref": "#/components/schemas/Image"
-                },
-                {
-                  "$ref": "#/components/schemas/LinkReference"
-                },
-                {
-                  "$ref": "#/components/schemas/ImageReference"
-                },
-                {
-                  "$ref": "#/components/schemas/Definition"
-                },
-                {
-                  "$ref": "#/components/schemas/FootnoteReference"
-                },
-                {
-                  "$ref": "#/components/schemas/FootnoteDefinition"
-                },
-                {
-                  "$ref": "#/components/schemas/Table"
-                },
-                {
-                  "$ref": "#/components/schemas/TableRow"
-                },
-                {
-                  "$ref": "#/components/schemas/TableCell"
-                }
-              ]
-            },
-            "type": "array"
-          },
-          "type": {
-            "const": "paragraph",
-            "type": "string"
-          }
-        },
-        "type": "object",
-        "required": [
-          "type",
-          "children"
         ]
       },
       "PublishRequest": {
@@ -5772,10 +6544,6 @@
       },
       "PublishedDocumentResponse": {
         "properties": {
-          "body": {
-            "description": "The document body as an mdast tree (format=mdast)",
-            "$ref": "#/components/schemas/Root"
-          },
           "content": {
             "type": "string",
             "description": "Published content as raw markdown (format=markdown)"
@@ -5790,15 +6558,23 @@
             "type": "string",
             "description": "Document ID"
           },
+          "hast": {
+            "description": "The document body as a hast tree (format=hast)",
+            "$ref": "#/components/schemas/HastRoot"
+          },
           "key": {
             "example": "guides/install.md",
             "type": "string",
             "description": "Document key"
           },
+          "mdast": {
+            "description": "The document body as an mdast tree (format=mdast)",
+            "$ref": "#/components/schemas/MdastRoot"
+          },
           "meta": {
             "additionalProperties": true,
             "type": "object",
-            "description": "Frontmatter fields (format=mdast)"
+            "description": "Frontmatter fields (format=mdast or format=hast)"
           },
           "tags": {
             "items": {
@@ -6073,127 +6849,6 @@
           "name"
         ]
       },
-      "Root": {
-        "properties": {
-          "children": {
-            "items": {
-              "discriminator": {
-                "mapping": {
-                  "blockquote": "#/components/schemas/Blockquote",
-                  "break": "#/components/schemas/Break",
-                  "code": "#/components/schemas/Code",
-                  "definition": "#/components/schemas/Definition",
-                  "delete": "#/components/schemas/Delete",
-                  "emphasis": "#/components/schemas/Emphasis",
-                  "footnoteDefinition": "#/components/schemas/FootnoteDefinition",
-                  "footnoteReference": "#/components/schemas/FootnoteReference",
-                  "heading": "#/components/schemas/Heading",
-                  "html": "#/components/schemas/HTML",
-                  "image": "#/components/schemas/Image",
-                  "imageReference": "#/components/schemas/ImageReference",
-                  "inlineCode": "#/components/schemas/InlineCode",
-                  "link": "#/components/schemas/Link",
-                  "linkReference": "#/components/schemas/LinkReference",
-                  "list": "#/components/schemas/List",
-                  "listItem": "#/components/schemas/ListItem",
-                  "paragraph": "#/components/schemas/Paragraph",
-                  "strong": "#/components/schemas/Strong",
-                  "table": "#/components/schemas/Table",
-                  "tableCell": "#/components/schemas/TableCell",
-                  "tableRow": "#/components/schemas/TableRow",
-                  "text": "#/components/schemas/Text",
-                  "thematicBreak": "#/components/schemas/ThematicBreak"
-                },
-                "propertyName": "type"
-              },
-              "oneOf": [
-                {
-                  "$ref": "#/components/schemas/Paragraph"
-                },
-                {
-                  "$ref": "#/components/schemas/Heading"
-                },
-                {
-                  "$ref": "#/components/schemas/ThematicBreak"
-                },
-                {
-                  "$ref": "#/components/schemas/Blockquote"
-                },
-                {
-                  "$ref": "#/components/schemas/List"
-                },
-                {
-                  "$ref": "#/components/schemas/ListItem"
-                },
-                {
-                  "$ref": "#/components/schemas/Code"
-                },
-                {
-                  "$ref": "#/components/schemas/HTML"
-                },
-                {
-                  "$ref": "#/components/schemas/Text"
-                },
-                {
-                  "$ref": "#/components/schemas/Emphasis"
-                },
-                {
-                  "$ref": "#/components/schemas/Strong"
-                },
-                {
-                  "$ref": "#/components/schemas/Delete"
-                },
-                {
-                  "$ref": "#/components/schemas/InlineCode"
-                },
-                {
-                  "$ref": "#/components/schemas/Break"
-                },
-                {
-                  "$ref": "#/components/schemas/Link"
-                },
-                {
-                  "$ref": "#/components/schemas/Image"
-                },
-                {
-                  "$ref": "#/components/schemas/LinkReference"
-                },
-                {
-                  "$ref": "#/components/schemas/ImageReference"
-                },
-                {
-                  "$ref": "#/components/schemas/Definition"
-                },
-                {
-                  "$ref": "#/components/schemas/FootnoteReference"
-                },
-                {
-                  "$ref": "#/components/schemas/FootnoteDefinition"
-                },
-                {
-                  "$ref": "#/components/schemas/Table"
-                },
-                {
-                  "$ref": "#/components/schemas/TableRow"
-                },
-                {
-                  "$ref": "#/components/schemas/TableCell"
-                }
-              ]
-            },
-            "type": "array"
-          },
-          "type": {
-            "const": "root",
-            "type": "string"
-          }
-        },
-        "type": "object",
-        "required": [
-          "type",
-          "children"
-        ]
-      },
       "SaveVersionRequest": {
         "properties": {
           "base_version": {
@@ -6209,528 +6864,6 @@
         "required": [
           "base_version",
           "content"
-        ]
-      },
-      "Strong": {
-        "properties": {
-          "children": {
-            "items": {
-              "discriminator": {
-                "mapping": {
-                  "blockquote": "#/components/schemas/Blockquote",
-                  "break": "#/components/schemas/Break",
-                  "code": "#/components/schemas/Code",
-                  "definition": "#/components/schemas/Definition",
-                  "delete": "#/components/schemas/Delete",
-                  "emphasis": "#/components/schemas/Emphasis",
-                  "footnoteDefinition": "#/components/schemas/FootnoteDefinition",
-                  "footnoteReference": "#/components/schemas/FootnoteReference",
-                  "heading": "#/components/schemas/Heading",
-                  "html": "#/components/schemas/HTML",
-                  "image": "#/components/schemas/Image",
-                  "imageReference": "#/components/schemas/ImageReference",
-                  "inlineCode": "#/components/schemas/InlineCode",
-                  "link": "#/components/schemas/Link",
-                  "linkReference": "#/components/schemas/LinkReference",
-                  "list": "#/components/schemas/List",
-                  "listItem": "#/components/schemas/ListItem",
-                  "paragraph": "#/components/schemas/Paragraph",
-                  "strong": "#/components/schemas/Strong",
-                  "table": "#/components/schemas/Table",
-                  "tableCell": "#/components/schemas/TableCell",
-                  "tableRow": "#/components/schemas/TableRow",
-                  "text": "#/components/schemas/Text",
-                  "thematicBreak": "#/components/schemas/ThematicBreak"
-                },
-                "propertyName": "type"
-              },
-              "oneOf": [
-                {
-                  "$ref": "#/components/schemas/Paragraph"
-                },
-                {
-                  "$ref": "#/components/schemas/Heading"
-                },
-                {
-                  "$ref": "#/components/schemas/ThematicBreak"
-                },
-                {
-                  "$ref": "#/components/schemas/Blockquote"
-                },
-                {
-                  "$ref": "#/components/schemas/List"
-                },
-                {
-                  "$ref": "#/components/schemas/ListItem"
-                },
-                {
-                  "$ref": "#/components/schemas/Code"
-                },
-                {
-                  "$ref": "#/components/schemas/HTML"
-                },
-                {
-                  "$ref": "#/components/schemas/Text"
-                },
-                {
-                  "$ref": "#/components/schemas/Emphasis"
-                },
-                {
-                  "$ref": "#/components/schemas/Strong"
-                },
-                {
-                  "$ref": "#/components/schemas/Delete"
-                },
-                {
-                  "$ref": "#/components/schemas/InlineCode"
-                },
-                {
-                  "$ref": "#/components/schemas/Break"
-                },
-                {
-                  "$ref": "#/components/schemas/Link"
-                },
-                {
-                  "$ref": "#/components/schemas/Image"
-                },
-                {
-                  "$ref": "#/components/schemas/LinkReference"
-                },
-                {
-                  "$ref": "#/components/schemas/ImageReference"
-                },
-                {
-                  "$ref": "#/components/schemas/Definition"
-                },
-                {
-                  "$ref": "#/components/schemas/FootnoteReference"
-                },
-                {
-                  "$ref": "#/components/schemas/FootnoteDefinition"
-                },
-                {
-                  "$ref": "#/components/schemas/Table"
-                },
-                {
-                  "$ref": "#/components/schemas/TableRow"
-                },
-                {
-                  "$ref": "#/components/schemas/TableCell"
-                }
-              ]
-            },
-            "type": "array"
-          },
-          "type": {
-            "const": "strong",
-            "type": "string"
-          }
-        },
-        "type": "object",
-        "required": [
-          "type",
-          "children"
-        ]
-      },
-      "Table": {
-        "properties": {
-          "align": {
-            "items": {
-              "type": [
-                "string",
-                "null"
-              ]
-            },
-            "type": "array"
-          },
-          "children": {
-            "items": {
-              "discriminator": {
-                "mapping": {
-                  "blockquote": "#/components/schemas/Blockquote",
-                  "break": "#/components/schemas/Break",
-                  "code": "#/components/schemas/Code",
-                  "definition": "#/components/schemas/Definition",
-                  "delete": "#/components/schemas/Delete",
-                  "emphasis": "#/components/schemas/Emphasis",
-                  "footnoteDefinition": "#/components/schemas/FootnoteDefinition",
-                  "footnoteReference": "#/components/schemas/FootnoteReference",
-                  "heading": "#/components/schemas/Heading",
-                  "html": "#/components/schemas/HTML",
-                  "image": "#/components/schemas/Image",
-                  "imageReference": "#/components/schemas/ImageReference",
-                  "inlineCode": "#/components/schemas/InlineCode",
-                  "link": "#/components/schemas/Link",
-                  "linkReference": "#/components/schemas/LinkReference",
-                  "list": "#/components/schemas/List",
-                  "listItem": "#/components/schemas/ListItem",
-                  "paragraph": "#/components/schemas/Paragraph",
-                  "strong": "#/components/schemas/Strong",
-                  "table": "#/components/schemas/Table",
-                  "tableCell": "#/components/schemas/TableCell",
-                  "tableRow": "#/components/schemas/TableRow",
-                  "text": "#/components/schemas/Text",
-                  "thematicBreak": "#/components/schemas/ThematicBreak"
-                },
-                "propertyName": "type"
-              },
-              "oneOf": [
-                {
-                  "$ref": "#/components/schemas/Paragraph"
-                },
-                {
-                  "$ref": "#/components/schemas/Heading"
-                },
-                {
-                  "$ref": "#/components/schemas/ThematicBreak"
-                },
-                {
-                  "$ref": "#/components/schemas/Blockquote"
-                },
-                {
-                  "$ref": "#/components/schemas/List"
-                },
-                {
-                  "$ref": "#/components/schemas/ListItem"
-                },
-                {
-                  "$ref": "#/components/schemas/Code"
-                },
-                {
-                  "$ref": "#/components/schemas/HTML"
-                },
-                {
-                  "$ref": "#/components/schemas/Text"
-                },
-                {
-                  "$ref": "#/components/schemas/Emphasis"
-                },
-                {
-                  "$ref": "#/components/schemas/Strong"
-                },
-                {
-                  "$ref": "#/components/schemas/Delete"
-                },
-                {
-                  "$ref": "#/components/schemas/InlineCode"
-                },
-                {
-                  "$ref": "#/components/schemas/Break"
-                },
-                {
-                  "$ref": "#/components/schemas/Link"
-                },
-                {
-                  "$ref": "#/components/schemas/Image"
-                },
-                {
-                  "$ref": "#/components/schemas/LinkReference"
-                },
-                {
-                  "$ref": "#/components/schemas/ImageReference"
-                },
-                {
-                  "$ref": "#/components/schemas/Definition"
-                },
-                {
-                  "$ref": "#/components/schemas/FootnoteReference"
-                },
-                {
-                  "$ref": "#/components/schemas/FootnoteDefinition"
-                },
-                {
-                  "$ref": "#/components/schemas/Table"
-                },
-                {
-                  "$ref": "#/components/schemas/TableRow"
-                },
-                {
-                  "$ref": "#/components/schemas/TableCell"
-                }
-              ]
-            },
-            "type": "array"
-          },
-          "type": {
-            "const": "table",
-            "type": "string"
-          }
-        },
-        "type": "object",
-        "required": [
-          "type",
-          "align",
-          "children"
-        ]
-      },
-      "TableCell": {
-        "properties": {
-          "children": {
-            "items": {
-              "discriminator": {
-                "mapping": {
-                  "blockquote": "#/components/schemas/Blockquote",
-                  "break": "#/components/schemas/Break",
-                  "code": "#/components/schemas/Code",
-                  "definition": "#/components/schemas/Definition",
-                  "delete": "#/components/schemas/Delete",
-                  "emphasis": "#/components/schemas/Emphasis",
-                  "footnoteDefinition": "#/components/schemas/FootnoteDefinition",
-                  "footnoteReference": "#/components/schemas/FootnoteReference",
-                  "heading": "#/components/schemas/Heading",
-                  "html": "#/components/schemas/HTML",
-                  "image": "#/components/schemas/Image",
-                  "imageReference": "#/components/schemas/ImageReference",
-                  "inlineCode": "#/components/schemas/InlineCode",
-                  "link": "#/components/schemas/Link",
-                  "linkReference": "#/components/schemas/LinkReference",
-                  "list": "#/components/schemas/List",
-                  "listItem": "#/components/schemas/ListItem",
-                  "paragraph": "#/components/schemas/Paragraph",
-                  "strong": "#/components/schemas/Strong",
-                  "table": "#/components/schemas/Table",
-                  "tableCell": "#/components/schemas/TableCell",
-                  "tableRow": "#/components/schemas/TableRow",
-                  "text": "#/components/schemas/Text",
-                  "thematicBreak": "#/components/schemas/ThematicBreak"
-                },
-                "propertyName": "type"
-              },
-              "oneOf": [
-                {
-                  "$ref": "#/components/schemas/Paragraph"
-                },
-                {
-                  "$ref": "#/components/schemas/Heading"
-                },
-                {
-                  "$ref": "#/components/schemas/ThematicBreak"
-                },
-                {
-                  "$ref": "#/components/schemas/Blockquote"
-                },
-                {
-                  "$ref": "#/components/schemas/List"
-                },
-                {
-                  "$ref": "#/components/schemas/ListItem"
-                },
-                {
-                  "$ref": "#/components/schemas/Code"
-                },
-                {
-                  "$ref": "#/components/schemas/HTML"
-                },
-                {
-                  "$ref": "#/components/schemas/Text"
-                },
-                {
-                  "$ref": "#/components/schemas/Emphasis"
-                },
-                {
-                  "$ref": "#/components/schemas/Strong"
-                },
-                {
-                  "$ref": "#/components/schemas/Delete"
-                },
-                {
-                  "$ref": "#/components/schemas/InlineCode"
-                },
-                {
-                  "$ref": "#/components/schemas/Break"
-                },
-                {
-                  "$ref": "#/components/schemas/Link"
-                },
-                {
-                  "$ref": "#/components/schemas/Image"
-                },
-                {
-                  "$ref": "#/components/schemas/LinkReference"
-                },
-                {
-                  "$ref": "#/components/schemas/ImageReference"
-                },
-                {
-                  "$ref": "#/components/schemas/Definition"
-                },
-                {
-                  "$ref": "#/components/schemas/FootnoteReference"
-                },
-                {
-                  "$ref": "#/components/schemas/FootnoteDefinition"
-                },
-                {
-                  "$ref": "#/components/schemas/Table"
-                },
-                {
-                  "$ref": "#/components/schemas/TableRow"
-                },
-                {
-                  "$ref": "#/components/schemas/TableCell"
-                }
-              ]
-            },
-            "type": "array"
-          },
-          "type": {
-            "const": "tableCell",
-            "type": "string"
-          }
-        },
-        "type": "object",
-        "required": [
-          "type",
-          "children"
-        ]
-      },
-      "TableRow": {
-        "properties": {
-          "children": {
-            "items": {
-              "discriminator": {
-                "mapping": {
-                  "blockquote": "#/components/schemas/Blockquote",
-                  "break": "#/components/schemas/Break",
-                  "code": "#/components/schemas/Code",
-                  "definition": "#/components/schemas/Definition",
-                  "delete": "#/components/schemas/Delete",
-                  "emphasis": "#/components/schemas/Emphasis",
-                  "footnoteDefinition": "#/components/schemas/FootnoteDefinition",
-                  "footnoteReference": "#/components/schemas/FootnoteReference",
-                  "heading": "#/components/schemas/Heading",
-                  "html": "#/components/schemas/HTML",
-                  "image": "#/components/schemas/Image",
-                  "imageReference": "#/components/schemas/ImageReference",
-                  "inlineCode": "#/components/schemas/InlineCode",
-                  "link": "#/components/schemas/Link",
-                  "linkReference": "#/components/schemas/LinkReference",
-                  "list": "#/components/schemas/List",
-                  "listItem": "#/components/schemas/ListItem",
-                  "paragraph": "#/components/schemas/Paragraph",
-                  "strong": "#/components/schemas/Strong",
-                  "table": "#/components/schemas/Table",
-                  "tableCell": "#/components/schemas/TableCell",
-                  "tableRow": "#/components/schemas/TableRow",
-                  "text": "#/components/schemas/Text",
-                  "thematicBreak": "#/components/schemas/ThematicBreak"
-                },
-                "propertyName": "type"
-              },
-              "oneOf": [
-                {
-                  "$ref": "#/components/schemas/Paragraph"
-                },
-                {
-                  "$ref": "#/components/schemas/Heading"
-                },
-                {
-                  "$ref": "#/components/schemas/ThematicBreak"
-                },
-                {
-                  "$ref": "#/components/schemas/Blockquote"
-                },
-                {
-                  "$ref": "#/components/schemas/List"
-                },
-                {
-                  "$ref": "#/components/schemas/ListItem"
-                },
-                {
-                  "$ref": "#/components/schemas/Code"
-                },
-                {
-                  "$ref": "#/components/schemas/HTML"
-                },
-                {
-                  "$ref": "#/components/schemas/Text"
-                },
-                {
-                  "$ref": "#/components/schemas/Emphasis"
-                },
-                {
-                  "$ref": "#/components/schemas/Strong"
-                },
-                {
-                  "$ref": "#/components/schemas/Delete"
-                },
-                {
-                  "$ref": "#/components/schemas/InlineCode"
-                },
-                {
-                  "$ref": "#/components/schemas/Break"
-                },
-                {
-                  "$ref": "#/components/schemas/Link"
-                },
-                {
-                  "$ref": "#/components/schemas/Image"
-                },
-                {
-                  "$ref": "#/components/schemas/LinkReference"
-                },
-                {
-                  "$ref": "#/components/schemas/ImageReference"
-                },
-                {
-                  "$ref": "#/components/schemas/Definition"
-                },
-                {
-                  "$ref": "#/components/schemas/FootnoteReference"
-                },
-                {
-                  "$ref": "#/components/schemas/FootnoteDefinition"
-                },
-                {
-                  "$ref": "#/components/schemas/Table"
-                },
-                {
-                  "$ref": "#/components/schemas/TableRow"
-                },
-                {
-                  "$ref": "#/components/schemas/TableCell"
-                }
-              ]
-            },
-            "type": "array"
-          },
-          "type": {
-            "const": "tableRow",
-            "type": "string"
-          }
-        },
-        "type": "object",
-        "required": [
-          "type",
-          "children"
-        ]
-      },
-      "Text": {
-        "properties": {
-          "type": {
-            "const": "text",
-            "type": "string"
-          },
-          "value": {
-            "type": "string"
-          }
-        },
-        "type": "object",
-        "required": [
-          "type",
-          "value"
-        ]
-      },
-      "ThematicBreak": {
-        "properties": {
-          "type": {
-            "const": "thematicBreak",
-            "type": "string"
-          }
-        },
-        "type": "object",
-        "required": [
-          "type"
         ]
       },
       "ValidationFieldError": {

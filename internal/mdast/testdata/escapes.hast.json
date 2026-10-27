@@ -1,0 +1,31 @@
+{
+  "children": [
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "Backslash escapes: *not emphasis* and `not code` and a literal \\ backslash."
+        }
+      ],
+      "properties": {},
+      "tagName": "p",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "Character entities: & and © and © and ❤."
+        }
+      ],
+      "properties": {},
+      "tagName": "p",
+      "type": "element"
+    }
+  ],
+  "type": "root"
+}

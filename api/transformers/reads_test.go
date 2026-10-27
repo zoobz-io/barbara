@@ -34,8 +34,8 @@ func TestIndexToResponse_DropsInternalFields(t *testing.T) {
 	if resp.VersionNumber != 3 || len(resp.Tags) != 2 {
 		t.Errorf("metadata not carried: %+v", resp)
 	}
-	if resp.Body != nil || resp.Meta != nil {
-		t.Errorf("markdown format must not set body/meta: %+v", resp)
+	if resp.Mdast != nil || resp.Hast != nil || resp.Meta != nil {
+		t.Errorf("markdown format must not set mdast/hast/meta: %+v", resp)
 	}
 	// The wire type structurally has no tenant_id/version_id field — the marshaled
 	// response can never leak them. Clone must be independent of the source tags.
@@ -61,20 +61,53 @@ func TestIndexToResponse_Mdast(t *testing.T) {
 	if resp.Content != "" {
 		t.Errorf("mdast format must omit content, got %q", resp.Content)
 	}
-	if resp.Body == nil {
-		t.Fatal("mdast format must set body")
+	if resp.Mdast == nil {
+		t.Fatal("mdast format must set mdast tree")
 	}
 	if resp.Meta["title"] != "Install" {
 		t.Errorf("frontmatter not returned: meta = %v", resp.Meta)
 	}
-	body, err := json.Marshal(resp.Body)
+	body, err := json.Marshal(resp.Mdast)
 	if err != nil {
 		t.Fatal(err)
 	}
 	// URLs come back exactly as authored; nothing resolves them here.
-	const want = `"url":"diagram.png"`
-	if !strings.Contains(string(body), want) {
-		t.Errorf("image URL not returned as authored; body = %s", body)
+	if want := `"url":"diagram.png"`; !strings.Contains(string(body), want) {
+		t.Errorf("image URL not returned as authored; mdast = %s", body)
+	}
+}
+
+func TestIndexToResponse_Hast(t *testing.T) {
+	idx := &models.DocumentIndex{
+		DocumentID: "d1",
+		Key:        "guides/install.md",
+		ParentPath: "guides",
+		Content:    "---\ntitle: Install\n---\n\n# Install\n\n![diagram](diagram.png)\n",
+	}
+
+	resp, err := IndexToResponse(idx, FormatHast)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if resp.Content != "" {
+		t.Errorf("hast format must omit content, got %q", resp.Content)
+	}
+	if resp.Mdast != nil {
+		t.Errorf("hast format must not set the mdast tree: %+v", resp.Mdast)
+	}
+	if resp.Hast == nil {
+		t.Fatal("hast format must set hast tree")
+	}
+	if resp.Meta["title"] != "Install" {
+		t.Errorf("frontmatter not returned: meta = %v", resp.Meta)
+	}
+	body, err := json.Marshal(resp.Hast)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// The image src comes back exactly as authored; nothing resolves it here.
+	if want := `"src":"diagram.png"`; !strings.Contains(string(body), want) {
+		t.Errorf("hast image src not returned as authored; hast = %s", body)
 	}
 }
 

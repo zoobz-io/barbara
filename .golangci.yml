@@ -41,6 +41,14 @@ linters:
           - goconst
           - dupl
           - govet
+      # The mdast and hast node types carry a package-name prefix on purpose:
+      # rocco names an OpenAPI schema after the bare Go type name, and both trees
+      # have a root and a text node, so the prefix keeps their schemas distinct.
+      # The resulting stutter (mdast.MdastRoot, hast.HastRoot) is intended.
+      - path: internal/(mdast|hast)/node\.go
+        linters:
+          - revive
+        text: stutters
 
   settings:
     errcheck:

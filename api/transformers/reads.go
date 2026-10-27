@@ -7,28 +7,36 @@ package transformers
 import (
 	"github.com/zoobz-io/barbara/api/wire"
 	"github.com/zoobz-io/barbara/database/models"
+	"github.com/zoobz-io/barbara/internal/hast"
 	"github.com/zoobz-io/barbara/internal/mdast"
 )
 
 // Response formats for the published document lookup.
 const (
-	// FormatMarkdown returns the raw markdown in Content. It is the default.
+	// FormatMarkdown returns the raw markdown in Content.
 	FormatMarkdown = "markdown"
-	// FormatMdast returns the parsed tree in Body and frontmatter in Meta.
+	// FormatMdast returns the parsed mdast tree in Mdast and frontmatter in Meta.
 	FormatMdast = "mdast"
+	// FormatHast returns the HTML-shaped hast tree in Hast and frontmatter in
+	// Meta. It is the default: a site renders a hast tree with no markdown
+	// tooling (see #113).
+	FormatHast = "hast"
 )
 
 // IndexToResponse maps a document projection to its site-facing response in the
-// requested format. For FormatMdast it parses the content into an mdast tree and
-// returns the tree and the frontmatter; for any other format it returns the raw
-// markdown. URLs in the tree are returned exactly as authored — resolving them
-// to fetchable locations is the site's job until the published URL layout is
-// settled.
+// requested format. FormatMdast and FormatHast parse the content into a tree and
+// return it with the frontmatter; FormatMarkdown returns the raw markdown. URLs
+// in a tree are returned exactly as authored — resolving them to fetchable
+// locations is the site's job until the published URL layout is settled (#95).
 func IndexToResponse(d *models.DocumentIndex, format string) (wire.PublishedDocumentResponse, error) {
-	if format == FormatMdast {
+	switch format {
+	case FormatMdast:
 		return mdastResponse(d)
+	case FormatHast:
+		return hastResponse(d)
+	default:
+		return markdownResponse(d), nil
 	}
-	return markdownResponse(d), nil
 }
 
 // markdownResponse builds the raw-markdown response.
@@ -54,7 +62,26 @@ func mdastResponse(d *models.DocumentIndex) (wire.PublishedDocumentResponse, err
 	return wire.PublishedDocumentResponse{
 		DocumentID:    d.DocumentID,
 		Key:           d.Key,
-		Body:          root,
+		Mdast:         root,
+		Meta:          meta,
+		Tags:          d.Tags,
+		VersionNumber: d.VersionNumber,
+		CreatedAt:     d.CreatedAt,
+		UpdatedAt:     d.UpdatedAt,
+	}, nil
+}
+
+// hastResponse builds the hast response: the mdast tree converted to a hast
+// tree, and the frontmatter map.
+func hastResponse(d *models.DocumentIndex) (wire.PublishedDocumentResponse, error) {
+	root, meta, err := mdast.Parse([]byte(d.Content))
+	if err != nil {
+		return wire.PublishedDocumentResponse{}, err
+	}
+	return wire.PublishedDocumentResponse{
+		DocumentID:    d.DocumentID,
+		Key:           d.Key,
+		Hast:          hast.FromMdast(root),
 		Meta:          meta,
 		Tags:          d.Tags,
 		VersionNumber: d.VersionNumber,

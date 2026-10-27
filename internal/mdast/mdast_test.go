@@ -6,6 +6,8 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/zoobz-io/barbara/internal/treejson"
 )
 
 // TestFixtures parses every .md fixture and compares its mdast JSON, byte for
@@ -34,12 +36,12 @@ func TestFixtures(t *testing.T) {
 			if err != nil {
 				t.Fatalf("Parse: %v", err)
 			}
-			got, err := canonicalJSON(root)
+			got, err := treejson.Canonical(root)
 			if err != nil {
 				t.Fatalf("marshal: %v", err)
 			}
 			if !bytes.Equal(got, want) {
-				t.Errorf("mdast JSON differs from golden:\n%s", firstDiff(want, got))
+				t.Errorf("mdast JSON differs from golden:\n%s", treejson.FirstDiff(want, got))
 			}
 			checkMeta(t, name, meta)
 		})
@@ -67,89 +69,17 @@ func checkMeta(t *testing.T, name string, meta map[string]any) {
 	if err := json.Unmarshal(raw, &want); err != nil {
 		t.Fatalf("meta golden: %v", err)
 	}
-	gotJSON, err := canonicalJSON(meta)
+	gotJSON, err := treejson.Canonical(meta)
 	if err != nil {
 		t.Fatalf("marshal meta: %v", err)
 	}
-	wantJSON, err := encodeIndent(want)
+	wantJSON, err := treejson.Indent(want)
 	if err != nil {
 		t.Fatalf("marshal meta golden: %v", err)
 	}
 	if !bytes.Equal(gotJSON, wantJSON) {
-		t.Errorf("metadata differs from golden:\n%s", firstDiff(wantJSON, gotJSON))
+		t.Errorf("metadata differs from golden:\n%s", treejson.FirstDiff(wantJSON, gotJSON))
 	}
-}
-
-// canonicalJSON marshals a tree the way the fixtures are written: sorted keys, a
-// two-space indent, no HTML escaping of <, >, and &, and a trailing newline.
-// The struct output is round-tripped through a generic value so map-key sorting
-// applies at every level.
-func canonicalJSON(v any) ([]byte, error) {
-	raw, err := encode(v)
-	if err != nil {
-		return nil, err
-	}
-	var generic any
-	if err := json.Unmarshal(raw, &generic); err != nil {
-		return nil, err
-	}
-	return encodeIndent(generic)
-}
-
-func encode(v any) ([]byte, error) {
-	var buf bytes.Buffer
-	enc := json.NewEncoder(&buf)
-	enc.SetEscapeHTML(false)
-	if err := enc.Encode(v); err != nil {
-		return nil, err
-	}
-	return buf.Bytes(), nil
-}
-
-func encodeIndent(v any) ([]byte, error) {
-	var buf bytes.Buffer
-	enc := json.NewEncoder(&buf)
-	enc.SetEscapeHTML(false)
-	enc.SetIndent("", "  ")
-	if err := enc.Encode(v); err != nil {
-		return nil, err
-	}
-	return buf.Bytes(), nil
-}
-
-// firstDiff returns a short excerpt of both sides around the first byte that
-// differs, so a failure points at where the trees diverge.
-func firstDiff(want, got []byte) string {
-	i := 0
-	for i < len(want) && i < len(got) && want[i] == got[i] {
-		i++
-	}
-	start := i - 60
-	if start < 0 {
-		start = 0
-	}
-	win := func(b []byte) string {
-		end := i + 60
-		if end > len(b) {
-			end = len(b)
-		}
-		return string(b[start:end])
-	}
-	return "at byte " + itoa(i) + "\n--- want ---\n" + win(want) + "\n--- got ---\n" + win(got)
-}
-
-func itoa(n int) string {
-	if n == 0 {
-		return "0"
-	}
-	var b [20]byte
-	i := len(b)
-	for n > 0 {
-		i--
-		b[i] = byte('0' + n%10)
-		n /= 10
-	}
-	return string(b[i:])
 }
 
 // TestListItemSpread locks the spread rule for a case the golden fixtures do
@@ -162,15 +92,15 @@ func TestListItemSpread(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	list, ok := root.Children[0].(*List)
+	list, ok := root.Children[0].(*MdastList)
 	if !ok {
-		t.Fatalf("first child is %T, want *List", root.Children[0])
+		t.Fatalf("first child is %T, want *MdastList", root.Children[0])
 	}
 	spreads := make([]bool, len(list.Children))
 	for i, c := range list.Children {
-		li, ok := c.(*ListItem)
+		li, ok := c.(*MdastListItem)
 		if !ok {
-			t.Fatalf("list child %d is %T, want *ListItem", i, c)
+			t.Fatalf("list child %d is %T, want *MdastListItem", i, c)
 		}
 		spreads[i] = li.Spread
 	}

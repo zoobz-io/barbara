@@ -1,0 +1,158 @@
+{
+  "children": [
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "Fenced code with a language:"
+        }
+      ],
+      "properties": {},
+      "tagName": "p",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "func main() {\n\tprintln(\"hello\")\n}\n"
+            }
+          ],
+          "properties": {
+            "className": [
+              "language-go"
+            ]
+          },
+          "tagName": "code",
+          "type": "element"
+        }
+      ],
+      "properties": {},
+      "tagName": "pre",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "Fenced code with a language and meta:"
+        }
+      ],
+      "properties": {},
+      "tagName": "p",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "console.log(\"hello\");\n"
+            }
+          ],
+          "properties": {
+            "className": [
+              "language-js"
+            ],
+            "dataMeta": "title=\"example.js\""
+          },
+          "tagName": "code",
+          "type": "element"
+        }
+      ],
+      "properties": {},
+      "tagName": "pre",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "Fenced code with no language:"
+        }
+      ],
+      "properties": {},
+      "tagName": "p",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "plain fenced code\n"
+            }
+          ],
+          "properties": {},
+          "tagName": "code",
+          "type": "element"
+        }
+      ],
+      "properties": {},
+      "tagName": "pre",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "Indented code:"
+        }
+      ],
+      "properties": {},
+      "tagName": "p",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "indented code line one\nindented code line two\n"
+            }
+          ],
+          "properties": {},
+          "tagName": "code",
+          "type": "element"
+        }
+      ],
+      "properties": {},
+      "tagName": "pre",
+      "type": "element"
+    }
+  ],
+  "type": "root"
+}

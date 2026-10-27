@@ -1,0 +1,832 @@
+{
+  "children": [
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "Deploying the API"
+        }
+      ],
+      "properties": {},
+      "tagName": "h1",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "This page walks through a deploy. It mixes "
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "strong"
+            }
+          ],
+          "properties": {},
+          "tagName": "strong",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": ", "
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "emphasis"
+            }
+          ],
+          "properties": {},
+          "tagName": "em",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": ",\n"
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "inline code"
+            }
+          ],
+          "properties": {},
+          "tagName": "code",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": ", and a "
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "link to the runbook"
+            }
+          ],
+          "properties": {
+            "href": "https://example.com/runbook",
+            "title": "Runbook"
+          },
+          "tagName": "a",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": "."
+        }
+      ],
+      "properties": {},
+      "tagName": "p",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "Prerequisites"
+        }
+      ],
+      "properties": {},
+      "tagName": "h2",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "You need the following before you start:"
+        }
+      ],
+      "properties": {},
+      "tagName": "p",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "\n"
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "A built binary."
+            }
+          ],
+          "properties": {},
+          "tagName": "li",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": "\n"
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "Access to the cluster."
+            }
+          ],
+          "properties": {},
+          "tagName": "li",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": "\n"
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "The "
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "deploy"
+                }
+              ],
+              "properties": {},
+              "tagName": "code",
+              "type": "element"
+            },
+            {
+              "type": "text",
+              "value": " role."
+            }
+          ],
+          "properties": {},
+          "tagName": "li",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": "\n"
+        }
+      ],
+      "properties": {},
+      "tagName": "ol",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "\n"
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "Note:"
+                }
+              ],
+              "properties": {},
+              "tagName": "strong",
+              "type": "element"
+            },
+            {
+              "type": "text",
+              "value": " never deploy on a Friday."
+            }
+          ],
+          "properties": {},
+          "tagName": "p",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": "\n"
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "\n"
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "And never on a Friday afternoon."
+                }
+              ],
+              "properties": {},
+              "tagName": "p",
+              "type": "element"
+            },
+            {
+              "type": "text",
+              "value": "\n"
+            }
+          ],
+          "properties": {},
+          "tagName": "blockquote",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": "\n"
+        }
+      ],
+      "properties": {},
+      "tagName": "blockquote",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "Steps"
+        }
+      ],
+      "properties": {},
+      "tagName": "h2",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "\n"
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "properties": {
+                "checked": true,
+                "disabled": true,
+                "type": "checkbox"
+              },
+              "tagName": "input",
+              "type": "element"
+            },
+            {
+              "type": "text",
+              "value": " "
+            },
+            {
+              "type": "text",
+              "value": "Build the binary"
+            }
+          ],
+          "properties": {
+            "className": [
+              "task-list-item"
+            ]
+          },
+          "tagName": "li",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": "\n"
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "properties": {
+                "checked": false,
+                "disabled": true,
+                "type": "checkbox"
+              },
+              "tagName": "input",
+              "type": "element"
+            },
+            {
+              "type": "text",
+              "value": " "
+            },
+            {
+              "type": "text",
+              "value": "Push the image"
+            }
+          ],
+          "properties": {
+            "className": [
+              "task-list-item"
+            ]
+          },
+          "tagName": "li",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": "\n"
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "properties": {
+                "checked": false,
+                "disabled": true,
+                "type": "checkbox"
+              },
+              "tagName": "input",
+              "type": "element"
+            },
+            {
+              "type": "text",
+              "value": " "
+            },
+            {
+              "type": "text",
+              "value": "Roll out"
+            }
+          ],
+          "properties": {
+            "className": [
+              "task-list-item"
+            ]
+          },
+          "tagName": "li",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": "\n"
+        }
+      ],
+      "properties": {
+        "className": [
+          "contains-task-list"
+        ]
+      },
+      "tagName": "ul",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "Run the deploy command:"
+        }
+      ],
+      "properties": {},
+      "tagName": "p",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "./deploy --env prod --wait\n"
+            }
+          ],
+          "properties": {
+            "className": [
+              "language-sh"
+            ],
+            "dataMeta": "title=\"deploy.sh\""
+          },
+          "tagName": "code",
+          "type": "element"
+        }
+      ],
+      "properties": {},
+      "tagName": "pre",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "The rollout status table:"
+        }
+      ],
+      "properties": {},
+      "tagName": "p",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "\n"
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "\n"
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "\n"
+                },
+                {
+                  "children": [
+                    {
+                      "type": "text",
+                      "value": "stage"
+                    }
+                  ],
+                  "properties": {
+                    "align": "left"
+                  },
+                  "tagName": "th",
+                  "type": "element"
+                },
+                {
+                  "type": "text",
+                  "value": "\n"
+                },
+                {
+                  "children": [
+                    {
+                      "type": "text",
+                      "value": "status"
+                    }
+                  ],
+                  "properties": {
+                    "align": "center"
+                  },
+                  "tagName": "th",
+                  "type": "element"
+                },
+                {
+                  "type": "text",
+                  "value": "\n"
+                },
+                {
+                  "children": [
+                    {
+                      "type": "text",
+                      "value": "owner"
+                    }
+                  ],
+                  "properties": {
+                    "align": "right"
+                  },
+                  "tagName": "th",
+                  "type": "element"
+                },
+                {
+                  "type": "text",
+                  "value": "\n"
+                }
+              ],
+              "properties": {},
+              "tagName": "tr",
+              "type": "element"
+            },
+            {
+              "type": "text",
+              "value": "\n"
+            }
+          ],
+          "properties": {},
+          "tagName": "thead",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": "\n"
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "\n"
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "\n"
+                },
+                {
+                  "children": [
+                    {
+                      "type": "text",
+                      "value": "build"
+                    }
+                  ],
+                  "properties": {
+                    "align": "left"
+                  },
+                  "tagName": "td",
+                  "type": "element"
+                },
+                {
+                  "type": "text",
+                  "value": "\n"
+                },
+                {
+                  "children": [
+                    {
+                      "type": "text",
+                      "value": "done"
+                    }
+                  ],
+                  "properties": {
+                    "align": "center"
+                  },
+                  "tagName": "td",
+                  "type": "element"
+                },
+                {
+                  "type": "text",
+                  "value": "\n"
+                },
+                {
+                  "children": [
+                    {
+                      "type": "text",
+                      "value": "ci"
+                    }
+                  ],
+                  "properties": {
+                    "align": "right"
+                  },
+                  "tagName": "td",
+                  "type": "element"
+                },
+                {
+                  "type": "text",
+                  "value": "\n"
+                }
+              ],
+              "properties": {},
+              "tagName": "tr",
+              "type": "element"
+            },
+            {
+              "type": "text",
+              "value": "\n"
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "\n"
+                },
+                {
+                  "children": [
+                    {
+                      "type": "text",
+                      "value": "push"
+                    }
+                  ],
+                  "properties": {
+                    "align": "left"
+                  },
+                  "tagName": "td",
+                  "type": "element"
+                },
+                {
+                  "type": "text",
+                  "value": "\n"
+                },
+                {
+                  "children": [
+                    {
+                      "type": "text",
+                      "value": "pending"
+                    }
+                  ],
+                  "properties": {
+                    "align": "center"
+                  },
+                  "tagName": "td",
+                  "type": "element"
+                },
+                {
+                  "type": "text",
+                  "value": "\n"
+                },
+                {
+                  "children": [
+                    {
+                      "type": "text",
+                      "value": "ci"
+                    }
+                  ],
+                  "properties": {
+                    "align": "right"
+                  },
+                  "tagName": "td",
+                  "type": "element"
+                },
+                {
+                  "type": "text",
+                  "value": "\n"
+                }
+              ],
+              "properties": {},
+              "tagName": "tr",
+              "type": "element"
+            },
+            {
+              "type": "text",
+              "value": "\n"
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "\n"
+                },
+                {
+                  "children": [
+                    {
+                      "type": "text",
+                      "value": "rollout"
+                    }
+                  ],
+                  "properties": {
+                    "align": "left"
+                  },
+                  "tagName": "td",
+                  "type": "element"
+                },
+                {
+                  "type": "text",
+                  "value": "\n"
+                },
+                {
+                  "children": [
+                    {
+                      "type": "text",
+                      "value": "blocked"
+                    }
+                  ],
+                  "properties": {
+                    "align": "center"
+                  },
+                  "tagName": "td",
+                  "type": "element"
+                },
+                {
+                  "type": "text",
+                  "value": "\n"
+                },
+                {
+                  "children": [
+                    {
+                      "type": "text",
+                      "value": "you"
+                    }
+                  ],
+                  "properties": {
+                    "align": "right"
+                  },
+                  "tagName": "td",
+                  "type": "element"
+                },
+                {
+                  "type": "text",
+                  "value": "\n"
+                }
+              ],
+              "properties": {},
+              "tagName": "tr",
+              "type": "element"
+            },
+            {
+              "type": "text",
+              "value": "\n"
+            }
+          ],
+          "properties": {},
+          "tagName": "tbody",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": "\n"
+        }
+      ],
+      "properties": {},
+      "tagName": "table",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [
+        {
+          "children": [],
+          "properties": {
+            "alt": "deploy diagram",
+            "src": "../assets/deploy.png",
+            "title": "Deploy flow"
+          },
+          "tagName": "img",
+          "type": "element"
+        }
+      ],
+      "properties": {},
+      "tagName": "p",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [],
+      "properties": {},
+      "tagName": "hr",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "See the "
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "https://example.com/docs"
+            }
+          ],
+          "properties": {
+            "href": "https://example.com/docs"
+          },
+          "tagName": "a",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": " for more, or the © notice below."
+        }
+      ],
+      "properties": {},
+      "tagName": "p",
+      "type": "element"
+    }
+  ],
+  "type": "root"
+}

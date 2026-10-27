@@ -1,0 +1,171 @@
+{
+  "children": [
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "\n"
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "A blockquote with a single paragraph."
+            }
+          ],
+          "properties": {},
+          "tagName": "p",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": "\n"
+        }
+      ],
+      "properties": {},
+      "tagName": "blockquote",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "\n"
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "A blockquote\nspanning two lines."
+            }
+          ],
+          "properties": {},
+          "tagName": "p",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": "\n"
+        }
+      ],
+      "properties": {},
+      "tagName": "blockquote",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "\n"
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "An outer blockquote."
+            }
+          ],
+          "properties": {},
+          "tagName": "p",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": "\n"
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "\n"
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "A nested blockquote inside it."
+                }
+              ],
+              "properties": {},
+              "tagName": "p",
+              "type": "element"
+            },
+            {
+              "type": "text",
+              "value": "\n"
+            }
+          ],
+          "properties": {},
+          "tagName": "blockquote",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": "\n"
+        }
+      ],
+      "properties": {},
+      "tagName": "blockquote",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "A thematic break follows:"
+        }
+      ],
+      "properties": {},
+      "tagName": "p",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [],
+      "properties": {},
+      "tagName": "hr",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "And another after this paragraph."
+        }
+      ],
+      "properties": {},
+      "tagName": "p",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [],
+      "properties": {},
+      "tagName": "hr",
+      "type": "element"
+    }
+  ],
+  "type": "root"
+}

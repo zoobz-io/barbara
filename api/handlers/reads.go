@@ -28,10 +28,10 @@ var GetPublishedDocument = rocco.GET("/published/apps/{app_id}/lookup",
 		}
 		format := req.Params.Query["format"]
 		if format == "" {
-			format = transformers.FormatMarkdown
+			format = transformers.FormatHast
 		}
-		if format != transformers.FormatMarkdown && format != transformers.FormatMdast {
-			return wire.PublishedDocumentResponse{}, rocco.ErrValidationFailed.WithMessage("format must be markdown or mdast")
+		if format != transformers.FormatMarkdown && format != transformers.FormatMdast && format != transformers.FormatHast {
+			return wire.PublishedDocumentResponse{}, rocco.ErrBadRequest.WithMessage("format must be hast, mdast, or markdown")
 		}
 		appID := req.Params.Path["app_id"]
 		reads := sum.MustUse[contracts.Reads](req.Context)
@@ -49,7 +49,7 @@ var GetPublishedDocument = rocco.GET("/published/apps/{app_id}/lookup",
 	WithQueryParams("key", "format").
 	WithSummary("Get a published document by key").
 	WithTags("Published").
-	WithErrors(rocco.ErrBadRequest, rocco.ErrValidationFailed, rocco.ErrNotFound, rocco.ErrUnauthorized).
+	WithErrors(rocco.ErrBadRequest, rocco.ErrNotFound, rocco.ErrUnauthorized).
 	WithAuthentication()
 
 // EnumerateDocuments lists an app's published documents, optionally filtered

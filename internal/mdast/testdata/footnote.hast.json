@@ -1,0 +1,146 @@
+{
+  "children": [
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "Text with a footnote"
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "1"
+                }
+              ],
+              "properties": {
+                "ariaDescribedBy": [
+                  "footnote-label"
+                ],
+                "dataFootnoteRef": true,
+                "href": "#user-content-fn-1",
+                "id": "user-content-fnref-1"
+              },
+              "tagName": "a",
+              "type": "element"
+            }
+          ],
+          "properties": {},
+          "tagName": "sup",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": "."
+        }
+      ],
+      "properties": {},
+      "tagName": "p",
+      "type": "element"
+    },
+    {
+      "type": "text",
+      "value": "\n"
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "Footnotes"
+            }
+          ],
+          "properties": {
+            "className": [
+              "sr-only"
+            ],
+            "id": "footnote-label"
+          },
+          "tagName": "h2",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": "\n"
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "\n"
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "\n"
+                },
+                {
+                  "children": [
+                    {
+                      "type": "text",
+                      "value": "The note. "
+                    },
+                    {
+                      "children": [
+                        {
+                          "type": "text",
+                          "value": "↩"
+                        }
+                      ],
+                      "properties": {
+                        "ariaLabel": "Back to reference 1",
+                        "className": [
+                          "data-footnote-backref"
+                        ],
+                        "dataFootnoteBackref": "",
+                        "href": "#user-content-fnref-1"
+                      },
+                      "tagName": "a",
+                      "type": "element"
+                    }
+                  ],
+                  "properties": {},
+                  "tagName": "p",
+                  "type": "element"
+                },
+                {
+                  "type": "text",
+                  "value": "\n"
+                }
+              ],
+              "properties": {
+                "id": "user-content-fn-1"
+              },
+              "tagName": "li",
+              "type": "element"
+            },
+            {
+              "type": "text",
+              "value": "\n"
+            }
+          ],
+          "properties": {},
+          "tagName": "ol",
+          "type": "element"
+        },
+        {
+          "type": "text",
+          "value": "\n"
+        }
+      ],
+      "properties": {
+        "className": [
+          "footnotes"
+        ],
+        "dataFootnotes": true
+      },
+      "tagName": "section",
+      "type": "element"
+    }
+  ],
+  "type": "root"
+}
